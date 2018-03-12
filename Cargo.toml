@@ -7,10 +7,10 @@ authors = ["Carl Lerche <me@carllerche.com>"]
 
 members = [
   "./",
-  "tower-web-derive",
+  "tower-web-macros",
 ]
 
 [dependencies]
 tower = { git = "https://github.com/tower-rs/tower" }
-tower-web-derive = { version = "0.1.0", path = "tower-web-derive" }
+tower-web-macros = { version = "0.1.0", path = "tower-web-macros" }
 proc-macro-hack = "0.4.0"

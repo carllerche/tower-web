@@ -5,10 +5,10 @@ extern crate proc_macro_hack;
 // declaration crate rather than both crates.
 #[allow(unused_imports)]
 #[macro_use]
-extern crate tower_web_derive;
+extern crate tower_web_macros;
 
 #[doc(hidden)]
-pub use tower_web_derive::*;
+pub use tower_web_macros::*;
 
 proc_macro_item_decl! {
     /// Implement a Web Service.
