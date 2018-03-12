@@ -1,0 +1,16 @@
+[package]
+name = "tower-web"
+version = "0.1.0"
+authors = ["Carl Lerche <me@carllerche.com>"]
+
+[workspace]
+
+members = [
+  "./",
+  "tower-web-derive",
+]
+
+[dependencies]
+tower = { git = "https://github.com/tower-rs/tower" }
+tower-web-derive = { version = "0.1.0", path = "tower-web-derive" }
+proc-macro-hack = "0.4.0"

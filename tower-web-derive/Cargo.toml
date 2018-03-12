@@ -1,0 +1,12 @@
+[package]
+name = "tower-web-derive"
+version = "0.1.0"
+authors = ["Carl Lerche <me@carllerche.com>"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro-hack = "0.4.0"
+quote = "0.4.2"
+syn = { version = "0.12.14", features = ["full", "fold", "extra-traits"] }
