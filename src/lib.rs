@@ -1,3 +1,4 @@
+#[macro_use]
 extern crate futures;
 extern crate http;
 extern crate tower;
@@ -19,18 +20,30 @@ proc_macro_item_decl! {
     impl_web! => impl_web_impl
 }
 
-pub struct Map<T> {
-    inner: T,
+pub struct Map<T: futures::IntoFuture> {
+    inner: T::Future,
+}
+
+impl<T: futures::IntoFuture> Map<T> {
+    pub fn new(into: T) -> Self {
+        Map { inner: into.into_future() }
+    }
 }
 
 impl<T> futures::Future for Map<T>
-where T: futures::IntoFuture,
+where T: futures::IntoFuture<Item = String>,
 {
     type Item = http::Response<String>;
     type Error = T::Error;
 
     fn poll(&mut self) -> futures::Poll<Self::Item, Self::Error> {
-        unimplemented!();
+        let body = try_ready!(self.inner.poll());
+        let resp = http::Response::builder()
+            .status(200)
+            .header("content-type", "text/plain")
+            .body(body).unwrap();
+
+        Ok(resp.into())
     }
 }
 

@@ -13,8 +13,10 @@ pub fn rewrite(input: &str) -> String {
     // Transfer the definition
     let ast = syn::fold::fold_file(&mut v, ast);
 
+    /*
     println!("~~~~~ SERVICES ~~~~~~");
     println!("{:#?}", v.services);
+    */
 
     let mut tokens = ast.into_tokens();
 
@@ -23,6 +25,7 @@ pub fn rewrite(input: &str) -> String {
 
         // Get a single route
         let route = &service.routes[0];
+        let ident = &route.ident;
         let ret = &route.ret;
 
         tokens.append_all(quote! {
@@ -38,7 +41,9 @@ pub fn rewrite(input: &str) -> String {
                 }
 
                 fn call(&mut self, _request: Self::Request) -> Self::Future {
-                    unimplemented!();
+                    // TODO: Actually use the request object
+                    let resp = self.#ident();
+                    ::tower_web::Map::new(resp)
                 }
             }
         });
@@ -97,7 +102,7 @@ impl syn::fold::Fold for ImplWeb {
         // Get the method name
         let ident = item.sig.ident;
 
-        println!("ARGS = {:#?}", item.sig.decl.inputs);
+        // println!("ARGS = {:#?}", item.sig.decl.inputs);
 
         // Get the return type
         let ret = match item.sig.decl.output {
