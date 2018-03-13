@@ -1,13 +1,14 @@
 #[macro_use]
 extern crate tower_web;
+extern crate futures;
 
 pub struct HelloWorld;
 
 impl_web! {
     impl HelloWorld {
         #[GET "/"]
-        pub fn hello_world(&mut self) -> Result<&'static str, ()> {
-            Ok("hello world")
+        fn hello_world(&mut self) -> Result<String, ()> {
+            Ok("hello world".into())
         }
     }
 }
