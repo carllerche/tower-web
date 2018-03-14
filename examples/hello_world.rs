@@ -2,6 +2,9 @@
 extern crate tower_web;
 extern crate futures;
 
+use std::sync::Arc;
+
+#[derive(Clone, Debug)]
 pub struct HelloWorld;
 
 impl_web! {
@@ -14,6 +17,7 @@ impl_web! {
 }
 
 pub fn main() {
-    let mut service = HelloWorld;
-    println!("HELLO WORLD: {:?}", service.hello_world());
+    let addr = "127.0.0.1:8080".parse().unwrap();
+
+    tower_web::run(&addr, Arc::new(|| Ok::<_, ()>(HelloWorld))).unwrap();
 }

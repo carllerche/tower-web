@@ -1,7 +1,14 @@
 #[macro_use]
 extern crate futures;
+extern crate hyper;
 extern crate http;
+extern crate tokio;
 extern crate tower;
+
+pub mod codegen;
+
+mod run;
+pub use run::run;
 
 // ===== proc_macro_hack junk =====
 
@@ -48,24 +55,3 @@ where T: futures::IntoFuture<Item = String>,
 }
 
 // ===== end proc_macro_hack junk =====
-
-pub mod codegen {
-    //! Types re-exported by the library for use in codegen
-
-    pub mod tower {
-        //! Types provided by the `tower` crate
-
-        pub use ::tower::Service;
-    }
-
-    pub mod http {
-        //! Types provided by the `http` crate.
-        pub use ::http::{Request, Response};
-    }
-
-    pub mod futures {
-        //! Types provided by the `futures` crate
-
-        pub use ::futures::{Future, IntoFuture, Poll, Async};
-    }
-}

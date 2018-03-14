@@ -13,6 +13,8 @@ members = [
 [dependencies]
 futures = "0.1.18"
 http = "0.1.5"
+hyper = { version = "0.11.22", default-features = false, features = ["compat"] }
+tokio = "0.1.3"
 tower = { git = "https://github.com/tower-rs/tower" }
 tower-web-macros = { version = "0.1.0", path = "tower-web-macros" }
 proc-macro-hack = "0.4.0"
