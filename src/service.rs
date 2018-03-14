@@ -1,60 +1,24 @@
-use {Resource, NotFound};
+use Resource;
 
 use http;
 use tower;
 use tokio::prelude::*;
 
-use std::io;
-use std::net::SocketAddr;
-
-/// Builds a web service
-#[derive(Debug)]
-pub struct ServiceBuilder<T> {
-    /// The inner resource
-    resource: T,
-}
-
+/// Web service
 #[derive(Clone, Debug)]
 pub struct Service<T> {
     resource: T,
 }
 
-// ===== impl ServiceBuilder =====
-
-impl ServiceBuilder<NotFound> {
-    pub fn new() -> Self {
-        ServiceBuilder {
-            resource: NotFound::new(),
-        }
-    }
-}
-
-impl<T> ServiceBuilder<T>
+impl<T> Service<T>
 where T: Resource,
 {
-    /// Add a resource handler.
-    pub fn resource<U>(self, resource: U) -> ServiceBuilder<U>
-    where U: Resource,
-    {
-        ServiceBuilder {
-            resource: resource,
+    pub(crate) fn new(resource: T) -> Self {
+        Service {
+            resource,
         }
     }
-
-    /// Build a service instance.
-    pub fn build(self) {
-        unimplemented!();
-    }
-
-    /// Run the service
-    pub fn run(self, addr: &SocketAddr) -> io::Result<()> {
-        ::run::run(addr, Service {
-            resource: self.resource,
-        })
-    }
 }
-
-// ===== impl Service =====
 
 impl<T> tower::Service for Service<T>
 where T: Resource,

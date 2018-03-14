@@ -7,10 +7,9 @@ use hyper::server::{Http, Service as HyperService};
 use tokio;
 use tokio::net::TcpListener;
 use tokio::prelude::*;
+use tower;
 
-use tower::{Service, NewService};
-
-use std::{fmt, io};
+use std::io;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
@@ -19,7 +18,7 @@ struct Lift<T> {
 }
 
 impl<T> Lift<T>
-where T: Service,
+where T: tower::Service,
 {
     fn new(inner: T) -> Self {
         Lift { inner }
@@ -27,8 +26,8 @@ where T: Service,
 }
 
 impl<T> HyperService for Lift<T>
-where T: Service<Request = http::Request<String>,
-                Response = http::Response<String>> + Clone + Send + 'static,
+where T: tower::Service<Request = http::Request<String>,
+                        Response = http::Response<String>> + Clone + Send + 'static,
       T::Future: Send,
 {
     type Request = hyper::Request;
@@ -67,8 +66,8 @@ where T: Service<Request = http::Request<String>,
 
 /// Run a service
 pub fn run<T>(addr: &SocketAddr, service: T) -> io::Result<()>
-where T: Service<Request = http::Request<String>,
-                Response = http::Response<String>> + Clone + Send + 'static,
+where T: tower::Service<Request = http::Request<String>,
+                       Response = http::Response<String>> + Clone + Send + 'static,
       T::Future: Send,
 {
     let listener = TcpListener::bind(addr)?;
