@@ -66,13 +66,10 @@ where T: Service<Request = http::Request<String>,
 }
 
 /// Run a service
-pub fn run<T>(addr: &SocketAddr, new_service: T) -> io::Result<()>
-where T: NewService<Request = http::Request<String>,
-                   Response = http::Response<String>> + Send + 'static,
-      T::InitError: fmt::Debug,
-      T::Service: Clone + Send + 'static,
+pub fn run<T>(addr: &SocketAddr, service: T) -> io::Result<()>
+where T: Service<Request = http::Request<String>,
+                Response = http::Response<String>> + Clone + Send + 'static,
       T::Future: Send,
-      <T::Service as Service>::Future: Send,
 {
     let listener = TcpListener::bind(addr)?;
     let http = Arc::new(Http::<String>::new());
@@ -85,15 +82,12 @@ where T: NewService<Request = http::Request<String>,
                 let h = http.clone();
 
                 tokio::spawn({
-                    new_service.new_service()
-                        .map_err(|e| println!("failed to build HTTP service; err = {:?}", e))
-                        .and_then(move |service| {
-                            let service = Lift::new(service);
-                            h.serve_connection(socket, service)
-                                .map(|_| ())
-                                .map_err(|e| {
-                                    println!("failed to serve connection; err={:?}", e);
-                                })
+                    let service = Lift::new(service.clone());
+
+                    h.serve_connection(socket, service)
+                        .map(|_| ())
+                        .map_err(|e| {
+                            println!("failed to serve connection; err={:?}", e);
                         })
                 })
             })

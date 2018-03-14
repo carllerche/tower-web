@@ -7,8 +7,12 @@ extern crate tower;
 
 pub mod codegen;
 
+mod resource;
 mod run;
-pub use run::run;
+mod service;
+
+pub use resource::{Resource, NotFound};
+pub use service::ServiceBuilder;
 
 // ===== proc_macro_hack junk =====
 

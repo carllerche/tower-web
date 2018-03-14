@@ -24,6 +24,30 @@ pub fn rewrite(input: &str) -> String {
         let ty = &service.self_ty;
 
         // Get a single route
+        // TODO: Route over all routes
+        let route = &service.routes[0];
+        let ident = &route.ident;
+        let ret = &route.ret;
+
+        tokens.append_all(quote! {
+            impl ::tower_web::Resource for #ty {
+                /*
+                type Request = ::tower_web::codegen::http::Request<String>;
+                type Response = ::tower_web::codegen::http::Response<String>;
+                type Error = ();
+                */
+                type Future = ::tower_web::Map<#ret>;
+
+                fn call(&mut self) -> Self::Future {
+                    // TODO: Actually use the request object
+                    let resp = self.#ident();
+                    ::tower_web::Map::new(resp)
+                }
+            }
+        });
+
+        /*
+        // Get a single route
         let route = &service.routes[0];
         let ident = &route.ident;
         let ret = &route.ret;
@@ -47,6 +71,7 @@ pub fn rewrite(input: &str) -> String {
                 }
             }
         });
+        */
     }
 
     tokens.to_string()
