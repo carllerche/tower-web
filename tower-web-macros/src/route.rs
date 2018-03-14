@@ -38,8 +38,6 @@ impl Route {
             return false;
         }
 
-        println!("ATTR = {:?}", attr);
-
         match attr.path.segments[0].ident.as_ref() {
             "GET" => {
                 self.set_method(Method::Get);

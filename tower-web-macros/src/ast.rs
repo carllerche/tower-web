@@ -36,12 +36,16 @@ pub fn rewrite(input: &str) -> String {
                 type Response = ::tower_web::codegen::http::Response<String>;
                 type Error = ();
                 */
-                type Future = ::tower_web::Map<#ret>;
+                type Body = <#ret as ::tower_web::IntoResponse>::Body;
+                type Error = <#ret as ::tower_web::IntoResponse>::Error;
+                type Future = <#ret as ::tower_web::IntoResponse>::Future;
 
                 fn call(&mut self) -> Self::Future {
+                    use ::tower_web::IntoResponse;
+
                     // TODO: Actually use the request object
                     let resp = self.#ident();
-                    ::tower_web::Map::new(resp)
+                    resp.into_response()
                 }
             }
         });

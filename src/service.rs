@@ -24,8 +24,8 @@ impl<T> tower::Service for Service<T>
 where T: Resource,
 {
     type Request = http::Request<String>;
-    type Response = http::Response<String>;
-    type Error = <T::Future as Future>::Error;
+    type Response = http::Response<T::Body>;
+    type Error = T::Error;
     type Future = T::Future;
 
     fn poll_ready(&mut self) -> Poll<(), Self::Error> {

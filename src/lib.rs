@@ -1,19 +1,24 @@
+extern crate bytes;
 #[macro_use]
 extern crate futures;
 extern crate hyper;
 extern crate http;
 extern crate tokio;
 extern crate tower;
+extern crate serde;
+extern crate serde_json;
 
 pub mod codegen;
 
 mod builder;
 mod resource;
+mod response;
 mod run;
 mod service;
 
 pub use builder::ServiceBuilder;
 pub use resource::{Resource, NotFound};
+pub use response::IntoResponse;
 pub use service::Service;
 
 // ===== proc_macro_hack junk =====
@@ -33,6 +38,7 @@ proc_macro_item_decl! {
     impl_web! => impl_web_impl
 }
 
+/*
 pub struct Map<T: futures::IntoFuture> {
     inner: T::Future,
 }
@@ -59,5 +65,6 @@ where T: futures::IntoFuture<Item = String>,
         Ok(resp.into())
     }
 }
+*/
 
 // ===== end proc_macro_hack junk =====
