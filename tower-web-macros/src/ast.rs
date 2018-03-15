@@ -1,6 +1,6 @@
 use {Route, Service};
 
-use quote::ToTokens;
+use quote::{ToTokens, Tokens};
 use syn;
 
 pub fn rewrite(input: &str) -> String {
@@ -13,69 +13,51 @@ pub fn rewrite(input: &str) -> String {
     // Transfer the definition
     let ast = syn::fold::fold_file(&mut v, ast);
 
-    /*
-    println!("~~~~~ SERVICES ~~~~~~");
-    println!("{:#?}", v.services);
-    */
-
     let mut tokens = ast.into_tokens();
 
     for service in &v.services {
         let ty = &service.self_ty;
 
-        // Get a single route
-        // TODO: Route over all routes
-        let route = &service.routes[0];
-        let ident = &route.ident;
-        let ret = &route.ret;
+        let mut match_routes = Tokens::new();
 
+        // Iterate over routes and generate the route matching code. For now,
+        // this is incredibly naive.
+        for route in &service.routes {
+            let ident = &route.ident;
+
+            match_routes.append_all(quote! {
+                if true {
+                    let response = self.#ident()
+                        .into_response()
+                        .map(|response| {
+                            response.map(|body| {
+                                // TODO: Log error
+                                let body = body.map_err(|_| ::tower_web::Error::Internal);
+                                Box::new(body) as Self::Body
+                            })
+                        });
+
+                    return Box::new(response);
+                }
+            });
+        }
+
+        // Define `Resource` on the struct.
         tokens.append_all(quote! {
             impl ::tower_web::Resource for #ty {
-                /*
-                type Request = ::tower_web::codegen::http::Request<String>;
-                type Response = ::tower_web::codegen::http::Response<String>;
-                type Error = ();
-                */
-                type Body = <#ret as ::tower_web::IntoResponse>::Body;
-                type Error = <#ret as ::tower_web::IntoResponse>::Error;
-                type Future = <#ret as ::tower_web::IntoResponse>::Future;
+                type Body = ::tower_web::codegen::BoxBody;
+                type Future = ::tower_web::codegen::BoxResponse<Self::Body>;
 
                 fn call(&mut self) -> Self::Future {
                     use ::tower_web::IntoResponse;
+                    use ::tower_web::codegen::futures::{future, Future, Stream};
 
-                    // TODO: Actually use the request object
-                    let resp = self.#ident();
-                    resp.into_response()
+                    #match_routes
+
+                    Box::new(future::err(::tower_web::Error::NotFound))
                 }
             }
         });
-
-        /*
-        // Get a single route
-        let route = &service.routes[0];
-        let ident = &route.ident;
-        let ret = &route.ret;
-
-        tokens.append_all(quote! {
-            impl ::tower_web::codegen::tower::Service for #ty {
-                type Request = ::tower_web::codegen::http::Request<String>;
-                type Response = ::tower_web::codegen::http::Response<String>;
-                type Error = ();
-                type Future = ::tower_web::Map<#ret>;
-
-                fn poll_ready(&mut self) -> ::tower_web::codegen::futures::Poll<(), Self::Error> {
-                    // TODO: Implement
-                    Ok(().into())
-                }
-
-                fn call(&mut self, _request: Self::Request) -> Self::Future {
-                    // TODO: Actually use the request object
-                    let resp = self.#ident();
-                    ::tower_web::Map::new(resp)
-                }
-            }
-        });
-        */
     }
 
     tokens.to_string()

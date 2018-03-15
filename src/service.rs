@@ -25,7 +25,7 @@ where T: Resource,
 {
     type Request = http::Request<String>;
     type Response = http::Response<T::Body>;
-    type Error = T::Error;
+    type Error = ::Error;
     type Future = T::Future;
 
     fn poll_ready(&mut self) -> Poll<(), Self::Error> {

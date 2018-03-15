@@ -7,13 +7,10 @@ use http;
 /// A resource
 pub trait Resource: Clone + Send + 'static {
     /// The HTTP response body type.
-    type Body: Stream<Item = Bytes, Error = Self::Error> + Send + 'static;
-
-    /// The error type.
-    type Error;
+    type Body: Stream<Item = Bytes, Error = ::Error> + Send + 'static;
 
     /// Response future
-    type Future: Future<Item = http::Response<Self::Body>, Error = Self::Error> + Send + 'static;
+    type Future: Future<Item = http::Response<Self::Body>, Error = ::Error> + Send + 'static;
 
     fn call(&mut self) -> Self::Future;
 }
@@ -29,9 +26,8 @@ impl NotFound {
 }
 
 impl Resource for NotFound {
-    type Body = Once<Bytes, Self::Error>;
-    type Error = ();
-    type Future = FutureResult<http::Response<Self::Body>, Self::Error>;
+    type Body = Once<Bytes, ::Error>;
+    type Future = FutureResult<http::Response<Self::Body>, ::Error>;
 
     fn call(&mut self) -> Self::Future {
         unimplemented!();

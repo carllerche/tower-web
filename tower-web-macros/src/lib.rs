@@ -1,4 +1,4 @@
-#![recursion_limit = "128"]
+#![recursion_limit = "256"]
 
 #[macro_use]
 extern crate proc_macro_hack;
