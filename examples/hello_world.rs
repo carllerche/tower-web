@@ -22,6 +22,13 @@ impl_web! {
                 msg: "hello world",
             })
         }
+
+        #[GET "/bye"]
+        fn goodbye_world(&mut self) -> Result<HelloResponse, ()> {
+            Ok(HelloResponse {
+                msg: "goodbye world",
+            })
+        }
     }
 }
 

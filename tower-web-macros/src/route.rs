@@ -1,4 +1,5 @@
 use syn;
+use quote::Tokens;
 
 use std::fmt;
 
@@ -15,6 +16,7 @@ pub struct Route {
 
     /// HTTP path
     pub path: Option<String>,
+    pub path_lit: Option<syn::LitStr>,
 }
 
 #[derive(Debug)]
@@ -29,6 +31,7 @@ impl Route {
             ret,
             method: None,
             path: None,
+            path_lit: None,
         }
     }
 
@@ -48,6 +51,7 @@ impl Route {
                 };
 
                 self.set_path(args.value());
+                self.path_lit = Some(args);
             }
             _ => {
                 return false;
@@ -79,5 +83,17 @@ impl fmt::Debug for Route {
             .field("method", &self.method)
             .field("path", &self.path)
             .finish()
+    }
+}
+
+impl Method {
+    pub fn to_tokens(&self) -> Tokens {
+        use self::Method::*;
+
+        match *self {
+            Get => quote! {
+                ::tower_web::codegen::http::Method::GET
+            },
+        }
     }
 }

@@ -10,6 +10,11 @@ pub type BoxResponse<T> = Box<Future<Item = Response<T>, Error = ::Error> + Send
 /// A boxed streaming body
 pub type BoxBody = Box<Stream<Item = Bytes, Error = ::Error> + Send>;
 
+pub mod bytes {
+    //! Types provided by the `bytes` crate
+
+    pub use ::bytes::Bytes;
+}
 
 pub mod tower {
     //! Types provided by the `tower` crate
@@ -19,7 +24,7 @@ pub mod tower {
 
 pub mod http {
     //! Types provided by the `http` crate.
-    pub use ::http::{Request, Response};
+    pub use ::http::{Request, Response, Method};
 }
 
 pub mod futures {

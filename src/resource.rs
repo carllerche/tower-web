@@ -12,7 +12,7 @@ pub trait Resource: Clone + Send + 'static {
     /// Response future
     type Future: Future<Item = http::Response<Self::Body>, Error = ::Error> + Send + 'static;
 
-    fn call(&mut self) -> Self::Future;
+    fn call(&mut self, request: http::Request<()>) -> Self::Future;
 }
 
 /// Resource that matches all requests and returns 404.
@@ -29,7 +29,7 @@ impl Resource for NotFound {
     type Body = Once<Bytes, ::Error>;
     type Future = FutureResult<http::Response<Self::Body>, ::Error>;
 
-    fn call(&mut self) -> Self::Future {
+    fn call(&mut self, request: http::Request<()>) -> Self::Future {
         unimplemented!();
     }
 }

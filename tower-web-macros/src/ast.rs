@@ -24,9 +24,11 @@ pub fn rewrite(input: &str) -> String {
         // this is incredibly naive.
         for route in &service.routes {
             let ident = &route.ident;
+            let method = route.method.as_ref().unwrap().to_tokens();
+            let path = route.path_lit.as_ref().unwrap();
 
             match_routes.append_all(quote! {
-                if true {
+                if ::tower_web::route::matches(&request, &#method, #path) {
                     let response = self.#ident()
                         .into_response()
                         .map(|response| {
@@ -48,13 +50,22 @@ pub fn rewrite(input: &str) -> String {
                 type Body = ::tower_web::codegen::BoxBody;
                 type Future = ::tower_web::codegen::BoxResponse<Self::Body>;
 
-                fn call(&mut self) -> Self::Future {
+                fn call(&mut self, request: ::tower_web::codegen::http::Request<()>) -> Self::Future {
                     use ::tower_web::IntoResponse;
-                    use ::tower_web::codegen::futures::{future, Future, Stream};
+                    use ::tower_web::codegen::bytes::Bytes;
+                    use ::tower_web::codegen::futures::{future, stream, Future, Stream};
 
                     #match_routes
 
-                    Box::new(future::err(::tower_web::Error::NotFound))
+                    let body = stream::once(Ok(Bytes::from_static(b"not found")));
+
+                    let response = ::tower_web::codegen::http::Response::builder()
+                        .status(404)
+                        .header("content-type", "text/plain")
+                        .body(Box::new(body) as Self::Body)
+                        .unwrap();
+
+                    Box::new(future::ok(response))
                 }
             }
         });

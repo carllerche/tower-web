@@ -33,9 +33,9 @@ where T: Resource,
         Ok(().into())
     }
 
-    fn call(&mut self, _request: Self::Request) -> Self::Future {
-        // TODO: Do something with the request o_O
-
-        self.resource.call()
+    fn call(&mut self, request: Self::Request) -> Self::Future {
+        // TODO: Use the body
+        let request = request.map(|_| ());
+        self.resource.call(request)
     }
 }
