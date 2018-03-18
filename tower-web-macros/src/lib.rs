@@ -6,16 +6,19 @@ extern crate syn;
 #[macro_use]
 extern crate quote;
 
-mod ast;
+mod gen;
+mod parse;
 mod route;
 mod service;
 
 use route::*;
+use parse::*;
 use service::*;
 
 proc_macro_item_impl! {
     /// Implement a Web Service
     pub fn impl_web_impl(input: &str) -> String {
-        ast::rewrite(input)
+        Parse::parse(input)
+            .generate()
     }
 }
