@@ -11,7 +11,9 @@ extern crate serde;
 extern crate serde_json;
 
 pub mod codegen;
-pub mod route;
+pub mod routing;
+
+pub mod route; // TODO: Delete
 
 mod builder;
 mod error;

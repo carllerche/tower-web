@@ -34,8 +34,11 @@ where T: Resource,
     }
 
     fn call(&mut self, request: Self::Request) -> Self::Future {
+        unimplemented!();
+        /*
         // TODO: Use the body
         let request = request.map(|_| ());
         self.resource.call(request)
+        */
     }
 }
