@@ -1,3 +1,7 @@
+pub mod set;
+
+pub use self::set::RouteSet;
+
 use http::{Method, Request};
 
 /// Matches an HTTP request with a service funtion.
@@ -22,12 +26,6 @@ pub struct Condition {
 
     /// Path used to match the route
     path: String,
-}
-
-/// A set of routes
-#[derive(Debug, Default)]
-pub struct RouteSet {
-    routes: Vec<Route>,
 }
 
 #[derive(Debug)]
@@ -55,10 +53,7 @@ impl Route {
     /// Try to match a request against this route.
     pub fn test(&self, request: &Request<()>) -> Option<Match> {
         if self.condition.test(request) {
-            return Some(Match {
-                destination: &self.destination,
-                condition: &self.condition,
-            })
+            return Some(Match::new(&self.destination, &self.condition));
         }
 
         None
@@ -82,6 +77,15 @@ impl Destination {
 // ===== impl Condition =====
 
 impl Condition {
+    pub fn new(method: Method, path: &str) -> Condition {
+        let path = path.to_string();
+
+        Condition {
+            method,
+            path
+        }
+    }
+
     pub fn test(&self, request: &Request<()>) -> bool {
         if *request.method() != self.method {
             return false;
@@ -95,38 +99,22 @@ impl Condition {
     }
 }
 
-// ===== impl RouteSet =====
-
-impl RouteSet {
-    /// Create a new, empty, `RouteSet`
-    pub fn new() -> RouteSet {
-        RouteSet {
-            routes: vec![],
-        }
-    }
-
-    /// Append a route to the route set.
-    pub fn push(&mut self, route: Route) {
-        self.routes.push(route);
-    }
-
-    /// Match a request against a route set
-    pub fn test(&self, request: &Request<()>) -> Option<Match> {
-        for route in &self.routes {
-            if let Some(m) = route.test(request) {
-                return Some(m);
-            }
-        }
-
-        None
-    }
-}
-
 // ===== impl Match =====
 
 impl<'a> Match<'a> {
+    pub fn new(destination: &'a Destination, condition: &'a Condition) -> Match<'a> {
+        Match {
+            destination,
+            condition,
+        }
+    }
+
     /// Returns the matched destination
     pub fn destination(&self) -> &Destination {
         &*self.destination
+    }
+
+    pub fn into_parts(&self) -> (&'a Destination, &'a Condition) {
+        (self.destination, self.condition)
     }
 }

@@ -9,6 +9,9 @@ use tower_web::*;
 #[derive(Clone, Debug)]
 pub struct HelloWorld;
 
+#[derive(Clone, Debug)]
+pub struct GoodbyeWorld;
+
 #[derive(Debug, Serialize)]
 pub struct HelloResponse {
     msg: &'static str,
@@ -30,6 +33,15 @@ impl_web! {
             })
         }
     }
+
+    impl GoodbyeWorld {
+        #[GET "/goodbye"]
+        fn goodbye(&mut self) -> Result<HelloResponse, ()> {
+            Ok(HelloResponse {
+                msg: "other resource",
+            })
+        }
+    }
 }
 
 pub fn main() {
@@ -37,6 +49,7 @@ pub fn main() {
 
     ServiceBuilder::new()
         .resource(HelloWorld)
+        .resource(GoodbyeWorld)
         .run(&addr)
         .unwrap();
 }

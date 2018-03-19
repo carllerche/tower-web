@@ -11,20 +11,18 @@ extern crate serde;
 extern crate serde_json;
 
 pub mod codegen;
+pub mod resource;
 pub mod routing;
-
-pub mod route; // TODO: Delete
 
 mod builder;
 mod error;
-mod resource;
 mod response;
 mod run;
 mod service;
 
 pub use builder::ServiceBuilder;
 pub use error::Error;
-pub use resource::{Resource, NotFound};
+pub use resource::Resource;
 pub use response::IntoResponse;
 pub use service::Service;
 

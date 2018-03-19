@@ -1,4 +1,5 @@
-use {NotFound, Resource, Service};
+use {Resource, Service};
+use resource::Chain;
 
 use std::io;
 use std::net::SocketAddr;
@@ -10,11 +11,11 @@ pub struct ServiceBuilder<T> {
     resource: T,
 }
 
-impl ServiceBuilder<NotFound> {
+impl ServiceBuilder<()> {
     /// Create a new `ServiceBuilder`
     pub fn new() -> Self {
         ServiceBuilder {
-            resource: NotFound::new(),
+            resource: (),
         }
     }
 }
@@ -23,11 +24,12 @@ impl<T> ServiceBuilder<T>
 where T: Resource,
 {
     /// Add a resource handler.
-    pub fn resource<U>(self, resource: U) -> ServiceBuilder<U>
+    pub fn resource<U>(self, resource: U) -> ServiceBuilder<<T as Chain<U>>::Resource>
     where U: Resource,
+          T: Chain<U>,
     {
         ServiceBuilder {
-            resource: resource,
+            resource: self.resource.chain(resource),
         }
     }
 

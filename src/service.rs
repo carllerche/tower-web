@@ -1,21 +1,28 @@
 use Resource;
+use routing::RouteSet;
 
 use http;
 use tower;
 use tokio::prelude::*;
 
+use std::sync::Arc;
+
 /// Web service
 #[derive(Clone, Debug)]
 pub struct Service<T> {
     resource: T,
+    routes: Arc<RouteSet>,
 }
 
 impl<T> Service<T>
 where T: Resource,
 {
     pub(crate) fn new(resource: T) -> Self {
+        let routes = Arc::new(resource.routes());
+
         Service {
             resource,
+            routes,
         }
     }
 }
@@ -34,11 +41,26 @@ where T: Resource,
     }
 
     fn call(&mut self, request: Self::Request) -> Self::Future {
-        unimplemented!();
-        /*
         // TODO: Use the body
-        let request = request.map(|_| ());
-        self.resource.call(request)
-        */
+        let (head, _) = request.into_parts();
+        let request = http::Request::from_parts(head, ());
+
+        match self.routes.test(&request) {
+            Some(match_) => {
+                self.resource.dispatch(&match_, request)
+            }
+            None => {
+                unimplemented!();
+                /*
+                let response = ::tower_web::codegen::http::Response::builder()
+                    .status(404)
+                    .header("content-type", "text/plain")
+                    .body(Box::new(body) as Self::Body)
+                    .unwrap();
+
+                Box::new(future::ok(response))
+                */
+            }
+        }
     }
 }

@@ -11,17 +11,23 @@ pub fn generate(ast: &syn::File, services: &[Service]) -> String {
     for service in services {
         let ty = &service.self_ty;
 
-        let mut match_routes = Tokens::new();
+        let mut routes_fn = Tokens::new();
+        let mut dispatch_fn = Tokens::new();
 
-        // Iterate over routes and generate the route matching code. For now,
-        // this is incredibly naive.
-        for route in &service.routes {
+        for (i, route) in service.routes.iter().enumerate() {
             let ident = &route.ident;
             let method = route.method.as_ref().unwrap().to_tokens();
             let path = route.path_lit.as_ref().unwrap();
 
-            match_routes.append_all(quote! {
-                if ::tower_web::route::matches(&request, &#method, #path) {
+            routes_fn.append_all(quote! {
+                routes.push(
+                    Route::new(
+                        Destination::new(#i),
+                        Condition::new(#method, #path)));
+            });
+
+            dispatch_fn.append_all(quote! {
+                #i => {
                     let response = self.#ident()
                         .into_response()
                         .map(|response| {
@@ -32,7 +38,7 @@ pub fn generate(ast: &syn::File, services: &[Service]) -> String {
                             })
                         });
 
-                    return Box::new(response);
+                    Box::new(response) as Self::Future
                 }
             });
         }
@@ -43,22 +49,37 @@ pub fn generate(ast: &syn::File, services: &[Service]) -> String {
                 type Body = ::tower_web::codegen::BoxBody;
                 type Future = ::tower_web::codegen::BoxResponse<Self::Body>;
 
-                fn call(&mut self, request: ::tower_web::codegen::http::Request<()>) -> Self::Future {
+                fn routes(&self) -> ::tower_web::routing::RouteSet {
+                    use ::tower_web::routing::{Route, RouteSet, Destination, Condition};
+
+                    let mut routes = RouteSet::new();
+                    #routes_fn
+                    routes
+                }
+
+                fn dispatch(&mut self,
+                            route: &::tower_web::routing::Match,
+                            request: ::tower_web::codegen::http::Request<()>)
+                    -> Self::Future
+                {
                     use ::tower_web::IntoResponse;
                     use ::tower_web::codegen::bytes::Bytes;
                     use ::tower_web::codegen::futures::{future, stream, Future, Stream};
 
-                    #match_routes
+                    drop(request);
 
-                    let body = stream::once(Ok(Bytes::from_static(b"not found")));
+                    match route.destination().id() {
+                        #dispatch_fn
+                        _ => panic!("invalid route destination"),
+                    }
+                }
+            }
 
-                    let response = ::tower_web::codegen::http::Response::builder()
-                        .status(404)
-                        .header("content-type", "text/plain")
-                        .body(Box::new(body) as Self::Body)
-                        .unwrap();
+            impl<U> ::tower_web::resource::Chain<U> for #ty {
+                type Resource = (Self, U);
 
-                    Box::new(future::ok(response))
+                fn chain(self, other: U) -> Self::Resource {
+                    (self, other)
                 }
             }
         });
