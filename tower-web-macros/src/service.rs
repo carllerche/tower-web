@@ -1,6 +1,6 @@
 use Route;
 
-use syn;
+use {syn, quote};
 
 #[derive(Debug)]
 pub struct Service {
@@ -13,6 +13,14 @@ impl Service {
         Service {
             self_ty,
             routes: vec![],
+        }
+    }
+
+    pub fn destination_ty(&self) -> quote::Tokens {
+        match self.routes.len() {
+            0 | 1 => quote! { () },
+            2 => quote! { ::tower_web::resource::tuple::Either2 },
+            _ => unimplemented!(),
         }
     }
 }

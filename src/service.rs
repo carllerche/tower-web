@@ -9,9 +9,9 @@ use std::sync::Arc;
 
 /// Web service
 #[derive(Clone, Debug)]
-pub struct Service<T> {
+pub struct Service<T: Resource> {
     resource: T,
-    routes: Arc<RouteSet>,
+    routes: Arc<RouteSet<T::Destination>>,
 }
 
 impl<T> Service<T>
@@ -47,7 +47,7 @@ where T: Resource,
 
         match self.routes.test(&request) {
             Some(match_) => {
-                self.resource.dispatch(&match_, request)
+                self.resource.dispatch(match_, request)
             }
             None => {
                 unimplemented!();

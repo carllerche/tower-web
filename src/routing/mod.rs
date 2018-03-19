@@ -6,17 +6,13 @@ use http::{Method, Request};
 
 /// Matches an HTTP request with a service funtion.
 #[derive(Debug)]
-pub struct Route {
+pub struct Route<T> {
     /// Where to route the request
-    destination: Destination,
+    destination: T,
 
     /// When to match on this route
     condition: Condition,
 }
-
-/// The destination to route a request
-#[derive(Debug)]
-pub struct Destination(usize);
 
 /// Requirement on an HTTP request in order to match a route
 #[derive(Debug)]
@@ -29,48 +25,40 @@ pub struct Condition {
 }
 
 #[derive(Debug)]
-pub struct Match<'a> {
-    destination: &'a Destination,
+pub struct Match<'a, T> {
+    destination: T,
     condition: &'a Condition,
 }
 
 // ===== impl Route =====
 
-impl Route {
+impl<T: Clone> Route<T> {
     /// Create a new route
-    pub fn new(destination: Destination, condition: Condition) -> Route {
+    pub fn new(destination: T, condition: Condition) -> Self {
         Route {
             destination,
             condition,
         }
     }
 
-    /// Break up the route into the destination and condition
-    pub fn into_parts(self) -> (Destination, Condition) {
-        (self.destination, self.condition)
-    }
-
     /// Try to match a request against this route.
-    pub fn test(&self, request: &Request<()>) -> Option<Match> {
+    pub fn test(&self, request: &Request<()>) -> Option<Match<T>> {
         if self.condition.test(request) {
-            return Some(Match::new(&self.destination, &self.condition));
+            return Some(Match::new(self.destination.clone(), &self.condition));
         }
 
         None
     }
-}
 
-// ===== impl Destination =====
+    pub(crate) fn map<F, U>(self, f: F) -> Route<U>
+    where F: Fn(T) -> U
+    {
+        let destination = f(self.destination);
 
-impl Destination {
-    /// Create a new destination
-    pub fn new(id: usize) -> Destination {
-        Destination(id)
-    }
-
-    /// Returns the destination's identifier
-    pub fn id(&self) -> usize {
-        self.0
+        Route {
+            destination,
+            condition: self.condition,
+        }
     }
 }
 
@@ -101,8 +89,8 @@ impl Condition {
 
 // ===== impl Match =====
 
-impl<'a> Match<'a> {
-    pub fn new(destination: &'a Destination, condition: &'a Condition) -> Match<'a> {
+impl<'a, T> Match<'a, T> {
+    pub(crate) fn new(destination: T, condition: &'a Condition) -> Self {
         Match {
             destination,
             condition,
@@ -110,11 +98,11 @@ impl<'a> Match<'a> {
     }
 
     /// Returns the matched destination
-    pub fn destination(&self) -> &Destination {
-        &*self.destination
+    pub fn destination(&self) -> &T {
+        &self.destination
     }
 
-    pub fn into_parts(&self) -> (&'a Destination, &'a Condition) {
+    pub(crate) fn into_parts(self) -> (T, &'a Condition) {
         (self.destination, self.condition)
     }
 }

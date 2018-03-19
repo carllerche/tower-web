@@ -1,13 +1,14 @@
-use routing::{self, RouteSet, Route, Destination, Match};
+use routing::{RouteSet, Match};
 
 use bytes::Bytes;
 use futures::{Future, Stream};
-use futures::future::FutureResult;
-use futures::stream::Once;
 use http;
 
 /// A resource
 pub trait Resource: Clone + Send + 'static {
+    /// Identifies a route.
+    type Destination: Clone + Send + Sync + 'static;
+
     /// The HTTP response body type.
     type Body: Stream<Item = Bytes, Error = ::Error> + Send + 'static;
 
@@ -15,9 +16,11 @@ pub trait Resource: Clone + Send + 'static {
     type Future: Future<Item = http::Response<Self::Body>, Error = ::Error> + Send + 'static;
 
     /// Return the routes associated with the resource.
-    fn routes(&self) -> RouteSet;
+    fn routes(&self) -> RouteSet<Self::Destination>;
 
-    fn dispatch(&mut self, route: &Match, request: http::Request<()>) -> Self::Future;
+    fn dispatch(&mut self,
+                route: Match<Self::Destination>,
+                request: http::Request<()>) -> Self::Future;
 }
 
 /// Combine two resources
@@ -27,115 +30,116 @@ pub trait Chain<U> {
     fn chain(self, other: U) -> Self::Resource;
 }
 
-const ROUTE_MASK: usize = (1 << 16) - 1;
+pub mod tuple {
+    //! Implementations of `Resource` for tuple types.
 
-// ===== impl (...) =====
+    use super::{Chain, Resource};
+    use routing::{RouteSet, Match};
 
-impl Resource for () {
-    type Body = Once<Bytes, ::Error>;
-    type Future = FutureResult<http::Response<Self::Body>, ::Error>;
+    use bytes::Bytes;
+    use futures::{Future, Poll};
+    use futures::future::FutureResult;
+    use futures::stream::Once;
+    use http;
 
-    fn routes(&self) -> RouteSet {
-        RouteSet::new()
-    }
+    // ===== 0 =====
 
-    fn dispatch(&mut self, route: &Match, request: http::Request<()>) -> Self::Future {
-        unreachable!();
-    }
-}
+    impl Resource for () {
+        type Destination = ();
+        type Body = Once<Bytes, ::Error>;
+        type Future = FutureResult<http::Response<Self::Body>, ::Error>;
 
-impl<U> Chain<U> for () {
-    type Resource = U;
-
-    fn chain(self, other: U) -> Self::Resource {
-        other
-    }
-}
-
-impl<R1> Resource for (R1,)
-where R1: Resource,
-{
-    type Body = R1::Body;
-    type Future = R1::Future;
-
-    fn routes(&self) -> RouteSet {
-        self.0.routes()
-    }
-
-    fn dispatch(&mut self, rule: &Match, request: http::Request<()>) -> Self::Future {
-        self.0.dispatch(rule, request)
-    }
-}
-
-impl<R1, U> Chain<U> for (R1,) {
-    type Resource = (R1, U);
-
-    fn chain(self, other: U) -> Self::Resource {
-        (self.0, other)
-    }
-}
-
-impl<R1, R2> Resource for (R1, R2)
-where R1: Resource,
-      R2: Resource<Body = R1::Body>,
-{
-    type Body = R1::Body;
-    type Future = ::futures::future::Either<R1::Future, R2::Future>;
-
-    fn routes(&self) -> RouteSet {
-        let mut routes = RouteSet::new();
-
-        for route in self.0.routes() {
-            let (destination, condition) = route.into_parts();
-            let id = destination.id();
-
-            assert!(id <= ROUTE_MASK);
-
-            let destination = Destination::new((0 << 16) | id);
-
-            routes.push(Route::new(destination, condition));
+        fn routes(&self) -> RouteSet<()> {
+            RouteSet::new()
         }
 
-        for route in self.1.routes() {
-            let (destination, condition) = route.into_parts();
-            let id = destination.id();
-
-            assert!(id <= ROUTE_MASK);
-
-            let destination = Destination::new((1 << 16) | id);
-
-            routes.push(Route::new(destination, condition));
+        fn dispatch(&mut self, _: Match<()>, _: http::Request<()>) -> Self::Future {
+            unreachable!();
         }
-
-        routes
     }
 
-    fn dispatch(&mut self, match_: &Match, request: http::Request<()>) -> Self::Future {
-        use futures::future::Either;
+    impl<U> Chain<U> for () {
+        type Resource = U;
 
-        let (destination, condition) = match_.into_parts();
-        let id = destination.id();
+        fn chain(self, other: U) -> Self::Resource {
+            other
+        }
+    }
 
-        match id >> 16 {
-            0 => {
-                let d = Destination::new(id & ROUTE_MASK);
-                let match_ = Match::new(&d, condition);
-                Either::A(self.0.dispatch(&match_, request))
+    // ===== 2 =====
+
+    #[derive(Clone)]
+    pub enum Either2<A = (), B = ()> {
+        A(A),
+        B(B),
+    }
+
+    impl<A, B> Future for Either2<A, B>
+    where A: Future,
+          B: Future<Item = A::Item, Error = A::Error>,
+    {
+        type Item = A::Item;
+        type Error = A::Error;
+
+        fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
+            use self::Either2::*;
+
+            match *self {
+                A(ref mut f) => f.poll(),
+                B(ref mut f) => f.poll(),
             }
-            1 => {
-                let d = Destination::new(id & ROUTE_MASK);
-                let match_ = Match::new(&d, condition);
-                Either::B(self.1.dispatch(&match_, request))
-            }
-            _ => unreachable!(),
         }
     }
-}
 
-impl<R1, R2, U> Chain<U> for (R1, R2) {
-    type Resource = (R1, R2, U);
+    impl<R1, R2> Resource for (R1, R2)
+    where R1: Resource,
+          R2: Resource<Body = R1::Body>,
+    {
+        type Destination = Either2<R1::Destination, R2::Destination>;
+        type Body = R1::Body;
+        type Future = Either2<R1::Future, R2::Future>;
 
-    fn chain(self, other: U) -> Self::Resource {
-        (self.0, self.1, other)
+        fn routes(&self) -> RouteSet<Self::Destination> {
+            let mut routes = RouteSet::new();
+
+            for route in self.0.routes() {
+                routes.push(route.map(Either2::A));
+            }
+
+            for route in self.1.routes() {
+                routes.push(route.map(Either2::B));
+            }
+
+            routes
+        }
+
+        fn dispatch(&mut self,
+                    match_: Match<Self::Destination>,
+                    request: http::Request<()>)
+            -> Self::Future
+        {
+            use self::Either2::*;
+
+            let (destination, condition) = match_.into_parts();
+
+            match destination {
+                A(d) => {
+                    let match_ = Match::new(d, condition);
+                    A(self.0.dispatch(match_, request))
+                }
+                B(d) => {
+                    let match_ = Match::new(d, condition);
+                    B(self.1.dispatch(match_, request))
+                }
+            }
+        }
+    }
+
+    impl<R1, R2, U> Chain<U> for (R1, R2) {
+        type Resource = (R1, R2, U);
+
+        fn chain(self, other: U) -> Self::Resource {
+            (self.0, self.1, other)
+        }
     }
 }

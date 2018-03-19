@@ -18,8 +18,10 @@ pub trait IntoResponse {
     fn into_response(self) -> Self::Future;
 }
 
+/*
 /// Do not serialize the value
 pub struct Raw<T>(T);
+*/
 
 /// Map a serializable response to an HTTP response
 pub struct Serialize<T>(T);

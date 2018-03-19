@@ -10,24 +10,38 @@ pub fn generate(ast: &syn::File, services: &[Service]) -> String {
 
     for service in services {
         let ty = &service.self_ty;
+        let destination = service.destination_ty();
 
         let mut routes_fn = Tokens::new();
         let mut dispatch_fn = Tokens::new();
+
+        let num_routes = service.routes.len();
 
         for (i, route) in service.routes.iter().enumerate() {
             let ident = &route.ident;
             let method = route.method.as_ref().unwrap().to_tokens();
             let path = route.path_lit.as_ref().unwrap();
 
+            // TODO: Extract
+            let destination = if num_routes >= 2 {
+                match i {
+                    0 => quote! { A(()) },
+                    1 => quote! { B(()) },
+                    _ => unimplemented!(),
+                }
+            } else {
+                quote! { () }
+            };
+
             routes_fn.append_all(quote! {
                 routes.push(
                     Route::new(
-                        Destination::new(#i),
+                        #destination,
                         Condition::new(#method, #path)));
             });
 
             dispatch_fn.append_all(quote! {
-                #i => {
+                #destination => {
                     let response = self.#ident()
                         .into_response()
                         .map(|response| {
@@ -46,11 +60,13 @@ pub fn generate(ast: &syn::File, services: &[Service]) -> String {
         // Define `Resource` on the struct.
         tokens.append_all(quote! {
             impl ::tower_web::Resource for #ty {
+                type Destination = #destination;
                 type Body = ::tower_web::codegen::BoxBody;
                 type Future = ::tower_web::codegen::BoxResponse<Self::Body>;
 
-                fn routes(&self) -> ::tower_web::routing::RouteSet {
-                    use ::tower_web::routing::{Route, RouteSet, Destination, Condition};
+                fn routes(&self) -> ::tower_web::routing::RouteSet<Self::Destination> {
+                    use ::tower_web::routing::{Route, RouteSet, Condition};
+                    use ::tower_web::resource::tuple::Either2::*;
 
                     let mut routes = RouteSet::new();
                     #routes_fn
@@ -58,19 +74,19 @@ pub fn generate(ast: &syn::File, services: &[Service]) -> String {
                 }
 
                 fn dispatch(&mut self,
-                            route: &::tower_web::routing::Match,
+                            route: ::tower_web::routing::Match<Self::Destination>,
                             request: ::tower_web::codegen::http::Request<()>)
                     -> Self::Future
                 {
                     use ::tower_web::IntoResponse;
                     use ::tower_web::codegen::bytes::Bytes;
                     use ::tower_web::codegen::futures::{future, stream, Future, Stream};
+                    use ::tower_web::resource::tuple::Either2::*;
 
                     drop(request);
 
-                    match route.destination().id() {
+                    match *route.destination() {
                         #dispatch_fn
-                        _ => panic!("invalid route destination"),
                     }
                 }
             }

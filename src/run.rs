@@ -13,7 +13,7 @@ use std::io;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-struct Lift<T> {
+struct Lift<T: Resource> {
     inner: Service<T>,
 }
 
