@@ -1,4 +1,5 @@
 extern crate bytes;
+#[macro_use]
 extern crate futures;
 extern crate hyper;
 extern crate http;
@@ -12,12 +13,12 @@ extern crate serde_json;
 pub mod codegen;
 pub mod resource;
 pub mod routing;
+pub mod service;
 
 mod builder;
 mod error;
 mod response;
 mod run;
-mod service;
 
 pub use builder::ServiceBuilder;
 pub use error::Error;

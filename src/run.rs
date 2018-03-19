@@ -1,4 +1,5 @@
 use {Resource, Service};
+use service::ResponseBody;
 
 use bytes::Bytes;
 use http;
@@ -50,7 +51,7 @@ where T: tower::Service<Request = http::Request<String>,
       */
 {
     type Request = hyper::Request;
-    type Response = hyper::Response<LiftBody<T::Body>>;
+    type Response = hyper::Response<LiftBody<ResponseBody<T>>>;
     type Error = hyper::Error;
     type Future = Box<Future<Item = Self::Response, Error = Self::Error> + Send>;
 
