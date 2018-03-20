@@ -3,7 +3,6 @@ const VARS: &[&str] = &[
     "A",
     "B",
     "C",
-    /*
     "D",
     "E",
     "F",
@@ -11,6 +10,7 @@ const VARS: &[&str] = &[
     "H",
     "I",
     "J",
+    /*
     "K",
     "L",
     "M",
@@ -83,7 +83,7 @@ fn gen_either(i: usize) {
 
     println!("// ===== {} =====", variants);
     println!("");
-    println!("#[derive(Clone)");
+    println!("#[derive(Clone)]");
     println!("pub enum Either{}<{}> {{", variants, gens);
 
     for n in 0..variants {
@@ -145,9 +145,21 @@ fn gen_either(i: usize) {
     }
 
     println!("{{");
-    println!("    type Destination = Either");
-    println!("    type Body = R0::Body");
-    println!("    type Future = Either");
+
+    let gens = (0..variants)
+        .map(|ty| format!("R{}::Destination", ty))
+        .collect::<Vec<_>>()
+        .join(", ");
+
+    println!("    type Destination = Either{}<{}>;", variants, gens);
+    println!("    type Body = R0::Body;");
+
+    let gens = (0..variants)
+        .map(|ty| format!("R{}::Future", ty))
+        .collect::<Vec<_>>()
+        .join(", ");
+
+    println!("    type Future = Either{}<{}>;", variants, gens);
     println!("");
     println!("    fn routes(&self) -> RouteSet<Self::Destination> {{");
     println!("        let mut routes = RouteSet::new();");
@@ -170,7 +182,7 @@ fn gen_either(i: usize) {
     println!("    {{");
     println!("        use self::Either{}::*;", variants);
     println!("");
-    println!("        let (destination, condition = match_.into_parts();");
+    println!("        let (destination, condition) = match_.into_parts();");
     println!("");
     println!("        match destination {{");
 
@@ -182,26 +194,15 @@ fn gen_either(i: usize) {
     }
 
     println!("        }}");
-    /*
-        use self::Either2::*;
-
-        let (destination, condition) = match_.into_parts();
-
-        match destination {
-            A(d) => {
-                let match_ = Match::new(d, condition);
-                A(self.0.dispatch(match_, request))
-            }
-            B(d) => {
-                let match_ = Match::new(d, condition);
-                B(self.1.dispatch(match_, request))
-            }
-        }
-     */
     println!("    }}");
-    println!("");
     println!("}}");
     println!("");
+
+    let gens = (0..variants)
+        .map(|ty| format!("R{}", ty))
+        .collect::<Vec<_>>()
+        .join(", ");
+
     println!("impl<{}, U> Chain<U> for ({}) {{", gens, gens);
     println!("    type Resource = ({}, U);", gens);
     println!("");
@@ -214,49 +215,5 @@ fn gen_either(i: usize) {
 
     println!("        ({}, other)", vals);
     println!("    }}");
-    println!("");
     println!("}}");
-
-
-    /*
-impl<R1, R2> Resource for (R1, R2)
-where R1: Resource,
-      R2: Resource<Body = R1::Body>,
-{
-    type Destination = Either2<R1::Destination, R2::Destination>;
-    type Body = R1::Body;
-    type Future = Either2<R1::Future, R2::Future>;
-
-    fn routes(&self) -> RouteSet<Self::Destination> {
-        let mut routes = RouteSet::new();
-
-        for route in self.0.routes() {
-            routes.push(route.map(Either2::A));
-        }
-
-        for route in self.1.routes() {
-            routes.push(route.map(Either2::B));
-        }
-
-        routes
-    }
-
-    fn dispatch(&mut self,
-                match_: Match<Self::Destination>,
-                request: http::Request<()>)
-        -> Self::Future
-    {
-
-    }
-}
-
-impl<R1, R2, U> Chain<U> for (R1, R2) {
-    type Resource = (R1, R2, U);
-
-    fn chain(self, other: U) -> Self::Resource {
-        (self.0, self.1, other)
-    }
-}"#);
-*/
-
 }
