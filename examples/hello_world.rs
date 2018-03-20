@@ -17,6 +17,11 @@ pub struct HelloResponse {
     msg: &'static str,
 }
 
+#[derive(Debug, Serialize)]
+pub struct User {
+    id: usize,
+}
+
 impl_web! {
     impl HelloWorld {
         #[GET "/"]
@@ -30,6 +35,13 @@ impl_web! {
         fn goodbye_world(&mut self) -> Result<HelloResponse, ()> {
             Ok(HelloResponse {
                 msg: "goodbye world",
+            })
+        }
+
+        #[GET "/users/:id"]
+        fn get(&mut self) -> Result<User, ()> {
+            Ok(User {
+                id,
             })
         }
     }
