@@ -88,15 +88,15 @@ where
     {
         use self::Either2::*;
 
-        let (destination, condition) = match_.into_parts();
+        let (destination, params) = match_.into_parts();
 
         match destination {
             A(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 A(self.0.dispatch(match_, request))
             }
             B(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 B(self.1.dispatch(match_, request))
             }
         }
@@ -174,19 +174,19 @@ where
     {
         use self::Either3::*;
 
-        let (destination, condition) = match_.into_parts();
+        let (destination, params) = match_.into_parts();
 
         match destination {
             A(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 A(self.0.dispatch(match_, request))
             }
             B(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 B(self.1.dispatch(match_, request))
             }
             C(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 C(self.2.dispatch(match_, request))
             }
         }
@@ -272,23 +272,23 @@ where
     {
         use self::Either4::*;
 
-        let (destination, condition) = match_.into_parts();
+        let (destination, params) = match_.into_parts();
 
         match destination {
             A(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 A(self.0.dispatch(match_, request))
             }
             B(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 B(self.1.dispatch(match_, request))
             }
             C(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 C(self.2.dispatch(match_, request))
             }
             D(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 D(self.3.dispatch(match_, request))
             }
         }
@@ -382,27 +382,27 @@ where
     {
         use self::Either5::*;
 
-        let (destination, condition) = match_.into_parts();
+        let (destination, params) = match_.into_parts();
 
         match destination {
             A(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 A(self.0.dispatch(match_, request))
             }
             B(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 B(self.1.dispatch(match_, request))
             }
             C(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 C(self.2.dispatch(match_, request))
             }
             D(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 D(self.3.dispatch(match_, request))
             }
             E(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 E(self.4.dispatch(match_, request))
             }
         }
@@ -504,31 +504,31 @@ where
     {
         use self::Either6::*;
 
-        let (destination, condition) = match_.into_parts();
+        let (destination, params) = match_.into_parts();
 
         match destination {
             A(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 A(self.0.dispatch(match_, request))
             }
             B(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 B(self.1.dispatch(match_, request))
             }
             C(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 C(self.2.dispatch(match_, request))
             }
             D(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 D(self.3.dispatch(match_, request))
             }
             E(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 E(self.4.dispatch(match_, request))
             }
             F(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 F(self.5.dispatch(match_, request))
             }
         }
@@ -638,35 +638,35 @@ where
     {
         use self::Either7::*;
 
-        let (destination, condition) = match_.into_parts();
+        let (destination, params) = match_.into_parts();
 
         match destination {
             A(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 A(self.0.dispatch(match_, request))
             }
             B(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 B(self.1.dispatch(match_, request))
             }
             C(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 C(self.2.dispatch(match_, request))
             }
             D(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 D(self.3.dispatch(match_, request))
             }
             E(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 E(self.4.dispatch(match_, request))
             }
             F(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 F(self.5.dispatch(match_, request))
             }
             G(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 G(self.6.dispatch(match_, request))
             }
         }
@@ -784,39 +784,39 @@ where
     {
         use self::Either8::*;
 
-        let (destination, condition) = match_.into_parts();
+        let (destination, params) = match_.into_parts();
 
         match destination {
             A(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 A(self.0.dispatch(match_, request))
             }
             B(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 B(self.1.dispatch(match_, request))
             }
             C(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 C(self.2.dispatch(match_, request))
             }
             D(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 D(self.3.dispatch(match_, request))
             }
             E(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 E(self.4.dispatch(match_, request))
             }
             F(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 F(self.5.dispatch(match_, request))
             }
             G(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 G(self.6.dispatch(match_, request))
             }
             H(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 H(self.7.dispatch(match_, request))
             }
         }
@@ -942,43 +942,43 @@ where
     {
         use self::Either9::*;
 
-        let (destination, condition) = match_.into_parts();
+        let (destination, params) = match_.into_parts();
 
         match destination {
             A(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 A(self.0.dispatch(match_, request))
             }
             B(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 B(self.1.dispatch(match_, request))
             }
             C(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 C(self.2.dispatch(match_, request))
             }
             D(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 D(self.3.dispatch(match_, request))
             }
             E(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 E(self.4.dispatch(match_, request))
             }
             F(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 F(self.5.dispatch(match_, request))
             }
             G(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 G(self.6.dispatch(match_, request))
             }
             H(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 H(self.7.dispatch(match_, request))
             }
             I(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 I(self.8.dispatch(match_, request))
             }
         }
@@ -1112,47 +1112,47 @@ where
     {
         use self::Either10::*;
 
-        let (destination, condition) = match_.into_parts();
+        let (destination, params) = match_.into_parts();
 
         match destination {
             A(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 A(self.0.dispatch(match_, request))
             }
             B(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 B(self.1.dispatch(match_, request))
             }
             C(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 C(self.2.dispatch(match_, request))
             }
             D(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 D(self.3.dispatch(match_, request))
             }
             E(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 E(self.4.dispatch(match_, request))
             }
             F(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 F(self.5.dispatch(match_, request))
             }
             G(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 G(self.6.dispatch(match_, request))
             }
             H(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 H(self.7.dispatch(match_, request))
             }
             I(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 I(self.8.dispatch(match_, request))
             }
             J(d) => {
-                let match_ = Match::new(d, condition);
+                let match_ = Match::new(d, params);
                 J(self.9.dispatch(match_, request))
             }
         }

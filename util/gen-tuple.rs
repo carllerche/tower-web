@@ -182,13 +182,13 @@ fn gen_either(i: usize) {
     println!("    {{");
     println!("        use self::Either{}::*;", variants);
     println!("");
-    println!("        let (destination, condition) = match_.into_parts();");
+    println!("        let (destination, params) = match_.into_parts();");
     println!("");
     println!("        match destination {{");
 
     for n in 0..variants {
         println!("            {}(d) => {{", VARS[n]);
-        println!("                let match_ = Match::new(d, condition);");
+        println!("                let match_ = Match::new(d, params);");
         println!("                {}(self.{}.dispatch(match_, request))", VARS[n], n);
         println!("            }}");
     }

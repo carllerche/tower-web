@@ -2,6 +2,7 @@ pub mod set;
 
 pub use self::set::RouteSet;
 
+use bytes::Bytes;
 use http::{Method, Request};
 
 /// Matches an HTTP request with a service funtion.
@@ -25,9 +26,26 @@ pub struct Condition {
 }
 
 #[derive(Debug)]
-pub struct Match<'a, T> {
+pub struct Match<T> {
+    /// Matched routing destination
     destination: T,
-    condition: &'a Condition,
+
+    /// Extracted route parameters
+    params: Params,
+}
+
+#[derive(Debug)]
+pub struct Params {
+    /// Parameters extracted from the requet
+    ///
+    /// TODO: More efficient extraction.
+    params: Vec<Bytes>,
+}
+
+#[derive(Debug)]
+enum Segment {
+    Literal(String),
+    Param,
 }
 
 // ===== impl Route =====
@@ -43,11 +61,10 @@ impl<T: Clone> Route<T> {
 
     /// Try to match a request against this route.
     pub fn test(&self, request: &Request<()>) -> Option<Match<T>> {
-        if self.condition.test(request) {
-            return Some(Match::new(self.destination.clone(), &self.condition));
-        }
-
-        None
+        self.condition.test(request)
+            .map(|params| {
+                Match::new(self.destination.clone(), params)
+            })
     }
 
     pub(crate) fn map<F, U>(self, f: F) -> Route<U>
@@ -74,26 +91,29 @@ impl Condition {
         }
     }
 
-    pub fn test(&self, request: &Request<()>) -> bool {
+    pub fn test(&self, request: &Request<()>) -> Option<Params> {
         if *request.method() != self.method {
-            return false;
+            return None;
         }
 
         if request.uri().path() != self.path {
-            return false;
+            return None;
         }
 
-        true
+        unimplemented!();
     }
 }
 
 // ===== impl Match =====
 
-impl<'a, T> Match<'a, T> {
-    pub(crate) fn new(destination: T, condition: &'a Condition) -> Self {
+impl<T> Match<T> {
+    pub(crate) fn new(destination: T,
+                      params: Params)
+        -> Self
+    {
         Match {
             destination,
-            condition,
+            params,
         }
     }
 
@@ -102,7 +122,21 @@ impl<'a, T> Match<'a, T> {
         &self.destination
     }
 
-    pub(crate) fn into_parts(self) -> (T, &'a Condition) {
-        (self.destination, self.condition)
+    /// Returns the matched parameters
+    pub fn params(&self) -> &Params {
+        &self.params
+    }
+
+    pub(crate) fn into_parts(self) -> (T, Params) {
+        (self.destination, self.params)
+    }
+}
+
+// ===== impl Params =====
+
+impl Params {
+    /// Get a parameter value
+    pub fn get(&self, index: usize) -> &[u8] {
+        self.params[index].as_ref()
     }
 }
