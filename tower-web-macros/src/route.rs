@@ -5,6 +5,8 @@ use std::fmt;
 
 /// Represents a service route
 pub struct Route {
+    pub index: usize,
+
     /// Function identifier
     pub ident: syn::Ident,
 
@@ -25,8 +27,9 @@ pub enum Method {
 }
 
 impl Route {
-    pub fn new(ident: syn::Ident, ret: syn::Type) -> Self {
+    pub fn new(index: usize, ident: syn::Ident, ret: syn::Type) -> Self {
         Route {
+            index,
             ident,
             ret,
             method: None,
@@ -47,7 +50,7 @@ impl Route {
 
                 let args: syn::LitStr = match syn::parse2(attr.tts.clone()) {
                     Ok(v) => v,
-                    _ => unimplemented!(),
+                    _ => panic!("unimplemented; process_attr"),
                 };
 
                 self.set_path(args.value());
@@ -67,6 +70,22 @@ impl Route {
 
     pub fn set_path(&mut self, value: String) {
         self.path = Some(value);
+    }
+
+    pub fn destination_sym(&self) -> Tokens {
+        match self.index {
+            0 => quote! { A(()) },
+            1 => quote! { B(()) },
+            2 => quote! { C(()) },
+            3 => quote! { D(()) },
+            4 => quote! { E(()) },
+            5 => quote! { F(()) },
+            6 => quote! { G(()) },
+            7 => quote! { H(()) },
+            8 => quote! { I(()) },
+            9 => quote! { J(()) },
+            _ => panic!("unimplemented; destination_sym"),
+        }
     }
 }
 

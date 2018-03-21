@@ -31,29 +31,37 @@ impl_web! {
             })
         }
 
-        #[GET "/bye"]
+    /*
+        #[GET("/bye")]
         fn goodbye_world(&mut self) -> Result<HelloResponse, ()> {
             Ok(HelloResponse {
                 msg: "goodbye world",
             })
         }
+        */
 
+        /// # Web
+        ///
+        /// @get "/users/:id"
+        /// @arg content_length = Header("Content-Length")
         #[GET "/users/:id"]
         fn get(&mut self) -> Result<User, ()> {
             Ok(User {
-                id,
+                id: 1,
             })
         }
     }
 
+    /*
     impl GoodbyeWorld {
-        #[GET "/goodbye"]
+        #[GET("/goodbye")]
         fn goodbye(&mut self) -> Result<HelloResponse, ()> {
             Ok(HelloResponse {
                 msg: "other resource",
             })
         }
     }
+    */
 }
 
 pub fn main() {
@@ -61,7 +69,7 @@ pub fn main() {
 
     ServiceBuilder::new()
         .resource(HelloWorld)
-        .resource(GoodbyeWorld)
+        // .resource(GoodbyeWorld)
         .run(&addr)
         .unwrap();
 }

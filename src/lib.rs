@@ -41,6 +41,17 @@ pub use tower_web_macros::*;
 proc_macro_item_decl! {
     /// Implement a Web Service.
     impl_web! => impl_web_impl
+    // derive_resource! => impl_web_impl
 }
+
+/*
+#[macro_export]
+macro_rules! impl_web {
+    ($($t:tt)*) => {
+        $($t)*
+        derive_resource! { $($t)* }
+    }
+}
+*/
 
 // ===== end proc_macro_hack junk =====

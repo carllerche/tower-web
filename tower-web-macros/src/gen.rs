@@ -11,24 +11,19 @@ pub fn generate(ast: &syn::File, services: &[Service]) -> String {
     for service in services {
         let ty = &service.self_ty;
         let destination = service.destination_ty();
+        let destination_use = service.destination_ty_use();
 
         let mut routes_fn = Tokens::new();
         let mut dispatch_fn = Tokens::new();
 
-        let num_routes = service.routes.len();
-
-        for (i, route) in service.routes.iter().enumerate() {
+        for route in &service.routes {
             let ident = &route.ident;
             let method = route.method.as_ref().unwrap().to_tokens();
             let path = route.path_lit.as_ref().unwrap();
 
-            // TODO: Extract
-            let destination = if num_routes >= 2 {
-                match i {
-                    0 => quote! { A(()) },
-                    1 => quote! { B(()) },
-                    _ => unimplemented!(),
-                }
+            // Get the destination symbol
+            let destination = if service.routes.len() >= 2 {
+                route.destination_sym()
             } else {
                 quote! { () }
             };
@@ -66,7 +61,7 @@ pub fn generate(ast: &syn::File, services: &[Service]) -> String {
 
                 fn routes(&self) -> ::tower_web::routing::RouteSet<Self::Destination> {
                     use ::tower_web::routing::{Route, RouteSet, Condition};
-                    use ::tower_web::resource::tuple::Either2::*;
+                    #destination_use
 
                     let mut routes = RouteSet::new();
                     #routes_fn
@@ -81,7 +76,7 @@ pub fn generate(ast: &syn::File, services: &[Service]) -> String {
                     use ::tower_web::IntoResponse;
                     use ::tower_web::codegen::bytes::Bytes;
                     use ::tower_web::codegen::futures::{future, stream, Future, Stream};
-                    use ::tower_web::resource::tuple::Either2::*;
+                    #destination_use
 
                     drop(request);
 

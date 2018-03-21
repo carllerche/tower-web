@@ -59,8 +59,9 @@ impl ImplWeb {
     }
 
     fn push_route(&mut self, ident: syn::Ident, ret: syn::Type) {
-        self.curr_route = self.service().routes.len();
-        self.service().routes.push(Route::new(ident, ret));
+        let index = self.service().routes.len();
+        self.curr_route = index;
+        self.service().routes.push(Route::new(index, ident, ret));
     }
 
     fn route(&mut self) -> &mut Route {
@@ -89,7 +90,7 @@ impl syn::fold::Fold for ImplWeb {
         // Get the return type
         let ret = match item.sig.decl.output {
             ReturnType::Type(_, ref ty) => (**ty).clone(),
-            ReturnType::Default => unimplemented!(),
+            ReturnType::Default => panic!("unimplemented; ReturnType::Default"),
         };
 
         self.push_route(ident, ret);
