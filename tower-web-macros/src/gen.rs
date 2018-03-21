@@ -29,10 +29,7 @@ pub fn generate(ast: &syn::File, services: &[Service]) -> String {
             };
 
             routes_fn.append_all(quote! {
-                routes.push(
-                    Route::new(
-                        #destination,
-                        Condition::new(#method, #path)));
+                .route(#destination, #method, #path)
             });
 
             dispatch_fn.append_all(quote! {
@@ -60,12 +57,12 @@ pub fn generate(ast: &syn::File, services: &[Service]) -> String {
                 type Future = ::tower_web::codegen::BoxResponse<Self::Body>;
 
                 fn routes(&self) -> ::tower_web::routing::RouteSet<Self::Destination> {
-                    use ::tower_web::routing::{Route, RouteSet, Condition};
+                    use ::tower_web::routing;
                     #destination_use
 
-                    let mut routes = RouteSet::new();
+                    routing::Builder::new()
                     #routes_fn
-                    routes
+                    .build()
                 }
 
                 fn dispatch(&mut self,
