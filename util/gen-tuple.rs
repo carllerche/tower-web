@@ -35,7 +35,7 @@ pub fn main() {
 //! Implementations of `Resource` for tuple types.
 
 use super::{Chain, Resource};
-use routing::{RouteSet, Match};
+use routing::{self, RouteSet, Match};
 
 use bytes::Bytes;
 use futures::{Future, Poll};
@@ -51,7 +51,7 @@ impl Resource for () {
     type Future = FutureResult<http::Response<Self::Body>, ::Error>;
 
     fn routes(&self) -> RouteSet<()> {
-        RouteSet::new()
+        RouteSet::default()
     }
 
     fn dispatch(&mut self, _: Match<()>, _: http::Request<()>) -> Self::Future {
@@ -162,7 +162,7 @@ fn gen_either(i: usize) {
     println!("    type Future = Either{}<{}>;", variants, gens);
     println!("");
     println!("    fn routes(&self) -> RouteSet<Self::Destination> {{");
-    println!("        let mut routes = RouteSet::new();");
+    println!("        let mut routes = routing::Builder::new();");
     println!("");
 
     for n in 0..variants {
@@ -172,7 +172,7 @@ fn gen_either(i: usize) {
         println!("");
     }
 
-    println!("        routes");
+    println!("        routes.build()");
     println!("    }}");
     println!("");
     println!("    fn dispatch(&mut self,");

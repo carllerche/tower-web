@@ -16,19 +16,14 @@ pub struct IntoIter<T> {
 
 // ===== impl RouteSet =====
 
-impl<T: Clone> RouteSet<T> {
+impl<T> RouteSet<T> {
     /// Create a new, empty, `RouteSet`
-    pub fn new() -> RouteSet<T> {
-        RouteSet {
-            routes: vec![],
-        }
+    pub(crate) fn new(routes: Vec<Route<T>>) -> RouteSet<T> {
+        RouteSet { routes }
     }
+}
 
-    /// Append a route to the route set.
-    pub fn push(&mut self, route: Route<T>) {
-        self.routes.push(route);
-    }
-
+impl<T: Clone> RouteSet<T> {
     /// Match a request against a route set
     pub fn test(&self, request: &Request<()>) -> Option<Match<T>> {
         for route in &self.routes {

@@ -1,7 +1,7 @@
 //! Implementations of `Resource` for tuple types.
 
 use super::{Chain, Resource};
-use routing::{RouteSet, Match};
+use routing::{self, RouteSet, Match};
 
 use bytes::Bytes;
 use futures::{Future, Poll};
@@ -17,7 +17,7 @@ impl Resource for () {
     type Future = FutureResult<http::Response<Self::Body>, ::Error>;
 
     fn routes(&self) -> RouteSet<()> {
-        RouteSet::new()
+        RouteSet::default()
     }
 
     fn dispatch(&mut self, _: Match<()>, _: http::Request<()>) -> Self::Future {
@@ -68,7 +68,7 @@ where
     type Future = Either2<R0::Future, R1::Future>;
 
     fn routes(&self) -> RouteSet<Self::Destination> {
-        let mut routes = RouteSet::new();
+        let mut routes = routing::Builder::new();
 
         for route in self.0.routes() {
             routes.push(route.map(Either2::A));
@@ -78,7 +78,7 @@ where
             routes.push(route.map(Either2::B));
         }
 
-        routes
+        routes.build()
     }
 
     fn dispatch(&mut self,
@@ -150,7 +150,7 @@ where
     type Future = Either3<R0::Future, R1::Future, R2::Future>;
 
     fn routes(&self) -> RouteSet<Self::Destination> {
-        let mut routes = RouteSet::new();
+        let mut routes = routing::Builder::new();
 
         for route in self.0.routes() {
             routes.push(route.map(Either3::A));
@@ -164,7 +164,7 @@ where
             routes.push(route.map(Either3::C));
         }
 
-        routes
+        routes.build()
     }
 
     fn dispatch(&mut self,
@@ -244,7 +244,7 @@ where
     type Future = Either4<R0::Future, R1::Future, R2::Future, R3::Future>;
 
     fn routes(&self) -> RouteSet<Self::Destination> {
-        let mut routes = RouteSet::new();
+        let mut routes = routing::Builder::new();
 
         for route in self.0.routes() {
             routes.push(route.map(Either4::A));
@@ -262,7 +262,7 @@ where
             routes.push(route.map(Either4::D));
         }
 
-        routes
+        routes.build()
     }
 
     fn dispatch(&mut self,
@@ -350,7 +350,7 @@ where
     type Future = Either5<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future>;
 
     fn routes(&self) -> RouteSet<Self::Destination> {
-        let mut routes = RouteSet::new();
+        let mut routes = routing::Builder::new();
 
         for route in self.0.routes() {
             routes.push(route.map(Either5::A));
@@ -372,7 +372,7 @@ where
             routes.push(route.map(Either5::E));
         }
 
-        routes
+        routes.build()
     }
 
     fn dispatch(&mut self,
@@ -468,7 +468,7 @@ where
     type Future = Either6<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future, R5::Future>;
 
     fn routes(&self) -> RouteSet<Self::Destination> {
-        let mut routes = RouteSet::new();
+        let mut routes = routing::Builder::new();
 
         for route in self.0.routes() {
             routes.push(route.map(Either6::A));
@@ -494,7 +494,7 @@ where
             routes.push(route.map(Either6::F));
         }
 
-        routes
+        routes.build()
     }
 
     fn dispatch(&mut self,
@@ -598,7 +598,7 @@ where
     type Future = Either7<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future, R5::Future, R6::Future>;
 
     fn routes(&self) -> RouteSet<Self::Destination> {
-        let mut routes = RouteSet::new();
+        let mut routes = routing::Builder::new();
 
         for route in self.0.routes() {
             routes.push(route.map(Either7::A));
@@ -628,7 +628,7 @@ where
             routes.push(route.map(Either7::G));
         }
 
-        routes
+        routes.build()
     }
 
     fn dispatch(&mut self,
@@ -740,7 +740,7 @@ where
     type Future = Either8<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future, R5::Future, R6::Future, R7::Future>;
 
     fn routes(&self) -> RouteSet<Self::Destination> {
-        let mut routes = RouteSet::new();
+        let mut routes = routing::Builder::new();
 
         for route in self.0.routes() {
             routes.push(route.map(Either8::A));
@@ -774,7 +774,7 @@ where
             routes.push(route.map(Either8::H));
         }
 
-        routes
+        routes.build()
     }
 
     fn dispatch(&mut self,
@@ -894,7 +894,7 @@ where
     type Future = Either9<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future, R5::Future, R6::Future, R7::Future, R8::Future>;
 
     fn routes(&self) -> RouteSet<Self::Destination> {
-        let mut routes = RouteSet::new();
+        let mut routes = routing::Builder::new();
 
         for route in self.0.routes() {
             routes.push(route.map(Either9::A));
@@ -932,7 +932,7 @@ where
             routes.push(route.map(Either9::I));
         }
 
-        routes
+        routes.build()
     }
 
     fn dispatch(&mut self,
@@ -1060,7 +1060,7 @@ where
     type Future = Either10<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future, R5::Future, R6::Future, R7::Future, R8::Future, R9::Future>;
 
     fn routes(&self) -> RouteSet<Self::Destination> {
-        let mut routes = RouteSet::new();
+        let mut routes = routing::Builder::new();
 
         for route in self.0.routes() {
             routes.push(route.map(Either10::A));
@@ -1102,7 +1102,7 @@ where
             routes.push(route.map(Either10::J));
         }
 
-        routes
+        routes.build()
     }
 
     fn dispatch(&mut self,
