@@ -1,6 +1,7 @@
 use Route;
 
-use {syn, quote};
+use {quote, syn};
+use proc_macro2::TokenStream;
 
 #[derive(Debug)]
 pub struct Service {
@@ -16,7 +17,7 @@ impl Service {
         }
     }
 
-    pub fn destination_ty(&self) -> quote::Tokens {
+    pub fn destination_ty(&self) -> TokenStream {
         match self.routes.len() {
             0 | 1 => quote! { () },
             2 => quote! { ::tower_web::resource::tuple::Either2 },
@@ -31,9 +32,9 @@ impl Service {
         }
     }
 
-    pub fn destination_ty_use(&self) -> quote::Tokens {
+    pub fn destination_ty_use(&self) -> TokenStream {
         match self.routes.len() {
-            0 | 1 => quote! {},
+            0 | 1 => quote!{},
             2 => quote! { use ::tower_web::resource::tuple::Either2::*; },
             3 => quote! { use ::tower_web::resource::tuple::Either3::*; },
             4 => quote! { use ::tower_web::resource::tuple::Either4::*; },

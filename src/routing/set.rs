@@ -1,4 +1,4 @@
-use super::{Route, Match};
+use super::{Match, Route};
 
 use http::Request;
 

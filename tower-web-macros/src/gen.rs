@@ -1,25 +1,26 @@
-use {Service};
+use Service;
 
-use quote::{ToTokens, Tokens};
+use proc_macro2::TokenStream;
+use quote::{ToTokens, TokenStreamExt};
 use syn;
 
 /// Generate the service implementations
 pub fn generate(ast: &syn::File, services: &[Service]) -> String {
     // Tokens representing the output
-    let mut tokens = ast.into_tokens();
+    let mut tokens = ast.into_token_stream();
 
     for service in services {
         let ty = &service.self_ty;
         let destination = service.destination_ty();
         let destination_use = service.destination_ty_use();
 
-        let mut routes_fn = Tokens::new();
-        let mut dispatch_fn = Tokens::new();
+        let mut routes_fn = TokenStream::new();
+        let mut dispatch_fn = TokenStream::new();
 
         for route in &service.routes {
             let ident = &route.ident;
-            let method = route.method.as_ref().unwrap().to_tokens();
-            let path = route.path_lit.as_ref().unwrap();
+            let method = route.rules.method.as_ref().unwrap().to_tokens();
+            let path = route.rules.path_lit.as_ref().unwrap();
 
             // Get the destination symbol
             let destination = if service.routes.len() >= 2 {
@@ -46,6 +47,14 @@ pub fn generate(ast: &syn::File, services: &[Service]) -> String {
 
                     Box::new(response) as Self::Future
                 }
+            });
+        }
+
+        // If there are no routes, then some special work needs to be done to
+        // make the generated code compile
+        if service.routes.is_empty() {
+            dispatch_fn.append_all(quote! {
+                () => unreachable!(),
             });
         }
 

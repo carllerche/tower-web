@@ -1,4 +1,5 @@
 use {Route, Service};
+use route;
 
 use syn;
 
@@ -58,21 +59,19 @@ impl ImplWeb {
         &mut self.services[self.curr_service]
     }
 
-    fn push_route(&mut self, ident: syn::Ident, ret: syn::Type) {
+    fn push_route(&mut self, ident: syn::Ident, ret: syn::Type, rules: route::Rules) {
         let index = self.service().routes.len();
         self.curr_route = index;
-        self.service().routes.push(Route::new(index, ident, ret));
-    }
-
-    fn route(&mut self) -> &mut Route {
-        let curr = self.curr_route;
-        &mut self.service().routes[curr]
+        self.service().routes.push(Route::new(index, ident, ret, rules));
     }
 }
 
 impl syn::fold::Fold for ImplWeb {
     fn fold_item_impl(&mut self, item: syn::ItemImpl) -> syn::ItemImpl {
-        assert!(item.trait_.is_none(), "trait impls must not be in impl_web! block");
+        assert!(
+            item.trait_.is_none(),
+            "trait impls must not be in impl_web! block"
+        );
 
         self.push_service(item.self_ty.clone());
 
@@ -82,22 +81,27 @@ impl syn::fold::Fold for ImplWeb {
     fn fold_impl_item_method(&mut self, mut item: syn::ImplItemMethod) -> syn::ImplItemMethod {
         use syn::ReturnType;
 
-        // Get the method name
-        let ident = item.sig.ident;
+        let mut rules = route::Rules::new();
 
-        // println!("ARGS = {:#?}", item.sig.decl.inputs);
+        item.attrs.retain(|attr| {
+            !rules.process_attr(attr)
+        });
+
+        if rules.is_empty() {
+            // Not a web route, do no furtheer processing.
+            return item;
+        }
+
+        // Get the method name
+        let ident = item.sig.ident.clone();
 
         // Get the return type
         let ret = match item.sig.decl.output {
             ReturnType::Type(_, ref ty) => (**ty).clone(),
-            ReturnType::Default => panic!("unimplemented; ReturnType::Default"),
+            ReturnType::Default => syn::parse_str("()").unwrap(),
         };
 
-        self.push_route(ident, ret);
-
-        item.attrs.retain(|attr| {
-            !self.route().process_attr(attr)
-        });
+        self.push_route(ident, ret, rules);
 
         item
     }

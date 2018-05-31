@@ -1,14 +1,14 @@
 extern crate bytes;
 #[macro_use]
 extern crate futures;
-extern crate hyper;
 extern crate http;
+extern crate hyper;
 #[macro_use]
 extern crate log;
-extern crate tokio;
-extern crate tower;
 extern crate serde;
 extern crate serde_json;
+extern crate tokio;
+extern crate tower_service;
 
 pub mod codegen;
 pub mod resource;

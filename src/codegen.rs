@@ -13,21 +13,21 @@ pub type BoxBody = Box<Stream<Item = Bytes, Error = ::Error> + Send>;
 pub mod bytes {
     //! Types provided by the `bytes` crate
 
-    pub use ::bytes::Bytes;
+    pub use bytes::Bytes;
 }
 
 pub mod tower {
     //! Types provided by the `tower` crate
 
-    pub use ::tower::Service;
+    pub use tower_service::Service;
 }
 
 pub mod http {
     //! Types provided by the `http` crate.
-    pub use ::http::{Request, Response, Method};
+    pub use http::{Method, Request, Response};
 }
 
 pub mod futures {
     //! Types provided by the `futures` crate.
-    pub use ::futures::*;
+    pub use futures::*;
 }

@@ -22,7 +22,8 @@ impl<T> Route<T> {
     }
 
     pub(crate) fn map<F, U>(self, f: F) -> Route<U>
-    where F: Fn(T) -> U
+    where
+        F: Fn(T) -> U,
     {
         let destination = f(self.destination);
 
@@ -36,9 +37,8 @@ impl<T> Route<T> {
 impl<T: Clone> Route<T> {
     /// Try to match a request against this route.
     pub fn test(&self, request: &Request<()>) -> Option<Match<T>> {
-        self.condition.test(request)
-            .map(|params| {
-                Match::new(self.destination.clone(), params)
-            })
+        self.condition
+            .test(request)
+            .map(|params| Match::new(self.destination.clone(), params))
     }
 }

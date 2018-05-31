@@ -1,3 +1,4 @@
+/*
 #[macro_use]
 extern crate tower_web;
 extern crate futures;
@@ -18,4 +19,7 @@ pub fn main() {
     let mut service = HelloWorld;
     println!("HELLO WORLD: {:?}", service.hello_world());
 }
-
+*/
+fn main() {
+    println!("hello");
+}

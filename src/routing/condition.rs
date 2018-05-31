@@ -39,10 +39,7 @@ impl Condition {
     pub fn new(method: Method, path: &str) -> Condition {
         let path = Segments::new(path);
 
-        Condition {
-            method,
-            path,
-        }
+        Condition { method, path }
     }
 
     /// Test a request
@@ -53,16 +50,12 @@ impl Condition {
 
         self.path.test(request.uri().path())
     }
-
 }
 
 // ===== impl Match =====
 
 impl<T> Match<T> {
-    pub(crate) fn new(destination: T,
-                      params: Params)
-        -> Self
-    {
+    pub(crate) fn new(destination: T, params: Params) -> Self {
         Match {
             destination,
             params,
@@ -89,8 +82,8 @@ impl<T> Match<T> {
 impl Segments {
     /// Create a new condition
     pub fn new(mut path: &str) -> Segments {
-        if !path.is_empty() && &path[path.len()-1..path.len()] == "/" {
-            path = &path[0..path.len()-1];
+        if !path.is_empty() && &path[path.len() - 1..path.len()] == "/" {
+            path = &path[0..path.len() - 1];
         }
 
         let segments = path.split("/")
@@ -108,8 +101,8 @@ impl Segments {
 
     /// Test the path component of a request
     fn test(&self, mut path: &str) -> Option<Params> {
-        if !path.is_empty() && &path[path.len()-1..path.len()] == "/" {
-            path = &path[0..path.len()-1];
+        if !path.is_empty() && &path[path.len() - 1..path.len()] == "/" {
+            path = &path[0..path.len() - 1];
         }
 
         let mut i = 0;

@@ -24,37 +24,42 @@ pub struct User {
 
 impl_web! {
     impl HelloWorld {
-        #[GET "/"]
+        /// Hello world endpoint
+        ///
+        /// @GET("/")
         fn hello_world(&mut self) -> Result<HelloResponse, ()> {
             Ok(HelloResponse {
                 msg: "hello world",
             })
         }
 
-    /*
-        #[GET("/bye")]
-        fn goodbye_world(&mut self) -> Result<HelloResponse, ()> {
+        /*
+        // #[GET "/"]
+        fn hello_world(&mut self) -> Result<HelloResponse, ()> {
             Ok(HelloResponse {
-                msg: "goodbye world",
+                msg: "hello world",
             })
         }
         */
 
+        /*
         /// # Web
         ///
-        /// @get "/users/:id"
+        /// @GET "/users/:id"
         /// @arg content_length = Header("Content-Length")
         #[GET "/users/:id"]
-        fn get(&mut self) -> Result<User, ()> {
+        fn get(&mut self, id: usize) -> Result<User, ()> {
             Ok(User {
                 id: 1,
             })
         }
+        */
     }
 
     /*
     impl GoodbyeWorld {
-        #[GET("/goodbye")]
+        #[GET "/goodbye"]
+        // #[GET("/goodbye")]
         fn goodbye(&mut self) -> Result<HelloResponse, ()> {
             Ok(HelloResponse {
                 msg: "other resource",

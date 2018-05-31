@@ -1,3 +1,4 @@
+/*
 #[macro_use]
 extern crate tower_web;
 
@@ -95,4 +96,8 @@ pub fn main() {
         .unwrap();
 
     // tower_web::run(&addr, HelloWorld).unwrap();
+}
+*/
+fn main() {
+    println!("hello");
 }

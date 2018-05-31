@@ -1,5 +1,5 @@
-use {Resource, Service};
 use service::ResponseBody;
+use {Resource, Service};
 
 use bytes::Bytes;
 use http;
@@ -21,7 +21,8 @@ struct Lift<T: Resource> {
 struct LiftBody<T>(T);
 
 impl<T> Lift<T>
-where T: Resource,
+where
+    T: Resource,
 {
     fn new(inner: Service<T>) -> Self {
         Lift { inner }
@@ -29,7 +30,8 @@ where T: Resource,
 }
 
 impl<T> Stream for LiftBody<T>
-where T: Stream<Item = Bytes>
+where
+    T: Stream<Item = Bytes>,
 {
     type Item = Bytes;
     type Error = hyper::Error;
@@ -43,8 +45,9 @@ where T: Stream<Item = Bytes>
 }
 
 impl<T> HyperService for Lift<T>
-where T: Resource,
-/*
+where
+    T: Resource,
+    /*
 where T: tower::Service<Request = http::Request<String>,
                         Response = http::Response<String>> + Clone + Send + 'static,
       T::Future: Send,
@@ -56,15 +59,14 @@ where T: tower::Service<Request = http::Request<String>,
     type Future = Box<Future<Item = Self::Response, Error = Self::Error> + Send>;
 
     fn call(&self, req: Self::Request) -> Self::Future {
-        use tower::Service;
+        use tower_service::Service;
 
         let req: http::Request<_> = req.into();
         let (head, body) = req.into_parts();
 
         let mut inner = self.inner.clone();
 
-        let fut = body
-            .concat2()
+        let fut = body.concat2()
             .and_then(move |body| {
                 // Convert the body to a string
                 let body = String::from_utf8(body.to_vec()).unwrap();
@@ -73,14 +75,9 @@ where T: tower::Service<Request = http::Request<String>,
                 let req = http::Request::from_parts(head, body);
 
                 // Call the inner service
-                inner.call(req)
-                    .map_err(|_| unimplemented!())
+                inner.call(req).map_err(|_| unimplemented!())
             })
-            .map(|response| {
-                response
-                    .map(LiftBody)
-                    .into()
-            });
+            .map(|response| response.map(LiftBody).into());
 
         Box::new(fut)
     }
@@ -88,8 +85,9 @@ where T: tower::Service<Request = http::Request<String>,
 
 /// Run a service
 pub fn run<T>(addr: &SocketAddr, service: Service<T>) -> io::Result<()>
-where T: Resource,
-/*
+where
+    T: Resource,
+    /*
 where T: tower::Service<Request = http::Request<String>,
                        Response = http::Response<String>> + Clone + Send + 'static,
       T::Future: Send,

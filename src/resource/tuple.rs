@@ -1,12 +1,12 @@
 //! Implementations of `Resource` for tuple types.
 
 use super::{Chain, Resource};
-use routing::{self, RouteSet, Match};
+use routing::{self, Match, RouteSet};
 
 use bytes::Bytes;
-use futures::{Future, Poll};
 use futures::future::FutureResult;
 use futures::stream::Once;
+use futures::{Future, Poll};
 use http;
 
 // ===== 0 =====
@@ -81,11 +81,11 @@ where
         routes.build()
     }
 
-    fn dispatch(&mut self,
-                match_: Match<Self::Destination>,
-                request: http::Request<()>)
-        -> Self::Future
-    {
+    fn dispatch(
+        &mut self,
+        match_: Match<Self::Destination>,
+        request: http::Request<()>,
+    ) -> Self::Future {
         use self::Either2::*;
 
         let (destination, params) = match_.into_parts();
@@ -167,11 +167,11 @@ where
         routes.build()
     }
 
-    fn dispatch(&mut self,
-                match_: Match<Self::Destination>,
-                request: http::Request<()>)
-        -> Self::Future
-    {
+    fn dispatch(
+        &mut self,
+        match_: Match<Self::Destination>,
+        request: http::Request<()>,
+    ) -> Self::Future {
         use self::Either3::*;
 
         let (destination, params) = match_.into_parts();
@@ -265,11 +265,11 @@ where
         routes.build()
     }
 
-    fn dispatch(&mut self,
-                match_: Match<Self::Destination>,
-                request: http::Request<()>)
-        -> Self::Future
-    {
+    fn dispatch(
+        &mut self,
+        match_: Match<Self::Destination>,
+        request: http::Request<()>,
+    ) -> Self::Future {
         use self::Either4::*;
 
         let (destination, params) = match_.into_parts();
@@ -345,7 +345,13 @@ where
     R3: Resource<Body = R0::Body>,
     R4: Resource<Body = R0::Body>,
 {
-    type Destination = Either5<R0::Destination, R1::Destination, R2::Destination, R3::Destination, R4::Destination>;
+    type Destination = Either5<
+        R0::Destination,
+        R1::Destination,
+        R2::Destination,
+        R3::Destination,
+        R4::Destination,
+    >;
     type Body = R0::Body;
     type Future = Either5<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future>;
 
@@ -375,11 +381,11 @@ where
         routes.build()
     }
 
-    fn dispatch(&mut self,
-                match_: Match<Self::Destination>,
-                request: http::Request<()>)
-        -> Self::Future
-    {
+    fn dispatch(
+        &mut self,
+        match_: Match<Self::Destination>,
+        request: http::Request<()>,
+    ) -> Self::Future {
         use self::Either5::*;
 
         let (destination, params) = match_.into_parts();
@@ -463,7 +469,14 @@ where
     R4: Resource<Body = R0::Body>,
     R5: Resource<Body = R0::Body>,
 {
-    type Destination = Either6<R0::Destination, R1::Destination, R2::Destination, R3::Destination, R4::Destination, R5::Destination>;
+    type Destination = Either6<
+        R0::Destination,
+        R1::Destination,
+        R2::Destination,
+        R3::Destination,
+        R4::Destination,
+        R5::Destination,
+    >;
     type Body = R0::Body;
     type Future = Either6<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future, R5::Future>;
 
@@ -497,11 +510,11 @@ where
         routes.build()
     }
 
-    fn dispatch(&mut self,
-                match_: Match<Self::Destination>,
-                request: http::Request<()>)
-        -> Self::Future
-    {
+    fn dispatch(
+        &mut self,
+        match_: Match<Self::Destination>,
+        request: http::Request<()>,
+    ) -> Self::Future {
         use self::Either6::*;
 
         let (destination, params) = match_.into_parts();
@@ -593,9 +606,18 @@ where
     R5: Resource<Body = R0::Body>,
     R6: Resource<Body = R0::Body>,
 {
-    type Destination = Either7<R0::Destination, R1::Destination, R2::Destination, R3::Destination, R4::Destination, R5::Destination, R6::Destination>;
+    type Destination = Either7<
+        R0::Destination,
+        R1::Destination,
+        R2::Destination,
+        R3::Destination,
+        R4::Destination,
+        R5::Destination,
+        R6::Destination,
+    >;
     type Body = R0::Body;
-    type Future = Either7<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future, R5::Future, R6::Future>;
+    type Future =
+        Either7<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future, R5::Future, R6::Future>;
 
     fn routes(&self) -> RouteSet<Self::Destination> {
         let mut routes = routing::Builder::new();
@@ -631,11 +653,11 @@ where
         routes.build()
     }
 
-    fn dispatch(&mut self,
-                match_: Match<Self::Destination>,
-                request: http::Request<()>)
-        -> Self::Future
-    {
+    fn dispatch(
+        &mut self,
+        match_: Match<Self::Destination>,
+        request: http::Request<()>,
+    ) -> Self::Future {
         use self::Either7::*;
 
         let (destination, params) = match_.into_parts();
@@ -677,7 +699,16 @@ impl<R0, R1, R2, R3, R4, R5, R6, U> Chain<U> for (R0, R1, R2, R3, R4, R5, R6) {
     type Resource = (R0, R1, R2, R3, R4, R5, R6, U);
 
     fn chain(self, other: U) -> Self::Resource {
-        (self.0, self.1, self.2, self.3, self.4, self.5, self.6, other)
+        (
+            self.0,
+            self.1,
+            self.2,
+            self.3,
+            self.4,
+            self.5,
+            self.6,
+            other,
+        )
     }
 }
 // ===== 8 =====
@@ -735,9 +766,27 @@ where
     R6: Resource<Body = R0::Body>,
     R7: Resource<Body = R0::Body>,
 {
-    type Destination = Either8<R0::Destination, R1::Destination, R2::Destination, R3::Destination, R4::Destination, R5::Destination, R6::Destination, R7::Destination>;
+    type Destination = Either8<
+        R0::Destination,
+        R1::Destination,
+        R2::Destination,
+        R3::Destination,
+        R4::Destination,
+        R5::Destination,
+        R6::Destination,
+        R7::Destination,
+    >;
     type Body = R0::Body;
-    type Future = Either8<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future, R5::Future, R6::Future, R7::Future>;
+    type Future = Either8<
+        R0::Future,
+        R1::Future,
+        R2::Future,
+        R3::Future,
+        R4::Future,
+        R5::Future,
+        R6::Future,
+        R7::Future,
+    >;
 
     fn routes(&self) -> RouteSet<Self::Destination> {
         let mut routes = routing::Builder::new();
@@ -777,11 +826,11 @@ where
         routes.build()
     }
 
-    fn dispatch(&mut self,
-                match_: Match<Self::Destination>,
-                request: http::Request<()>)
-        -> Self::Future
-    {
+    fn dispatch(
+        &mut self,
+        match_: Match<Self::Destination>,
+        request: http::Request<()>,
+    ) -> Self::Future {
         use self::Either8::*;
 
         let (destination, params) = match_.into_parts();
@@ -827,7 +876,17 @@ impl<R0, R1, R2, R3, R4, R5, R6, R7, U> Chain<U> for (R0, R1, R2, R3, R4, R5, R6
     type Resource = (R0, R1, R2, R3, R4, R5, R6, R7, U);
 
     fn chain(self, other: U) -> Self::Resource {
-        (self.0, self.1, self.2, self.3, self.4, self.5, self.6, self.7, other)
+        (
+            self.0,
+            self.1,
+            self.2,
+            self.3,
+            self.4,
+            self.5,
+            self.6,
+            self.7,
+            other,
+        )
     }
 }
 // ===== 9 =====
@@ -889,9 +948,29 @@ where
     R7: Resource<Body = R0::Body>,
     R8: Resource<Body = R0::Body>,
 {
-    type Destination = Either9<R0::Destination, R1::Destination, R2::Destination, R3::Destination, R4::Destination, R5::Destination, R6::Destination, R7::Destination, R8::Destination>;
+    type Destination = Either9<
+        R0::Destination,
+        R1::Destination,
+        R2::Destination,
+        R3::Destination,
+        R4::Destination,
+        R5::Destination,
+        R6::Destination,
+        R7::Destination,
+        R8::Destination,
+    >;
     type Body = R0::Body;
-    type Future = Either9<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future, R5::Future, R6::Future, R7::Future, R8::Future>;
+    type Future = Either9<
+        R0::Future,
+        R1::Future,
+        R2::Future,
+        R3::Future,
+        R4::Future,
+        R5::Future,
+        R6::Future,
+        R7::Future,
+        R8::Future,
+    >;
 
     fn routes(&self) -> RouteSet<Self::Destination> {
         let mut routes = routing::Builder::new();
@@ -935,11 +1014,11 @@ where
         routes.build()
     }
 
-    fn dispatch(&mut self,
-                match_: Match<Self::Destination>,
-                request: http::Request<()>)
-        -> Self::Future
-    {
+    fn dispatch(
+        &mut self,
+        match_: Match<Self::Destination>,
+        request: http::Request<()>,
+    ) -> Self::Future {
         use self::Either9::*;
 
         let (destination, params) = match_.into_parts();
@@ -989,7 +1068,18 @@ impl<R0, R1, R2, R3, R4, R5, R6, R7, R8, U> Chain<U> for (R0, R1, R2, R3, R4, R5
     type Resource = (R0, R1, R2, R3, R4, R5, R6, R7, R8, U);
 
     fn chain(self, other: U) -> Self::Resource {
-        (self.0, self.1, self.2, self.3, self.4, self.5, self.6, self.7, self.8, other)
+        (
+            self.0,
+            self.1,
+            self.2,
+            self.3,
+            self.4,
+            self.5,
+            self.6,
+            self.7,
+            self.8,
+            other,
+        )
     }
 }
 // ===== 10 =====
@@ -1055,9 +1145,31 @@ where
     R8: Resource<Body = R0::Body>,
     R9: Resource<Body = R0::Body>,
 {
-    type Destination = Either10<R0::Destination, R1::Destination, R2::Destination, R3::Destination, R4::Destination, R5::Destination, R6::Destination, R7::Destination, R8::Destination, R9::Destination>;
+    type Destination = Either10<
+        R0::Destination,
+        R1::Destination,
+        R2::Destination,
+        R3::Destination,
+        R4::Destination,
+        R5::Destination,
+        R6::Destination,
+        R7::Destination,
+        R8::Destination,
+        R9::Destination,
+    >;
     type Body = R0::Body;
-    type Future = Either10<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future, R5::Future, R6::Future, R7::Future, R8::Future, R9::Future>;
+    type Future = Either10<
+        R0::Future,
+        R1::Future,
+        R2::Future,
+        R3::Future,
+        R4::Future,
+        R5::Future,
+        R6::Future,
+        R7::Future,
+        R8::Future,
+        R9::Future,
+    >;
 
     fn routes(&self) -> RouteSet<Self::Destination> {
         let mut routes = routing::Builder::new();
@@ -1105,11 +1217,11 @@ where
         routes.build()
     }
 
-    fn dispatch(&mut self,
-                match_: Match<Self::Destination>,
-                request: http::Request<()>)
-        -> Self::Future
-    {
+    fn dispatch(
+        &mut self,
+        match_: Match<Self::Destination>,
+        request: http::Request<()>,
+    ) -> Self::Future {
         use self::Either10::*;
 
         let (destination, params) = match_.into_parts();
@@ -1159,10 +1271,24 @@ where
     }
 }
 
-impl<R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, U> Chain<U> for (R0, R1, R2, R3, R4, R5, R6, R7, R8, R9) {
+impl<R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, U> Chain<U>
+    for (R0, R1, R2, R3, R4, R5, R6, R7, R8, R9)
+{
     type Resource = (R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, U);
 
     fn chain(self, other: U) -> Self::Resource {
-        (self.0, self.1, self.2, self.3, self.4, self.5, self.6, self.7, self.8, self.9, other)
+        (
+            self.0,
+            self.1,
+            self.2,
+            self.3,
+            self.4,
+            self.5,
+            self.6,
+            self.7,
+            self.8,
+            self.9,
+            other,
+        )
     }
 }

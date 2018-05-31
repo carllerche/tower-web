@@ -1,6 +1,6 @@
 use bytes::Bytes;
-use futures::{IntoFuture, Future, Stream, Poll};
 use futures::stream::{self, Once};
+use futures::{Future, IntoFuture, Poll, Stream};
 use http;
 use serde;
 
@@ -29,9 +29,10 @@ pub struct Serialize<T>(T);
 // ===== impl IntoResponse =====
 
 impl<T> IntoResponse for T
-where T: IntoFuture,
-      T::Item: serde::Serialize,
-      T::Error: fmt::Debug,
+where
+    T: IntoFuture,
+    T::Item: serde::Serialize,
+    T::Error: fmt::Debug,
 {
     type Body = Once<Bytes, ::Error>;
     type Future = Serialize<T::Future>;
@@ -44,9 +45,10 @@ where T: IntoFuture,
 // ===== impl Serialize =====
 
 impl<T> Future for Serialize<T>
-where T: Future,
-      T::Item: serde::Serialize,
-      T::Error: fmt::Debug,
+where
+    T: Future,
+    T::Item: serde::Serialize,
+    T::Error: fmt::Debug,
 {
     type Item = http::Response<Once<Bytes, ::Error>>;
     type Error = ::Error;
@@ -63,16 +65,16 @@ where T: Future,
                 let response = http::Response::builder()
                     .status(500)
                     .header("content-type", "text/plain")
-                    .body(stream::once(Ok(Bytes::from_static(b"internal server error"))))
+                    .body(stream::once(Ok(Bytes::from_static(
+                        b"internal server error",
+                    ))))
                     .unwrap();
 
                 return Ok(response.into());
             }
         };
 
-        let body = ::serde_json::to_vec(&item)
-            .unwrap()
-            .into();
+        let body = ::serde_json::to_vec(&item).unwrap().into();
 
         let response = http::Response::builder()
             .status(200)

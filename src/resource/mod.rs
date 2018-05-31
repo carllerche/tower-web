@@ -1,6 +1,6 @@
 pub mod tuple;
 
-use routing::{RouteSet, Match};
+use routing::{Match, RouteSet};
 
 use bytes::Bytes;
 use futures::{Future, Stream};
@@ -20,9 +20,11 @@ pub trait Resource: Clone + Send + 'static {
     /// Return the routes associated with the resource.
     fn routes(&self) -> RouteSet<Self::Destination>;
 
-    fn dispatch(&mut self,
-                route: Match<Self::Destination>,
-                request: http::Request<()>) -> Self::Future;
+    fn dispatch(
+        &mut self,
+        route: Match<Self::Destination>,
+        request: http::Request<()>,
+    ) -> Self::Future;
 }
 
 /// Combine two resources

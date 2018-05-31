@@ -3,8 +3,8 @@ use routing::RouteSet;
 
 use bytes::Bytes;
 use http;
-use tower;
 use tokio::prelude::*;
+use tower_service;
 
 use std::sync::Arc;
 
@@ -34,20 +34,19 @@ enum Body<T> {
 // ===== impl Service =====
 
 impl<T> Service<T>
-where T: Resource,
+where
+    T: Resource,
 {
     pub(crate) fn new(resource: T) -> Self {
         let routes = Arc::new(resource.routes());
 
-        Service {
-            resource,
-            routes,
-        }
+        Service { resource, routes }
     }
 }
 
-impl<T> tower::Service for Service<T>
-where T: Resource,
+impl<T> tower_service::Service for Service<T>
+where
+    T: Resource,
 {
     type Request = http::Request<String>;
     type Response = http::Response<ResponseBody<T>>;
@@ -69,9 +68,7 @@ where T: Resource,
                 let fut = self.resource.dispatch(match_, request);
                 ResponseFuture { inner: Some(fut) }
             }
-            None => {
-                ResponseFuture { inner: None }
-            }
+            None => ResponseFuture { inner: None },
         }
     }
 }
@@ -87,11 +84,11 @@ impl<T: Resource> Future for ResponseFuture<T> {
                 let response = try_ready!(f.poll());
 
                 // Wrap the response body with `ResponseBody`
-                Ok(response.map(|body| {
-                    ResponseBody {
+                Ok(response
+                    .map(|body| ResponseBody {
                         inner: Body::Inner(body),
-                    }
-                }).into())
+                    })
+                    .into())
             }
             None => {
                 let body = ResponseBody {
@@ -117,9 +114,7 @@ impl<T: Resource> Stream for ResponseBody<T> {
     fn poll(&mut self) -> Poll<Option<Bytes>, ::Error> {
         match self.inner {
             Body::Inner(ref mut s) => s.poll(),
-            Body::NotFound(ref mut stream) => {
-                Ok(stream.take().into())
-            }
+            Body::NotFound(ref mut stream) => Ok(stream.take().into()),
         }
     }
 }

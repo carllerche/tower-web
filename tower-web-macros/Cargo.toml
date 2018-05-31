@@ -8,5 +8,6 @@ proc-macro = true
 
 [dependencies]
 proc-macro-hack = "0.4.0"
-quote = "0.4.2"
-syn = { version = "0.12.14", features = ["full", "fold", "extra-traits"] }
+proc-macro2 = "0.4.4"
+quote = "0.6.3"
+syn = { version = "0.14.1", features = ["full", "fold", "extra-traits"] }
