@@ -14,6 +14,20 @@ pub struct Route {
     pub ret: syn::Type,
 
     pub rules: Rules,
+
+    pub args: Vec<Arg>,
+}
+
+#[derive(Debug)]
+pub struct Arg {
+    /// Argument identifier, i.e., the variable name.
+    pub ident: Option<String>,
+
+    /// The index of the path binding the identifier matches.
+    pub param: Option<usize>,
+
+    // The argument type
+    pub ty: syn::Type,
 }
 
 #[derive(Debug)]
@@ -22,7 +36,12 @@ pub struct Rules {
 
     /// HTTP path
     pub path: Option<String>,
+
+    /// String literal version of the path
     pub path_lit: Option<syn::LitStr>,
+
+    /// Path parameters
+    pub path_params: Vec<String>,
 }
 
 #[derive(Debug)]
@@ -31,12 +50,19 @@ pub enum Method {
 }
 
 impl Route {
-    pub fn new(index: usize, ident: syn::Ident, ret: syn::Type, rules: Rules) -> Self {
+    pub fn new(
+        index: usize,
+        ident: syn::Ident,
+        ret: syn::Type,
+        rules: Rules,
+        args: Vec<Arg>,
+    ) -> Self {
         Route {
             index,
             ident,
             ret,
             rules,
+            args,
         }
     }
 
@@ -78,6 +104,7 @@ impl Rules {
             method: None,
             path: None,
             path_lit: None,
+            path_params: vec![],
         }
     }
 
@@ -169,7 +196,18 @@ impl Rules {
 
         match list.nested.first().unwrap().value() {
             NestedMeta::Literal(Lit::Str(lit)) => {
-                self.path = Some(lit.value());
+                // Convert the path literal to a String
+                let path = lit.value();
+
+                // Figure out param indices
+                //
+                // TODO: Validate param format
+                self.path_params = path.split("/")
+                    .filter(|segment| segment.chars().next() == Some(':'))
+                    .map(|segment| segment[1..].to_string())
+                    .collect();
+
+                self.path = Some(path);
                 self.path_lit = Some(lit.clone());
             }
             _ => unimplemented!("unimplemented: invalid route rule"),
@@ -189,6 +227,26 @@ fn trim_at_prefix(s: &str) -> Option<&str> {
     }
 
     None
+}
+
+// ===== impl Arg =====
+
+impl Arg {
+    pub fn new(ident: String, param: Option<usize>, ty: syn::Type) -> Arg {
+        Arg {
+            ident: Some(ident),
+            param,
+            ty,
+        }
+    }
+
+    pub fn ty_only(ty: syn::Type) -> Arg {
+        Arg {
+            ty,
+            ident: None,
+            param: None,
+        }
+    }
 }
 
 // ===== impl Method =====

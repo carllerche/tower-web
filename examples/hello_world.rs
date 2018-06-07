@@ -4,7 +4,7 @@ extern crate tower_web;
 #[macro_use]
 extern crate serde_derive;
 
-use tower_web::{ServiceBuilder};
+use tower_web::ServiceBuilder;
 
 #[derive(Clone, Debug)]
 pub struct HelloWorld;
@@ -34,7 +34,8 @@ impl_web! {
         }
 
         /// @GET("/users/:id")
-        fn get(&mut self/*, id: String*/) -> Result<String, ()> {
+        fn get(&mut self, id: u32) -> Result<String, ()> {
+            println!("GOT: id={:?};", id);
             Ok("ZOOOOMG YO".to_string())
         }
 

@@ -57,12 +57,18 @@ impl ImplWeb {
         &mut self.services[self.curr_service]
     }
 
-    fn push_route(&mut self, ident: syn::Ident, ret: syn::Type, rules: route::Rules) {
+    fn push_route(
+        &mut self,
+        ident: syn::Ident,
+        ret: syn::Type,
+        rules: route::Rules,
+        args: Vec<route::Arg>,
+    ) {
         let index = self.service().routes.len();
         self.curr_route = index;
         self.service()
             .routes
-            .push(Route::new(index, ident, ret, rules));
+            .push(Route::new(index, ident, ret, rules, args));
     }
 }
 
@@ -99,7 +105,37 @@ impl syn::fold::Fold for ImplWeb {
             ReturnType::Default => syn::parse_str("()").unwrap(),
         };
 
-        self.push_route(ident, ret, rules);
+        let mut args = vec![];
+
+        // Process the args
+        for arg in item.sig.decl.inputs.iter().skip(1) {
+            use syn::{FnArg, Pat};
+
+            match arg {
+                FnArg::Captured(arg) => {
+                    match arg.pat {
+                        Pat::Ident(ref ident) => {
+                            // Convert the identifier to a string
+                            let ident = ident.ident.to_string();
+
+                            // Check if the identifier matches any parameters
+                            let param = rules.path_params.iter().position(|param| param == &ident);
+
+                            args.push(route::Arg::new(ident, param, arg.ty.clone()));
+                        }
+                        _ => {
+                            // In this case, we should proceed without
+                            // generating a call site as we cannot infer enough
+                            // information about the argument.
+                            args.push(route::Arg::ty_only(arg.ty.clone()));
+                        }
+                    }
+                }
+                _ => panic!("unexpected fn argument type = {:?}", arg),
+            }
+        }
+
+        self.push_route(ident, ret, rules, args);
 
         item
     }

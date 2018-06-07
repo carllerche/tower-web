@@ -53,9 +53,7 @@ impl Condition {
 
 impl RouteMatch {
     pub(crate) fn new(params: Params) -> Self {
-        RouteMatch {
-            params,
-        }
+        RouteMatch { params }
     }
 
     /// Returns the matched parameters

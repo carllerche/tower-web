@@ -32,9 +32,37 @@ pub fn generate(services: &[Service]) -> String {
                 .route(#destination, #method, #path)
             });
 
+            let args: Vec<_> = route
+                .args
+                .iter()
+                .map(|arg| {
+                    let ty = &arg.ty;
+
+                    // TODO: Don't unwrap
+
+                    match arg.ident {
+                        Some(ref ident) => {
+                            let param = match arg.param {
+                                Some(idx) => quote!(Some(#idx)),
+                                Nonee => quote!(None),
+                            };
+
+                            quote!({
+                                let callsite = CallSite::new(#ident, #param);
+                                <#ty>::callsite_extract(
+                                    &callsite,
+                                    &route_match,
+                                    &request).unwrap()
+                            })
+                        }
+                        None => quote!(<#ty>::extract(&route_match, &request).unwrap()),
+                    }
+                })
+                .collect();
+
             dispatch_fn.append_all(quote! {
                 #destination => {
-                    let response = self.#ident()
+                    let response = self.#ident(#(#args),*)
                         .into_response()
                         .map(|response| {
                             response.map(|body| {
@@ -75,16 +103,14 @@ pub fn generate(services: &[Service]) -> String {
 
                 fn dispatch(&mut self,
                             destination: Self::Destination,
-                            _route: ::tower_web::routing::RouteMatch,
+                            route_match: ::tower_web::routing::RouteMatch,
                             request: ::tower_web::codegen::http::Request<()>)
                     -> Self::Future
                 {
-                    use ::tower_web::IntoResponse;
+                    use ::tower_web::{IntoResponse, Extract, CallSite};
                     // use ::tower_web::codegen::bytes::Bytes;
                     use ::tower_web::codegen::futures::{/* future, stream, */ Future, Stream};
                     #destination_use
-
-                    drop(request);
 
                     match destination {
                         #dispatch_fn

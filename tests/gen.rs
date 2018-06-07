@@ -58,3 +58,43 @@ mod other_attr {
         v.foo();
     }
 }
+
+/*
+#[derive(Clone)]
+struct Empty;
+
+impl_web! {
+    impl Empty {
+
+        // These should not parse due to an invalid fn sig
+
+        /// @GET("/")
+        fn foo() {
+        }
+
+        /// @GET("/:id")
+        fn foo(id: u32) {
+        }
+
+        /// @GET("/")
+        fn foo(self) {
+        }
+
+        /// @GET("/:id")
+        fn foo(self, id: u32) {
+        }
+
+        /// @GET("/")
+        fn foo(self: Box<Self>) {
+        }
+
+        /// @GET("/:id")
+        fn foo(self: Box<Self>, id: u32) {
+        }
+    }
+}
+ */
+
+// Additional tests:
+// * Passing arg that does not impl `Extract`
+// * No function generics
