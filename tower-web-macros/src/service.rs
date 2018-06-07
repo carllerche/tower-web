@@ -1,7 +1,7 @@
 use Route;
 
-use {quote, syn};
 use proc_macro2::TokenStream;
+use syn;
 
 #[derive(Debug)]
 pub struct Service {

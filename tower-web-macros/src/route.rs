@@ -1,5 +1,4 @@
-use proc_macro2::{TokenStream, TokenTree};
-use quote::TokenStreamExt;
+use proc_macro2::TokenStream;
 use syn;
 
 use std::fmt;
@@ -93,7 +92,7 @@ impl Rules {
 
     /// Returns `true` if the attribute is processed
     pub fn process_attr(&mut self, attr: &syn::Attribute) -> bool {
-        use syn::{Meta, Lit};
+        use syn::{Lit, Meta};
 
         let meta = match attr.interpret_meta() {
             Some(Meta::NameValue(meta)) => meta,
@@ -153,8 +152,7 @@ impl Rules {
                 if list.ident == "GET" {
                     self.set_method(Method::Get);
                     self.process_path(&list);
-                }
-                else {
+                } else {
                     unimplemented!("unimplemeneted: invalid route rule");
                 }
             }
@@ -164,7 +162,7 @@ impl Rules {
     }
 
     fn process_path(&mut self, list: &syn::MetaList) {
-        use syn::{NestedMeta, Lit};
+        use syn::{Lit, NestedMeta};
 
         assert!(list.nested.len() == 1, "unimplemeneted: invalid route rule");
         assert!(self.path.is_none(), "unimplemented: dup path");
@@ -184,7 +182,7 @@ fn trim_at_prefix(s: &str) -> Option<&str> {
         match b {
             b' ' => {}
             b'@' => {
-                return Some(&s[(i+1)..]);
+                return Some(&s[(i + 1)..]);
             }
             _ => return None,
         }

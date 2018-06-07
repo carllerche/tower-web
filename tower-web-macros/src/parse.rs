@@ -1,11 +1,10 @@
-use {Route, Service};
 use route;
+use {Route, Service};
 
 use syn;
 
 /// Result of a parse
 pub struct Parse {
-    ast: syn::File,
     services: Vec<Service>,
 }
 
@@ -26,17 +25,16 @@ impl Parse {
         let mut v = ImplWeb::new();
 
         // Transfer the definition
-        let ast = syn::fold::fold_file(&mut v, ast);
+        syn::fold::fold_file(&mut v, ast);
 
         Parse {
-            ast,
             services: v.services,
         }
     }
 
     /// Generate the service source
     pub fn generate(&self) -> String {
-        ::gen::generate(&self.ast, &self.services)
+        ::gen::generate(&self.services)
     }
 }
 
@@ -62,7 +60,9 @@ impl ImplWeb {
     fn push_route(&mut self, ident: syn::Ident, ret: syn::Type, rules: route::Rules) {
         let index = self.service().routes.len();
         self.curr_route = index;
-        self.service().routes.push(Route::new(index, ident, ret, rules));
+        self.service()
+            .routes
+            .push(Route::new(index, ident, ret, rules));
     }
 }
 
@@ -83,12 +83,10 @@ impl syn::fold::Fold for ImplWeb {
 
         let mut rules = route::Rules::new();
 
-        item.attrs.retain(|attr| {
-            !rules.process_attr(attr)
-        });
+        item.attrs.retain(|attr| !rules.process_attr(attr));
 
         if rules.is_empty() {
-            // Not a web route, do no furtheer processing.
+            // Not a web route, do no further processing.
             return item;
         }
 

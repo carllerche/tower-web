@@ -1,13 +1,12 @@
 use Service;
 
 use proc_macro2::TokenStream;
-use quote::{ToTokens, TokenStreamExt};
-use syn;
+use quote::TokenStreamExt;
 
 /// Generate the service implementations
-pub fn generate(ast: &syn::File, services: &[Service]) -> String {
+pub fn generate(services: &[Service]) -> String {
     // Tokens representing the output
-    let mut tokens = ast.into_token_stream();
+    let mut tokens = TokenStream::new();
 
     for service in services {
         let ty = &service.self_ty;
@@ -75,18 +74,19 @@ pub fn generate(ast: &syn::File, services: &[Service]) -> String {
                 }
 
                 fn dispatch(&mut self,
-                            route: ::tower_web::routing::Match<Self::Destination>,
+                            destination: Self::Destination,
+                            _route: ::tower_web::routing::RouteMatch,
                             request: ::tower_web::codegen::http::Request<()>)
                     -> Self::Future
                 {
                     use ::tower_web::IntoResponse;
-                    use ::tower_web::codegen::bytes::Bytes;
-                    use ::tower_web::codegen::futures::{future, stream, Future, Stream};
+                    // use ::tower_web::codegen::bytes::Bytes;
+                    use ::tower_web::codegen::futures::{/* future, stream, */ Future, Stream};
                     #destination_use
 
                     drop(request);
 
-                    match *route.destination() {
+                    match destination {
                         #dispatch_fn
                     }
                 }

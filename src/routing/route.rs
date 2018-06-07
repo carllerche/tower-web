@@ -1,4 +1,4 @@
-use super::condition::{Condition, Match};
+use super::condition::{Condition, RouteMatch};
 
 use http::Request;
 
@@ -36,9 +36,9 @@ impl<T> Route<T> {
 
 impl<T: Clone> Route<T> {
     /// Try to match a request against this route.
-    pub fn test(&self, request: &Request<()>) -> Option<Match<T>> {
+    pub fn test(&self, request: &Request<()>) -> Option<(T, RouteMatch)> {
         self.condition
             .test(request)
-            .map(|params| Match::new(self.destination.clone(), params))
+            .map(|params| (self.destination.clone(), RouteMatch::new(params)))
     }
 }

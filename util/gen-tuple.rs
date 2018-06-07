@@ -35,7 +35,7 @@ pub fn main() {
 //! Implementations of `Resource` for tuple types.
 
 use super::{Chain, Resource};
-use routing::{self, RouteSet, Match};
+use routing::{self, RouteSet, RouteMatch};
 
 use bytes::Bytes;
 use futures::{Future, Poll};
@@ -54,7 +54,7 @@ impl Resource for () {
         RouteSet::default()
     }
 
-    fn dispatch(&mut self, _: Match<()>, _: http::Request<()>) -> Self::Future {
+    fn dispatch(&mut self, _: (), _: RouteMatch, _: http::Request<()>) -> Self::Future {
         unreachable!();
     }
 }
@@ -176,20 +176,18 @@ fn gen_either(i: usize) {
     println!("    }}");
     println!("");
     println!("    fn dispatch(&mut self,");
-    println!("                match_: Match<Self::Destination>,");
+    println!("                destination: Self::Destination,");
+    println!("                route_match: RouteMatch,");
     println!("                request: http::Request<()>)");
     println!("        -> Self::Future");
     println!("    {{");
     println!("        use self::Either{}::*;", variants);
     println!("");
-    println!("        let (destination, params) = match_.into_parts();");
-    println!("");
     println!("        match destination {{");
 
     for n in 0..variants {
         println!("            {}(d) => {{", VARS[n]);
-        println!("                let match_ = Match::new(d, params);");
-        println!("                {}(self.{}.dispatch(match_, request))", VARS[n], n);
+        println!("                {}(self.{}.dispatch(d, route_match, request))", VARS[n], n);
         println!("            }}");
     }
 

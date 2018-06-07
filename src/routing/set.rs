@@ -1,4 +1,4 @@
-use super::{Match, Route};
+use super::{RouteMatch, Route};
 
 use http::Request;
 
@@ -25,7 +25,7 @@ impl<T> RouteSet<T> {
 
 impl<T: Clone> RouteSet<T> {
     /// Match a request against a route set
-    pub fn test(&self, request: &Request<()>) -> Option<Match<T>> {
+    pub fn test(&self, request: &Request<()>) -> Option<(T, RouteMatch)> {
         for route in &self.routes {
             if let Some(m) = route.test(request) {
                 return Some(m);

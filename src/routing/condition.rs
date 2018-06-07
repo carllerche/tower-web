@@ -13,10 +13,7 @@ pub struct Condition {
 }
 
 #[derive(Debug)]
-pub struct Match<T> {
-    /// Matched routing destination
-    destination: T,
-
+pub struct RouteMatch {
     /// Extracted route parameters
     params: Params,
 }
@@ -52,28 +49,18 @@ impl Condition {
     }
 }
 
-// ===== impl Match =====
+// ===== impl RouteMatch =====
 
-impl<T> Match<T> {
-    pub(crate) fn new(destination: T, params: Params) -> Self {
-        Match {
-            destination,
+impl RouteMatch {
+    pub(crate) fn new(params: Params) -> Self {
+        RouteMatch {
             params,
         }
-    }
-
-    /// Returns the matched destination
-    pub fn destination(&self) -> &T {
-        &self.destination
     }
 
     /// Returns the matched parameters
     pub fn params(&self) -> &Params {
         &self.params
-    }
-
-    pub(crate) fn into_parts(self) -> (T, Params) {
-        (self.destination, self.params)
     }
 }
 

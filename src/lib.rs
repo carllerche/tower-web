@@ -17,11 +17,13 @@ pub mod service;
 
 mod builder;
 mod error;
+mod extract;
 mod response;
 mod run;
 
 pub use builder::ServiceBuilder;
 pub use error::Error;
+pub use extract::Extract;
 pub use resource::Resource;
 pub use response::IntoResponse;
 pub use service::Service;
@@ -40,11 +42,9 @@ pub use tower_web_macros::*;
 
 proc_macro_item_decl! {
     /// Implement a Web Service.
-    impl_web! => impl_web_impl
-    // derive_resource! => impl_web_impl
+    derive_resource! => derive_resource_impl
 }
 
-/*
 #[macro_export]
 macro_rules! impl_web {
     ($($t:tt)*) => {
@@ -52,6 +52,5 @@ macro_rules! impl_web {
         derive_resource! { $($t)* }
     }
 }
-*/
 
 // ===== end proc_macro_hack junk =====

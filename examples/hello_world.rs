@@ -4,7 +4,7 @@ extern crate tower_web;
 #[macro_use]
 extern crate serde_derive;
 
-use tower_web::*;
+use tower_web::{ServiceBuilder};
 
 #[derive(Clone, Debug)]
 pub struct HelloWorld;
@@ -33,6 +33,18 @@ impl_web! {
             })
         }
 
+        /// @GET("/users/:id")
+        fn get(&mut self/*, id: String*/) -> Result<String, ()> {
+            Ok("ZOOOOMG YO".to_string())
+        }
+
+        /*
+        /// @GET("/authx")
+        fn get(&mut self, content_length: HeaderValue) -> Result<String, ()> {
+            unimplemented!();
+        }
+         */
+
         /*
         // #[GET "/"]
         fn hello_world(&mut self) -> Result<HelloResponse, ()> {
@@ -56,17 +68,14 @@ impl_web! {
         */
     }
 
-    /*
     impl GoodbyeWorld {
-        #[GET "/goodbye"]
-        // #[GET("/goodbye")]
+        /// @GET("/goodbye")
         fn goodbye(&mut self) -> Result<HelloResponse, ()> {
             Ok(HelloResponse {
                 msg: "other resource",
             })
         }
     }
-    */
 }
 
 pub fn main() {
@@ -74,7 +83,7 @@ pub fn main() {
 
     ServiceBuilder::new()
         .resource(HelloWorld)
-        // .resource(GoodbyeWorld)
+        .resource(GoodbyeWorld)
         .run(&addr)
         .unwrap();
 }

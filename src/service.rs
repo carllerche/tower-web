@@ -64,8 +64,8 @@ where
         let request = http::Request::from_parts(head, ());
 
         match self.routes.test(&request) {
-            Some(match_) => {
-                let fut = self.resource.dispatch(match_, request);
+            Some((destination, match_)) => {
+                let fut = self.resource.dispatch(destination, match_, request);
                 ResponseFuture { inner: Some(fut) }
             }
             None => ResponseFuture { inner: None },
