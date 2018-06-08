@@ -13,7 +13,8 @@ impl CallSite {
         CallSite { arg, param }
     }
 
-    pub(crate) fn arg(&self) -> &'static str {
+    /// TODO: Dox
+    pub fn arg(&self) -> &'static str {
         self.arg
     }
 

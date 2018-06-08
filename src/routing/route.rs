@@ -1,4 +1,5 @@
-use super::condition::{Condition, RouteMatch};
+use super::condition::Condition;
+use super::route_match::RouteMatch;
 
 use http::Request;
 

@@ -13,12 +13,6 @@ pub struct Condition {
 }
 
 #[derive(Debug)]
-pub struct RouteMatch {
-    /// Extracted route parameters
-    params: Params,
-}
-
-#[derive(Debug)]
 struct Segments {
     segments: Vec<Segment>,
 }
@@ -46,19 +40,6 @@ impl Condition {
         }
 
         self.path.test(request.uri().path())
-    }
-}
-
-// ===== impl RouteMatch =====
-
-impl RouteMatch {
-    pub(crate) fn new(params: Params) -> Self {
-        RouteMatch { params }
-    }
-
-    /// Returns the matched parameters
-    pub fn params(&self) -> &Params {
-        &self.params
     }
 }
 

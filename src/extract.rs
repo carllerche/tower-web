@@ -28,7 +28,7 @@ impl<'a> Extract<'a> for String {
 
 impl<'a> Extract<'a> for &'a str {
     fn extract(route: &'a RouteMatch, request: &Request<()>) -> Result<Self, ()> {
-        drop(request);
+        drop((route, request));
         unimplemented!();
     }
 }
@@ -45,6 +45,8 @@ impl<'a> Extract<'a> for u32 {
         request: &'a Request<()>,
     ) -> Result<Self, ()> {
         use std::str::{self, FromStr};
+
+        drop(request);
 
         // Get the parameter index from the callsite info
         let idx = match callsite.param() {
