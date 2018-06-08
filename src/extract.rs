@@ -29,7 +29,7 @@ impl<'a> Extract<'a> for String {
 impl<'a> Extract<'a> for &'a str {
     fn extract(route: &'a RouteMatch, request: &Request<()>) -> Result<Self, ()> {
         drop(request);
-        Ok(&route.params()[0])
+        unimplemented!();
     }
 }
 
@@ -41,11 +41,28 @@ impl<'a> Extract<'a> for u32 {
 
     fn callsite_extract(
         callsite: &CallSite,
-        route: &'a RouteMatch,
+        route_match: &'a RouteMatch,
         request: &'a Request<()>,
     ) -> Result<Self, ()> {
-        // TODO: Implement
-        println!("CALL SITE = {:?}", callsite);
-        Ok(123)
+        use std::str::{self, FromStr};
+
+        // Get the parameter index from the callsite info
+        let idx = match callsite.param() {
+            Some(idx) => idx,
+            None => unimplemented!(),
+        };
+
+        let raw = match route_match.params().get(idx) {
+            Some(raw) => raw,
+            None => return Err(()),
+        };
+
+        let s = match str::from_utf8(raw) {
+            Ok(s) => s,
+            Err(_) => return Err(()),
+        };
+
+        u32::from_str(s)
+            .map_err(|_| ())
     }
 }

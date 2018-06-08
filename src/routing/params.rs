@@ -1,5 +1,3 @@
-use std::ops;
-
 #[derive(Debug)]
 pub struct Params {
     /// Parameters extracted from the requet
@@ -18,15 +16,7 @@ impl Params {
     }
 
     /// Get a parameter value
-    pub fn get(&self, index: usize) -> &[u8] {
-        self.params[index].as_ref()
-    }
-}
-
-impl ops::Index<usize> for Params {
-    type Output = str;
-
-    fn index(&self, index: usize) -> &str {
-        &self.params[index]
+    pub fn get(&self, index: usize) -> Option<&[u8]> {
+        self.params.get(index).map(|s| s.as_ref())
     }
 }
