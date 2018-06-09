@@ -34,7 +34,7 @@ impl Condition {
     }
 
     /// Test a request
-    pub fn test(&self, request: &Request<()>) -> Option<Params> {
+    pub fn test<'a>(&self, request: &'a Request<()>) -> Option<Params<'a>> {
         if *request.method() != self.method {
             return None;
         }
@@ -66,7 +66,7 @@ impl Segments {
     }
 
     /// Test the path component of a request
-    fn test(&self, mut path: &str) -> Option<Params> {
+    fn test<'a>(&self, mut path: &'a str) -> Option<Params<'a>> {
         if !path.is_empty() && &path[path.len() - 1..path.len()] == "/" {
             path = &path[0..path.len() - 1];
         }
@@ -80,7 +80,7 @@ impl Segments {
             }
 
             match self.segments[i] {
-                Segment::Param => params.push(segment.into()),
+                Segment::Param => params.push(segment),
                 Segment::Literal(ref val) => {
                     if segment != val {
                         return None;

@@ -44,7 +44,7 @@ pub fn generate(services: &[Service]) -> String {
                         Some(ref ident) => {
                             let param = match arg.param {
                                 Some(idx) => quote!(Some(#idx)),
-                                Nonee => quote!(None),
+                                None => quote!(None),
                             };
 
                             quote!({
@@ -103,8 +103,8 @@ pub fn generate(services: &[Service]) -> String {
 
                 fn dispatch(&mut self,
                             destination: Self::Destination,
-                            route_match: ::tower_web::routing::RouteMatch,
-                            request: ::tower_web::codegen::http::Request<()>)
+                            route_match: &::tower_web::routing::RouteMatch,
+                            request: &::tower_web::codegen::http::Request<()>)
                     -> Self::Future
                 {
                     use ::tower_web::{IntoResponse, Extract, CallSite};

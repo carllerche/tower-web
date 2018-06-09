@@ -37,7 +37,7 @@ impl<T> Route<T> {
 
 impl<T: Clone> Route<T> {
     /// Try to match a request against this route.
-    pub fn test(&self, request: &Request<()>) -> Option<(T, RouteMatch)> {
+    pub fn test<'a>(&self, request: &'a Request<()>) -> Option<(T, RouteMatch<'a>)> {
         self.condition
             .test(request)
             .map(|params| (self.destination.clone(), RouteMatch::new(params)))

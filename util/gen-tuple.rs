@@ -54,7 +54,7 @@ impl Resource for () {
         RouteSet::default()
     }
 
-    fn dispatch(&mut self, _: (), _: RouteMatch, _: http::Request<()>) -> Self::Future {
+    fn dispatch(&mut self, _: (), _: &RouteMatch, _: &http::Request<()>) -> Self::Future {
         unreachable!();
     }
 }
@@ -177,8 +177,8 @@ fn gen_either(i: usize) {
     println!("");
     println!("    fn dispatch(&mut self,");
     println!("                destination: Self::Destination,");
-    println!("                route_match: RouteMatch,");
-    println!("                request: http::Request<()>)");
+    println!("                route_match: &RouteMatch,");
+    println!("                request: &http::Request<()>)");
     println!("        -> Self::Future");
     println!("    {{");
     println!("        use self::Either{}::*;", variants);

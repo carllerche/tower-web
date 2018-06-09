@@ -1,15 +1,15 @@
 use super::Params;
 
 #[derive(Debug)]
-pub struct RouteMatch {
+pub struct RouteMatch<'a> {
     /// Extracted route parameters
-    params: Params,
+    params: Params<'a>,
 }
 
 // ===== impl RouteMatch =====
 
-impl RouteMatch {
-    pub(crate) fn new(params: Params) -> Self {
+impl<'a> RouteMatch<'a> {
+    pub(crate) fn new(params: Params<'a>) -> Self {
         RouteMatch { params }
     }
 

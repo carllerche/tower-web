@@ -23,8 +23,8 @@ pub trait Resource: Clone + Send + 'static {
     fn dispatch(
         &mut self,
         destination: Self::Destination,
-        route: RouteMatch,
-        request: http::Request<()>,
+        route_match: &RouteMatch,
+        request: &http::Request<()>,
     ) -> Self::Future;
 }
 

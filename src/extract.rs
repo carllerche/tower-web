@@ -44,7 +44,7 @@ impl<'a> Extract<'a> for u32 {
         route_match: &'a RouteMatch,
         request: &'a Request<()>,
     ) -> Result<Self, ()> {
-        use std::str::{self, FromStr};
+        use std::str::FromStr;
 
         drop(request);
 
@@ -54,17 +54,12 @@ impl<'a> Extract<'a> for u32 {
             None => unimplemented!(),
         };
 
-        let raw = match route_match.params().get(idx) {
-            Some(raw) => raw,
+        let param = match route_match.params().get(idx) {
+            Some(param) => param,
             None => return Err(()),
         };
 
-        let s = match str::from_utf8(raw) {
-            Ok(s) => s,
-            Err(_) => return Err(()),
-        };
-
-        u32::from_str(s)
+        u32::from_str(param)
             .map_err(|_| ())
     }
 }
