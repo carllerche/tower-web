@@ -1,48 +1,19 @@
 use bytes::Bytes;
 use futures::stream::{self, Once};
-use futures::{Future, IntoFuture, Poll, Stream};
+use futures::{Future, Poll};
 use http;
 use serde;
 
 use std::fmt;
 
-/// Convert a value into an HTTP response.
-pub trait IntoResponse {
-    /// The HTTP response body type.
-    type Body: Stream<Item = Bytes, Error = ::Error>;
-
-    /// Future of the response value
-    type Future: Future<Item = http::Response<Self::Body>, Error = ::Error>;
-
-    /// Convert the value into a response future
-    fn into_response(self) -> Self::Future;
-}
-
-/*
-/// Do not serialize the value
-pub struct Raw<T>(T);
-*/
-
 /// Map a serializable response to an HTTP response
 pub struct Serialize<T>(T);
 
-// ===== impl IntoResponse =====
-
-impl<T> IntoResponse for T
-where
-    T: IntoFuture,
-    T::Item: serde::Serialize,
-    T::Error: fmt::Debug,
-{
-    type Body = Once<Bytes, ::Error>;
-    type Future = Serialize<T::Future>;
-
-    fn into_response(self) -> Self::Future {
-        Serialize(self.into_future())
+impl<T> Serialize<T> {
+    pub(crate) fn new(inner: T) -> Serialize<T> {
+        Serialize(inner)
     }
 }
-
-// ===== impl Serialize =====
 
 impl<T> Future for Serialize<T>
 where
