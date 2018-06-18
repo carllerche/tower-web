@@ -26,14 +26,15 @@ impl_web! {
     impl HelloWorld {
         /// Hello world endpoint
         ///
-        /// @GET("/")
+        /// @get("/")
         fn hello_world(&mut self) -> Result<HelloResponse, ()> {
             Ok(HelloResponse {
                 msg: "hello world",
             })
         }
 
-        /// @GET("/users/:id")
+        /// @get("/users/:id")
+        /// @content_type("json")
         fn get(&mut self, id: u32) -> Result<String, ()> {
             println!("GOT: id={:?};", id);
             Ok("ZOOOOMG YO".to_string())
@@ -70,7 +71,7 @@ impl_web! {
     }
 
     impl GoodbyeWorld {
-        /// @GET("/goodbye")
+        /// @get("/goodbye")
         fn goodbye(&mut self) -> Result<HelloResponse, ()> {
             Ok(HelloResponse {
                 msg: "other resource",

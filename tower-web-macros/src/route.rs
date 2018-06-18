@@ -42,6 +42,9 @@ pub struct Rules {
 
     /// Path parameters
     pub path_params: Vec<String>,
+
+    /// Produced content-typee
+    pub content_type: Option<String>,
 }
 
 #[derive(Debug)]
@@ -66,18 +69,18 @@ impl Route {
         }
     }
 
-    pub fn destination_sym(&self) -> TokenStream {
+    pub fn destination_sym(&self, content: TokenStream) -> TokenStream {
         match self.index {
-            0 => quote! { A(()) },
-            1 => quote! { B(()) },
-            2 => quote! { C(()) },
-            3 => quote! { D(()) },
-            4 => quote! { E(()) },
-            5 => quote! { F(()) },
-            6 => quote! { G(()) },
-            7 => quote! { H(()) },
-            8 => quote! { I(()) },
-            9 => quote! { J(()) },
+            0 => quote! { A(#content) },
+            1 => quote! { B(#content) },
+            2 => quote! { C(#content) },
+            3 => quote! { D(#content) },
+            4 => quote! { E(#content) },
+            5 => quote! { F(#content) },
+            6 => quote! { G(#content) },
+            7 => quote! { H(#content) },
+            8 => quote! { I(#content) },
+            9 => quote! { J(#content) },
             _ => panic!("unimplemented; destination_sym"),
         }
     }
@@ -105,6 +108,7 @@ impl Rules {
             path: None,
             path_lit: None,
             path_params: vec![],
+            content_type: None,
         }
     }
 
@@ -176,10 +180,13 @@ impl Rules {
             Some(Meta::List(list)) => {
                 assert!(list.nested.len() == 1, "unimplemeneted: invalid route rule");
 
-                if list.ident == "GET" {
+                if list.ident == "get" {
                     self.set_method(Method::Get);
                     self.process_path(&list);
+                } else if list.ident == "content_type" {
+                    self.process_content_type(&list);
                 } else {
+                    println!("LIST; {:?}", list);
                     unimplemented!("unimplemeneted: invalid route rule");
                 }
             }
@@ -209,6 +216,20 @@ impl Rules {
 
                 self.path = Some(path);
                 self.path_lit = Some(lit.clone());
+            }
+            _ => unimplemented!("unimplemented: invalid route rule"),
+        }
+    }
+
+    fn process_content_type(&mut self, list: &syn::MetaList) {
+        use syn::{Lit, NestedMeta};
+
+        assert!(list.nested.len() == 1, "unimplemeneted: invalid route rule");
+        assert!(self.content_type.is_none(), "content_type already set");
+
+        match list.nested.first().unwrap().value() {
+            NestedMeta::Literal(Lit::Str(lit)) => {
+                self.content_type = Some(lit.value());
             }
             _ => unimplemented!("unimplemented: invalid route rule"),
         }

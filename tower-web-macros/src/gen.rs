@@ -2,6 +2,7 @@ use Service;
 
 use proc_macro2::TokenStream;
 use quote::TokenStreamExt;
+use syn;
 
 /// Generate the service implementations
 pub fn generate(services: &[Service]) -> String {
@@ -21,17 +22,24 @@ pub fn generate(services: &[Service]) -> String {
             let method = route.rules.method.as_ref().unwrap().to_tokens();
             let path = route.rules.path_lit.as_ref().unwrap();
 
+            let content_type = match route.rules.content_type.as_ref() {
+                Some(content_type) => quote! { Some(#content_type) },
+                None => quote! { None },
+            };
+
             // Get the destination symbol
             let destination = if service.routes.len() >= 2 {
-                route.destination_sym()
+                route.destination_sym(quote!{ () })
             } else {
                 quote! { () }
             };
 
             routes_fn.append_all(quote! {
-                .route(#destination, #method, #path)
+                .route(#destination, #method, #path, #content_type)
             });
 
+            // For each action argument, generate the code necessary for
+            // extracting the argument from the request.
             let args: Vec<_> = route
                 .args
                 .iter()
@@ -60,21 +68,26 @@ pub fn generate(services: &[Service]) -> String {
                 })
                 .collect();
 
-            dispatch_fn.append_all(quote! {
-                #destination => {
-                    let response = self.#ident(#(#args),*)
-                        .into_response()
-                        .map(|response| {
-                            response.map(|body| {
-                                // TODO: Log error
-                                let body = body.map_err(|_| ::tower_web::Error::Internal);
-                                Box::new(body) as Self::Body
-                            })
-                        });
+            // Generate code for dispatching a request and handling the
+            // response.
+            if service.routes.len() > 1 {
+                let wrap = route.destination_sym(quote! { response });
+                dispatch_fn.append_all(quote! {
+                    #destination => {
+                        let response = ::tower_web::response::MapErr::new(
+                            self.#ident(#(#args),*).into_future());
 
-                    Box::new(response) as Self::Future
-                }
-            });
+                        #wrap
+                    }
+                });
+            } else {
+                dispatch_fn.append_all(quote! {
+                    #destination => {
+                        ::tower_web::response::MapErr::new(
+                            self.#ident(#(#args),*).into_future())
+                    }
+                });
+            }
         }
 
         // If there are no routes, then some special work needs to be done to
@@ -85,12 +98,43 @@ pub fn generate(services: &[Service]) -> String {
             });
         }
 
+        let future_ty = match service.routes.len() {
+            0 => {
+                unimplemented!();
+            }
+            1 => {
+                let ty = &service.routes[0].ret;
+                quote!(::tower_web::response::MapErr<<#ty as ::tower_web::codegen::futures::IntoFuture>::Future>)
+            }
+            n => {
+                let response_tys: Vec<_> = service
+                    .routes
+                    .iter()
+                    .map(|route| {
+                        let ty = &route.ret;
+                        quote!{
+                            ::tower_web::response::MapErr<<#ty as ::tower_web::codegen::futures::IntoFuture>::Future>
+                        }
+                    })
+                    .collect();
+
+                let either: syn::Type =
+                    syn::parse_str(&format!("::tower_web::resource::tuple::Either{}", n)).unwrap();
+
+                quote! {
+                    #either<#(#response_tys),*>
+                }
+            }
+        };
+
         // Define `Resource` on the struct.
         tokens.append_all(quote! {
             impl ::tower_web::Resource for #ty {
                 type Destination = #destination;
-                type Body = ::tower_web::codegen::BoxBody;
-                type Future = ::tower_web::codegen::BoxResponse<Self::Body>;
+                type Buf = <Self::Response as ::tower_web::IntoResponse>::Buf;
+                type Body = <Self::Response as ::tower_web::IntoResponse>::Body;
+                type Response = <Self::Future as ::tower_web::codegen::futures::Future>::Item;
+                type Future = #future_ty;
 
                 fn routes(&self) -> ::tower_web::routing::RouteSet<Self::Destination> {
                     use ::tower_web::routing;
@@ -101,15 +145,16 @@ pub fn generate(services: &[Service]) -> String {
                     .build()
                 }
 
-                fn dispatch(&mut self,
-                            destination: Self::Destination,
-                            route_match: &::tower_web::routing::RouteMatch,
-                            request: &::tower_web::codegen::http::Request<()>)
+                fn dispatch<T: ::tower_web::Payload>(&mut self,
+                                                     destination: Self::Destination,
+                                                     route_match: &::tower_web::routing::RouteMatch,
+                                                     request: &::tower_web::codegen::http::Request<()>,
+                                                     _payload: T)
                     -> Self::Future
                 {
                     use ::tower_web::{IntoResponse, Extract, CallSite};
                     // use ::tower_web::codegen::bytes::Bytes;
-                    use ::tower_web::codegen::futures::{/* future, stream, */ Future, Stream};
+                    use ::tower_web::codegen::futures::{/* future, stream, */ Future, Stream, IntoFuture};
                     #destination_use
 
                     match destination {

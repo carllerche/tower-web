@@ -1,19 +1,9 @@
 //! Types re-exported by the library for use in codegen
 
-use bytes::Bytes;
-use futures::{Future, Stream};
-use http::Response;
-
-/// A boxed Resource response
-pub type BoxResponse<T> = Box<Future<Item = Response<T>, Error = ::Error> + Send>;
-
-/// A boxed streaming body
-pub type BoxBody = Box<Stream<Item = Bytes, Error = ::Error> + Send>;
-
 pub mod bytes {
     //! Types provided by the `bytes` crate
 
-    pub use bytes::Bytes;
+    pub use bytes::{Buf, Bytes};
 }
 
 pub mod tower {

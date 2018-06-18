@@ -1,10 +1,12 @@
-use service::ResponseBody;
 use {Resource, Service};
+use service::ResponseBody;
 
-use bytes::Bytes;
+use futures::Poll;
 use http;
-use hyper;
-use hyper::server::{Http, Service as HyperService};
+use hyper::body::{Body, Chunk, Payload};
+use hyper::server::conn::Http;
+use hyper::service::Service as HyperService;
+// use hyper::server::{Http, Service as HyperService};
 
 use tokio;
 use tokio::net::TcpListener;
@@ -15,86 +17,80 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 struct Lift<T: Resource> {
-    inner: Service<T>,
+    inner: Service<T, LiftReqBody>,
 }
 
-struct LiftBody<T>(T);
+struct LiftBody<T: Resource> {
+    body: ResponseBody<T>,
+}
+
+pub struct LiftReqBody {
+    body: Body,
+}
 
 impl<T> Lift<T>
 where
     T: Resource,
 {
-    fn new(inner: Service<T>) -> Self {
+    fn new(inner: Service<T, LiftReqBody>) -> Self {
         Lift { inner }
     }
 }
 
-impl<T> Stream for LiftBody<T>
+impl<T> Payload for LiftBody<T>
 where
-    T: Stream<Item = Bytes>,
+    T: Resource,
+    T::Buf: Send,
 {
-    type Item = Bytes;
-    type Error = hyper::Error;
+    type Data = T::Buf;
+    type Error = ::Error;
 
-    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        match self.0.poll() {
-            Ok(v) => Ok(v),
-            Err(_) => unimplemented!(),
-        }
+    fn poll_data(&mut self) -> Poll<Option<Self::Data>, Self::Error> {
+        self.body.poll()
+    }
+}
+
+impl Stream for LiftReqBody {
+    type Item = Chunk;
+    type Error = ::Error;
+
+    fn poll(&mut self) -> Poll<Option<Self::Item>, ::Error> {
+        self.body.poll()
+            .map_err(|_| ::Error::Internal)
     }
 }
 
 impl<T> HyperService for Lift<T>
 where
     T: Resource,
-    /*
-where T: tower::Service<Request = http::Request<String>,
-                        Response = http::Response<String>> + Clone + Send + 'static,
-      T::Future: Send,
-      */
+    T::Buf: Send,
 {
-    type Request = hyper::Request;
-    type Response = hyper::Response<LiftBody<ResponseBody<T>>>;
-    type Error = hyper::Error;
-    type Future = Box<Future<Item = Self::Response, Error = Self::Error> + Send>;
+    type ReqBody = Body;
+    type ResBody = LiftBody<T>;
+    type Error = ::Error;
+    type Future = Box<Future<Item = http::Response<Self::ResBody>, Error = Self::Error> + Send>;
 
-    fn call(&self, req: Self::Request) -> Self::Future {
+    fn call(&mut self, request: http::Request<Self::ReqBody>) -> Self::Future {
         use tower_service::Service;
 
-        let req: http::Request<_> = req.into();
-        let (head, body) = req.into_parts();
+        let request = request.map(|body| LiftReqBody { body });
+        let response = self.inner.call(request)
+            .map(|response| {
+                response.map(|body| LiftBody { body })
+            });
 
-        let mut inner = self.inner.clone();
-
-        let fut = body.concat2()
-            .and_then(move |body| {
-                // Convert the body to a string
-                let body = String::from_utf8(body.to_vec()).unwrap();
-
-                // Rebuild the request
-                let req = http::Request::from_parts(head, body);
-
-                // Call the inner service
-                inner.call(req).map_err(|_| unimplemented!())
-            })
-            .map(|response| response.map(LiftBody).into());
-
-        Box::new(fut)
+        Box::new(response)
     }
 }
 
 /// Run a service
-pub fn run<T>(addr: &SocketAddr, service: Service<T>) -> io::Result<()>
+pub fn run<T>(addr: &SocketAddr, service: Service<T, LiftReqBody>) -> io::Result<()>
 where
     T: Resource,
-    /*
-where T: tower::Service<Request = http::Request<String>,
-                       Response = http::Response<String>> + Clone + Send + 'static,
-      T::Future: Send,
-      */
+    T::Buf: Send,
 {
     let listener = TcpListener::bind(addr)?;
-    let http = Arc::new(Http::<String>::new());
+    let http = Arc::new(Http::new());
 
     tokio::run({
         listener

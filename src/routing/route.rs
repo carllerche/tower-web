@@ -11,14 +11,21 @@ pub struct Route<T> {
 
     /// When to match on this route
     condition: Condition,
+
+    /// Content-type produced by the route
+    content_type: Option<String>,
 }
 
 impl<T> Route<T> {
     /// Create a new route
-    pub(crate) fn new(destination: T, condition: Condition) -> Self {
+    pub(crate) fn new(destination: T,
+                      condition: Condition,
+                      content_type: Option<String>) -> Self
+    {
         Route {
             destination,
             condition,
+            content_type,
         }
     }
 
@@ -31,15 +38,23 @@ impl<T> Route<T> {
         Route {
             destination,
             condition: self.condition,
+            content_type: self.content_type,
         }
     }
 }
 
 impl<T: Clone> Route<T> {
     /// Try to match a request against this route.
-    pub fn test<'a>(&self, request: &'a Request<()>) -> Option<(T, RouteMatch<'a>)> {
+    pub fn test<'a>(&'a self, request: &'a Request<()>) -> Option<(T, RouteMatch<'a>)> {
         self.condition
             .test(request)
-            .map(|params| (self.destination.clone(), RouteMatch::new(params)))
+            .map(|params| {
+                let content_type = self.content_type.as_ref()
+                    .map(|s| &s[..]);
+
+                let route_match = RouteMatch::new(params, content_type);
+
+                (self.destination.clone(), route_match)
+            })
     }
 }

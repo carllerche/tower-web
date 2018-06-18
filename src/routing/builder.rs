@@ -15,9 +15,18 @@ impl<T> Builder<T> {
     }
 
     /// Insert a new route into the route set.
-    pub fn route(&mut self, destination: T, method: http::Method, path: &str) -> &mut Self {
-        self.routes
-            .push(Route::new(destination, Condition::new(method, path)));
+    pub fn route(&mut self,
+                 destination: T,
+                 method: http::Method,
+                 path: &str,
+                 content_type: Option<&str>) -> &mut Self
+    {
+        let route = Route::new(
+            destination,
+            Condition::new(method, path),
+            content_type.map(|s| s.to_string()));
+
+        self.routes.push(route);
         self
     }
 

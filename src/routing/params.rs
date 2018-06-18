@@ -15,7 +15,6 @@ impl<'a> Params<'a> {
 
     /// Get a parameter value
     pub fn get(&self, index: usize) -> Option<&str> {
-        self.params.get(index)
-            .map(|s| *s)
+        self.params.get(index).map(|s| *s)
     }
 }

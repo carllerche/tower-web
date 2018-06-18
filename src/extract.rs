@@ -59,7 +59,6 @@ impl<'a> Extract<'a> for u32 {
             None => return Err(()),
         };
 
-        u32::from_str(param)
-            .map_err(|_| ())
+        u32::from_str(param).map_err(|_| ())
     }
 }

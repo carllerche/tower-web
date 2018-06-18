@@ -20,14 +20,16 @@ impl Service {
     pub fn destination_ty(&self) -> TokenStream {
         match self.routes.len() {
             0 | 1 => quote! { () },
-            2 => quote! { ::tower_web::resource::tuple::Either2 },
-            3 => quote! { ::tower_web::resource::tuple::Either3 },
-            4 => quote! { ::tower_web::resource::tuple::Either4 },
-            5 => quote! { ::tower_web::resource::tuple::Either5 },
-            6 => quote! { ::tower_web::resource::tuple::Either6 },
-            7 => quote! { ::tower_web::resource::tuple::Either7 },
-            8 => quote! { ::tower_web::resource::tuple::Either8 },
-            9 => quote! { ::tower_web::resource::tuple::Either9 },
+            2 => quote! { ::tower_web::resource::tuple::Either2<(), ()> },
+            3 => quote! { ::tower_web::resource::tuple::Either3<(), (), ()> },
+            4 => quote! { ::tower_web::resource::tuple::Either4<(), (), (), ()> },
+            5 => quote! { ::tower_web::resource::tuple::Either5<(), (), (), (), ()> },
+            6 => quote! { ::tower_web::resource::tuple::Either6<(), (), (), (), (), ()> },
+            7 => quote! { ::tower_web::resource::tuple::Either7<(), (), (), (), (), (), ()> },
+            8 => quote! { ::tower_web::resource::tuple::Either8<(), (), (), (), (), (), (), ()> },
+            9 => {
+                quote! { ::tower_web::resource::tuple::Either9<(), (), (), (), (), (), (), (), ()> }
+            }
             _ => panic!("unimplemented; Service::destination_ty"),
         }
     }

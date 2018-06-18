@@ -1,35 +1,40 @@
-use response::Serialize;
-
-use bytes::Bytes;
-use futures::stream::Once;
-use futures::{Future, IntoFuture, Stream};
+use bytes::{Buf, Bytes};
+use futures::stream::{self, Once, Stream};
 use http;
 use serde;
 
-use std::fmt;
+use std::io::Cursor;
 
-/// Convert a value into an HTTP response.
+/// Types can be returned as responses to HTTP requests.
 pub trait IntoResponse {
-    /// The HTTP response body type.
-    type Body: Stream<Item = Bytes, Error = ::Error>;
+    /// Data chunk type
+    type Buf: Buf;
 
-    /// Future of the response value
-    type Future: Future<Item = http::Response<Self::Body>, Error = ::Error>;
+    /// The HTTP response body type.
+    type Body: Stream<Item = Self::Buf, Error = ::Error>;
 
     /// Convert the value into a response future
-    fn into_response(self) -> Self::Future;
+    fn into_response(self) -> http::Response<Self::Body>;
 }
 
 impl<T> IntoResponse for T
 where
-    T: IntoFuture,
-    T::Item: serde::Serialize,
-    T::Error: fmt::Debug,
+    T: serde::Serialize,
 {
-    type Body = Once<Bytes, ::Error>;
-    type Future = Serialize<T::Future>;
+    type Buf = Cursor<Bytes>;
+    type Body = Once<Self::Buf, ::Error>;
 
-    fn into_response(self) -> Self::Future {
-        Serialize::new(self.into_future())
+    fn into_response(self) -> http::Response<Self::Body> {
+        // TODO: Improve and handle errors
+        let body = ::serde_json::to_vec(&self).unwrap();
+        let body = Cursor::new(Bytes::from(body));
+
+        http::Response::builder()
+            // Customize response
+            .status(200)
+            // This is not the right content type
+            .header("content-type", "text/plain")
+            .body(stream::once(Ok(body)))
+            .unwrap()
     }
 }

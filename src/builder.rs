@@ -1,5 +1,5 @@
+use {Resource, Service, Payload};
 use resource::Chain;
-use {Resource, Service};
 
 use std::io;
 use std::net::SocketAddr;
@@ -34,10 +34,16 @@ where
     }
 
     /// Build a service instance.
-    pub fn build(self) -> Service<T> {
+    pub fn build<P: Payload>(self) -> Service<T, P> {
         Service::new(self.resource)
     }
+}
 
+impl<T> ServiceBuilder<T>
+where
+    T: Resource,
+    T::Buf: Send,
+{
     /// Run the service
     pub fn run(self, addr: &SocketAddr) -> io::Result<()> {
         ::run::run(addr, self.build())
