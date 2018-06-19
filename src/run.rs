@@ -1,12 +1,10 @@
-use {Resource, Service};
-use service::ResponseBody;
+use service::HttpService;
 
 use futures::Poll;
 use http;
 use hyper::body::{Body, Chunk, Payload};
 use hyper::server::conn::Http;
 use hyper::service::Service as HyperService;
-// use hyper::server::{Http, Service as HyperService};
 
 use tokio;
 use tokio::net::TcpListener;
@@ -16,12 +14,12 @@ use std::io;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-struct Lift<T: Resource> {
-    inner: Service<T, LiftReqBody>,
+struct Lift<T: HttpService> {
+    inner: T,
 }
 
-struct LiftBody<T: Resource> {
-    body: ResponseBody<T>,
+struct LiftBody<T: HttpService> {
+    body: T::ResponseBody,
 }
 
 pub struct LiftReqBody {
@@ -30,19 +28,20 @@ pub struct LiftReqBody {
 
 impl<T> Lift<T>
 where
-    T: Resource,
+    T: HttpService<RequestBody = LiftReqBody>,
 {
-    fn new(inner: Service<T, LiftReqBody>) -> Self {
+    fn new(inner: T) -> Self {
         Lift { inner }
     }
 }
 
 impl<T> Payload for LiftBody<T>
 where
-    T: Resource,
-    T::Buf: Send,
+    T: HttpService + 'static,
+    T::ResponseBuf: Send,
+    T::ResponseBody: Send,
 {
-    type Data = T::Buf;
+    type Data = T::ResponseBuf;
     type Error = ::Error;
 
     fn poll_data(&mut self) -> Poll<Option<Self::Data>, Self::Error> {
@@ -62,8 +61,10 @@ impl Stream for LiftReqBody {
 
 impl<T> HyperService for Lift<T>
 where
-    T: Resource,
-    T::Buf: Send,
+    T: HttpService<RequestBody = LiftReqBody> + 'static,
+    T::ResponseBuf: Send,
+    T::ResponseBody: Send,
+    T::Future: Send,
 {
     type ReqBody = Body;
     type ResBody = LiftBody<T>;
@@ -71,8 +72,6 @@ where
     type Future = Box<Future<Item = http::Response<Self::ResBody>, Error = Self::Error> + Send>;
 
     fn call(&mut self, request: http::Request<Self::ReqBody>) -> Self::Future {
-        use tower_service::Service;
-
         let request = request.map(|body| LiftReqBody { body });
         let response = self.inner.call(request)
             .map(|response| {
@@ -84,10 +83,12 @@ where
 }
 
 /// Run a service
-pub fn run<T>(addr: &SocketAddr, service: Service<T, LiftReqBody>) -> io::Result<()>
+pub fn run<T>(addr: &SocketAddr, service: T) -> io::Result<()>
 where
-    T: Resource,
-    T::Buf: Send,
+    T: HttpService<RequestBody = LiftReqBody> + Clone + Send + 'static,
+    T::ResponseBuf: Send,
+    T::ResponseBody: Send,
+    T::Future: Send,
 {
     let listener = TcpListener::bind(addr)?;
     let http = Arc::new(Http::new());

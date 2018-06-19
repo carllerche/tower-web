@@ -1,9 +1,9 @@
 //! Implementations of `Resource` for tuple types.
 
-use Payload;
-use super::{Chain, Resource};
-use response::IntoResponse;
+use response::{Context, IntoResponse, Serializer};
 use routing::{self, RouteSet, RouteMatch};
+use service::{Payload, Resource};
+use util::Chain;
 
 use bytes::{Bytes, Buf};
 use futures::{Future, Stream, Poll};
@@ -22,8 +22,10 @@ impl Resource for () {
     type Response = String;
     type Future = FutureResult<String, ::Error>;
 
-    fn routes(&self) -> RouteSet<()> {
-        RouteSet::default()
+    fn routes<S>(&self, _: &S) -> RouteSet<(), S::ContentType>
+    where S: Serializer,
+    {
+        RouteSet::new()
     }
 
     fn dispatch<T: Payload>(&mut self, _: (), _: &RouteMatch, _: &http::Request<()>, _: T) -> Self::Future {
@@ -32,9 +34,9 @@ impl Resource for () {
 }
 
 impl<U> Chain<U> for () {
-    type Resource = U;
+    type Output = U;
 
-    fn chain(self, other: U) -> Self::Resource {
+    fn chain(self, other: U) -> Self::Output {
         other
     }
 }
@@ -123,12 +125,14 @@ where
     type Buf = Either2<A::Buf, B::Buf>;
     type Body = Either2<A::Body, B::Body>;
 
-    fn into_response(self) ->  http::Response<Self::Body> {
+    fn into_response<S>(self, context: &Context<S>) ->  http::Response<Self::Body>
+    where S: Serializer
+    {
         use self::Either2::*;
 
         match self {
-            A(r) => r.into_response().map(Either2::A),
-            B(r) => r.into_response().map(Either2::B),
+            A(r) => r.into_response(context).map(Either2::A),
+            B(r) => r.into_response(context).map(Either2::B),
         }
     }
 }
@@ -144,14 +148,16 @@ where
     type Response = Either2<R0::Response, R1::Response>;
     type Future = Either2<R0::Future, R1::Future>;
 
-    fn routes(&self) -> RouteSet<Self::Destination> {
+    fn routes<S>(&self, serializer: &S) -> RouteSet<Self::Destination, S::ContentType>
+    where S: Serializer,
+    {
         let mut routes = routing::Builder::new();
 
-        for route in self.0.routes() {
+        for route in self.0.routes(serializer) {
             routes.push(route.map(Either2::A));
         }
 
-        for route in self.1.routes() {
+        for route in self.1.routes(serializer) {
             routes.push(route.map(Either2::B));
         }
 
@@ -179,9 +185,9 @@ where
 }
 
 impl<R0, R1, U> Chain<U> for (R0, R1) {
-    type Resource = (R0, R1, U);
+    type Output = (R0, R1, U);
 
-    fn chain(self, other: U) -> Self::Resource {
+    fn chain(self, other: U) -> Self::Output {
         (self.0, self.1, other)
     }
 }

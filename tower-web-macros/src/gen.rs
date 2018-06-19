@@ -35,7 +35,10 @@ pub fn generate(services: &[Service]) -> String {
             };
 
             routes_fn.append_all(quote! {
-                .route(#destination, #method, #path, #content_type)
+                .route(#destination, #method, #path, {
+                    #content_type
+                        .and_then(|v| serializer.lookup(v))
+                })
             });
 
             // For each action argument, generate the code necessary for
@@ -119,7 +122,7 @@ pub fn generate(services: &[Service]) -> String {
                     .collect();
 
                 let either: syn::Type =
-                    syn::parse_str(&format!("::tower_web::resource::tuple::Either{}", n)).unwrap();
+                    syn::parse_str(&format!("::tower_web::util::tuple::Either{}", n)).unwrap();
 
                 quote! {
                     #either<#(#response_tys),*>
@@ -129,14 +132,17 @@ pub fn generate(services: &[Service]) -> String {
 
         // Define `Resource` on the struct.
         tokens.append_all(quote! {
-            impl ::tower_web::Resource for #ty {
+            impl ::tower_web::service::Resource for #ty {
                 type Destination = #destination;
-                type Buf = <Self::Response as ::tower_web::IntoResponse>::Buf;
-                type Body = <Self::Response as ::tower_web::IntoResponse>::Body;
+                type Buf = <Self::Response as ::tower_web::response::IntoResponse>::Buf;
+                type Body = <Self::Response as ::tower_web::response::IntoResponse>::Body;
                 type Response = <Self::Future as ::tower_web::codegen::futures::Future>::Item;
                 type Future = #future_ty;
 
-                fn routes(&self) -> ::tower_web::routing::RouteSet<Self::Destination> {
+                fn routes<S>(&self, serializer: &S)
+                    -> ::tower_web::routing::RouteSet<Self::Destination, S::ContentType>
+                where S: ::tower_web::response::Serializer,
+                {
                     use ::tower_web::routing;
                     #destination_use
 
@@ -145,16 +151,19 @@ pub fn generate(services: &[Service]) -> String {
                     .build()
                 }
 
-                fn dispatch<T: ::tower_web::Payload>(&mut self,
-                                                     destination: Self::Destination,
-                                                     route_match: &::tower_web::routing::RouteMatch,
-                                                     request: &::tower_web::codegen::http::Request<()>,
-                                                     _payload: T)
-                    -> Self::Future
+                fn dispatch<T: ::tower_web::service::Payload>(
+                    &mut self,
+                    destination: Self::Destination,
+                    route_match: &::tower_web::routing::RouteMatch,
+                    request: &::tower_web::codegen::http::Request<()>,
+                    _payload: T
+                ) -> Self::Future
                 {
-                    use ::tower_web::{IntoResponse, Extract, CallSite};
-                    // use ::tower_web::codegen::bytes::Bytes;
+                    use ::tower_web::Extract;
+                    use ::tower_web::codegen::CallSite;
                     use ::tower_web::codegen::futures::{/* future, stream, */ Future, Stream, IntoFuture};
+                    use ::tower_web::response::IntoResponse;
+
                     #destination_use
 
                     match destination {
@@ -163,10 +172,10 @@ pub fn generate(services: &[Service]) -> String {
                 }
             }
 
-            impl<U> ::tower_web::resource::Chain<U> for #ty {
-                type Resource = (Self, U);
+            impl<U> ::tower_web::util::Chain<U> for #ty {
+                type Output = (Self, U);
 
-                fn chain(self, other: U) -> Self::Resource {
+                fn chain(self, other: U) -> Self::Output {
                     (self, other)
                 }
             }

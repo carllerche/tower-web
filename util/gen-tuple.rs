@@ -34,10 +34,10 @@ pub fn main() {
     println!("{}", &r##"
 //! Implementations of `Resource` for tuple types.
 
-use Payload;
-use super::{Chain, Resource};
-use response::IntoResponse;
+use response::{Context, IntoResponse, Serializer};
 use routing::{self, RouteSet, RouteMatch};
+use service::{Payload, Resource};
+use util::Chain;
 
 use bytes::{Bytes, Buf};
 use futures::{Future, Stream, Poll};
@@ -56,8 +56,10 @@ impl Resource for () {
     type Response = String;
     type Future = FutureResult<String, ::Error>;
 
-    fn routes(&self) -> RouteSet<()> {
-        RouteSet::default()
+    fn routes<S>(&self, _: &S) -> RouteSet<(), S::ContentType>
+    where S: Serializer,
+    {
+        RouteSet::new()
     }
 
     fn dispatch<T: Payload>(&mut self, _: (), _: &RouteMatch, _: &http::Request<()>, _: T) -> Self::Future {
@@ -66,9 +68,9 @@ impl Resource for () {
 }
 
 impl<U> Chain<U> for () {
-    type Resource = U;
+    type Output = U;
 
-    fn chain(self, other: U) -> Self::Resource {
+    fn chain(self, other: U) -> Self::Output {
         other
     }
 }"##[1..]);
@@ -244,12 +246,14 @@ impl Either {
         println!("    type Buf = Either{}<{}>;", self.level, buf_gens);
         println!("    type Body = Either{}<{}>;", self.level, body_gens);
         println!("");
-        println!("    fn into_response(self) ->  http::Response<Self::Body> {{");
+        println!("    fn into_response<S>(self, context: &Context<S>) ->  http::Response<Self::Body>");
+        println!("    where S: Serializer");
+        println!("    {{");
         println!("        use self::Either{}::*;", self.level);
         println!("");
         println!("        match self {{");
         for n in 0..self.level {
-            println!("            {}(r) => r.into_response().map(Either{}::{}),", VARS[n], self.level, VARS[n]);
+            println!("            {}(r) => r.into_response(context).map(Either{}::{}),", VARS[n], self.level, VARS[n]);
         }
         println!("        }}");
         println!("    }}");
@@ -306,12 +310,14 @@ impl Either {
 
         println!("    type Future = Either{}<{}>;", self.level, gens);
         println!("");
-        println!("    fn routes(&self) -> RouteSet<Self::Destination> {{");
+        println!("    fn routes<S>(&self, serializer: &S) -> RouteSet<Self::Destination, S::ContentType>");
+        println!("    where S: Serializer,");
+        println!("    {{");
         println!("        let mut routes = routing::Builder::new();");
         println!("");
 
         for n in 0..self.level {
-            println!("        for route in self.{}.routes() {{", n);
+            println!("        for route in self.{}.routes(serializer) {{", n);
             println!("            routes.push(route.map(Either{}::{}));", self.level, VARS[n]);
             println!("        }}");
             println!("");
@@ -348,9 +354,9 @@ impl Either {
             .join(", ");
 
         println!("impl<{}, U> Chain<U> for ({}) {{", gens, gens);
-        println!("    type Resource = ({}, U);", gens);
+        println!("    type Output = ({}, U);", gens);
         println!("");
-        println!("    fn chain(self, other: U) -> Self::Resource {{");
+        println!("    fn chain(self, other: U) -> Self::Output {{");
 
         let vals = (0..self.level)
             .map(|ty| format!("self.{}", ty))

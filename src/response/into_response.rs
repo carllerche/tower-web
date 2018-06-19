@@ -1,3 +1,5 @@
+use response::{Context, Serializer};
+
 use bytes::{Buf, Bytes};
 use futures::stream::{self, Once, Stream};
 use http;
@@ -14,7 +16,8 @@ pub trait IntoResponse {
     type Body: Stream<Item = Self::Buf, Error = ::Error>;
 
     /// Convert the value into a response future
-    fn into_response(self) -> http::Response<Self::Body>;
+    fn into_response<S: Serializer>(self, context: &Context<S>)
+        -> http::Response<Self::Body>;
 }
 
 impl<T> IntoResponse for T
@@ -24,9 +27,11 @@ where
     type Buf = Cursor<Bytes>;
     type Body = Once<Self::Buf, ::Error>;
 
-    fn into_response(self) -> http::Response<Self::Body> {
+    fn into_response<S>(self, context: &Context<S>) -> http::Response<Self::Body>
+    where S: Serializer,
+    {
         // TODO: Improve and handle errors
-        let body = ::serde_json::to_vec(&self).unwrap();
+        let body = context.serialize(&self).unwrap();
         let body = Cursor::new(Bytes::from(body));
 
         http::Response::builder()

@@ -6,30 +6,23 @@ extern crate hyper;
 extern crate log;
 extern crate serde;
 extern crate serde_json;
+extern crate serde_plain;
 extern crate tokio;
 extern crate tower_service;
 
 pub mod codegen;
-pub mod resource;
 pub mod response;
 pub mod routing;
 pub mod service;
+pub mod util;
 
-mod builder;
-mod call_site;
 mod error;
 mod extract;
-mod payload;
 mod run;
 
-pub use builder::ServiceBuilder;
-pub use call_site::CallSite;
 pub use error::Error;
 pub use extract::Extract;
-pub use payload::Payload;
-pub use resource::Resource;
-pub use response::IntoResponse;
-pub use service::Service;
+pub use service::ServiceBuilder;
 
 // ===== proc_macro_hack junk =====
 

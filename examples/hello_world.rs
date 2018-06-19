@@ -34,10 +34,10 @@ impl_web! {
         }
 
         /// @get("/users/:id")
-        /// @content_type("json")
+        /// @content_type("plain")
         fn get(&mut self, id: u32) -> Result<String, ()> {
             println!("GOT: id={:?};", id);
-            Ok("ZOOOOMG YO".to_string())
+            Ok("ZOOOOMG YO\n".to_string())
         }
 
         /*

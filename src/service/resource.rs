@@ -1,8 +1,6 @@
-pub mod tuple;
-
-use Payload;
-use response::IntoResponse;
+use response::{IntoResponse, Serializer};
 use routing::{RouteMatch, RouteSet};
+use service::Payload;
 
 use bytes::Buf;
 use futures::{Future, Stream};
@@ -19,16 +17,17 @@ pub trait Resource: Clone + Send + 'static {
     type Buf: Buf;
 
     /// The HTTP response body type.
-    type Body: Stream<Item = Self::Buf, Error = ::Error> + Send + 'static;
+    type Body: Stream<Item = Self::Buf, Error = ::Error>;
 
     /// Responses returned by the resource
     type Response: IntoResponse<Buf = Self::Buf, Body = Self::Body>;
 
     /// Response future
-    type Future: Future<Item = Self::Response, Error = ::Error> + Send + 'static;
+    type Future: Future<Item = Self::Response, Error = ::Error>;
 
     /// Return the routes associated with the resource.
-    fn routes(&self) -> RouteSet<Self::Destination>;
+    fn routes<S: Serializer>(&self, serializer: &S)
+        -> RouteSet<Self::Destination, S::ContentType>;
 
     fn dispatch<T: Payload>(
         &mut self,
@@ -37,11 +36,4 @@ pub trait Resource: Clone + Send + 'static {
         request: &http::Request<()>,
         payload: T,
     ) -> Self::Future;
-}
-
-/// Combine two resources
-pub trait Chain<U> {
-    type Resource;
-
-    fn chain(self, other: U) -> Self::Resource;
 }
