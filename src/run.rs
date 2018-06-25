@@ -1,4 +1,5 @@
 use service::HttpService;
+use util::BufStream;
 
 use futures::Poll;
 use http;
@@ -38,10 +39,10 @@ where
 impl<T> Payload for LiftBody<T>
 where
     T: HttpService + 'static,
-    T::ResponseBuf: Send,
+    <T::ResponseBody as BufStream>::Item: Send,
     T::ResponseBody: Send,
 {
-    type Data = T::ResponseBuf;
+    type Data = <T::ResponseBody as BufStream>::Item;
     type Error = ::Error;
 
     fn poll_data(&mut self) -> Poll<Option<Self::Data>, Self::Error> {
@@ -49,7 +50,7 @@ where
     }
 }
 
-impl Stream for LiftReqBody {
+impl BufStream for LiftReqBody {
     type Item = Chunk;
     type Error = ::Error;
 
@@ -62,7 +63,7 @@ impl Stream for LiftReqBody {
 impl<T> HyperService for Lift<T>
 where
     T: HttpService<RequestBody = LiftReqBody> + 'static,
-    T::ResponseBuf: Send,
+    <T::ResponseBody as BufStream>::Item: Send,
     T::ResponseBody: Send,
     T::Future: Send,
 {
@@ -86,7 +87,7 @@ where
 pub fn run<T>(addr: &SocketAddr, service: T) -> io::Result<()>
 where
     T: HttpService<RequestBody = LiftReqBody> + Clone + Send + 'static,
-    T::ResponseBuf: Send,
+    <T::ResponseBody as BufStream>::Item: Send,
     T::ResponseBody: Send,
     T::Future: Send,
 {

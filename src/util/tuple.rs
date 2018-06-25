@@ -2,8 +2,8 @@
 
 use response::{Context, IntoResponse, Serializer};
 use routing::{self, RouteSet, RouteMatch};
-use service::{Payload, Resource};
-use util::Chain;
+use service::Resource;
+use util::{BufStream, Chain};
 
 use bytes::{Bytes, Buf};
 use futures::{Future, Stream, Poll};
@@ -28,7 +28,7 @@ impl Resource for () {
         RouteSet::new()
     }
 
-    fn dispatch<T: Payload>(&mut self, _: (), _: &RouteMatch, _: &http::Request<()>, _: T) -> Self::Future {
+    fn dispatch<In: BufStream>(&mut self, _: (), _: &RouteMatch, _: &http::Request<()>, _: In) -> Self::Future {
         unreachable!();
     }
 }
@@ -164,11 +164,11 @@ where
         routes.build()
     }
 
-    fn dispatch<T: Payload>(&mut self,
-                            destination: Self::Destination,
-                            route_match: &RouteMatch,
-                            request: &http::Request<()>,
-                            payload: T,)
+    fn dispatch<In: BufStream>(&mut self,
+                               destination: Self::Destination,
+                               route_match: &RouteMatch,
+                               request: &http::Request<()>,
+                               payload: In)
         -> Self::Future
     {
         use self::Either2::*;

@@ -103,7 +103,7 @@ pub fn generate(services: &[Service]) -> String {
 
         let future_ty = match service.routes.len() {
             0 => {
-                unimplemented!();
+                quote!(::tower_web::response::MapErr<<Result<String, ()> as ::tower_web::codegen::futures::IntoFuture>::Future>)
             }
             1 => {
                 let ty = &service.routes[0].ret;
@@ -151,12 +151,12 @@ pub fn generate(services: &[Service]) -> String {
                     .build()
                 }
 
-                fn dispatch<T: ::tower_web::service::Payload>(
+                fn dispatch<In: ::tower_web::util::BufStream>(
                     &mut self,
                     destination: Self::Destination,
                     route_match: &::tower_web::routing::RouteMatch,
                     request: &::tower_web::codegen::http::Request<()>,
-                    _payload: T
+                    _payload: In
                 ) -> Self::Future
                 {
                     use ::tower_web::Extract;

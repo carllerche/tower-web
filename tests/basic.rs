@@ -17,7 +17,7 @@ impl_web! {
     impl Basic {
         /// Hello world endpoint
         ///
-        /// @GET("/")
+        /// @get("/")
         fn sync_get_str(&mut self) -> Result<&'static str, ()> {
             Ok("hello world")
         }

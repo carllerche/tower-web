@@ -1,6 +1,6 @@
 use response::{IntoResponse, Serializer};
 use routing::{RouteMatch, RouteSet};
-use service::Payload;
+use util::BufStream;
 
 use bytes::Buf;
 use futures::{Future, Stream};
@@ -29,11 +29,11 @@ pub trait Resource: Clone + Send + 'static {
     fn routes<S: Serializer>(&self, serializer: &S)
         -> RouteSet<Self::Destination, S::ContentType>;
 
-    fn dispatch<T: Payload>(
+    fn dispatch<In: BufStream>(
         &mut self,
         destination: Self::Destination,
         route_match: &RouteMatch,
         request: &http::Request<()>,
-        payload: T,
+        payload: In,
     ) -> Self::Future;
 }

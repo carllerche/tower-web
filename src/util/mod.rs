@@ -1,14 +1,8 @@
+pub mod buf_stream;
 pub mod tuple;
 
-/// Combine two values
-pub trait Chain<U> {
-    type Output;
+mod chain;
+pub(crate) mod sealed;
 
-    fn chain(self, other: U) -> Self::Output;
-}
-
-pub(crate) mod sealed {
-    /// Private trait to this crate to prevent traits from being implemented in
-    /// downstream crates.
-    pub trait Sealed {}
-}
+pub use self::buf_stream::BufStream;
+pub use self::chain::Chain;

@@ -1,9 +1,7 @@
-use service::Payload;
+use util::BufStream;
 
 use tower_service::Service;
 
-use bytes::Buf;
-use futures::Stream;
 use http::{Request, Response};
 use futures::{Future, Poll};
 
@@ -14,13 +12,10 @@ use futures::{Future, Poll};
 /// `http::Request` and `http::Response` types.
 pub trait HttpService: ::util::sealed::Sealed {
     /// Request payload.
-    type RequestBody: Payload;
-
-    /// Buffer yielded by the reesposne body. Represents a chunk of the body.
-    type ResponseBuf: Buf;
+    type RequestBody: BufStream<Error = ::Error>;
 
     /// The HTTP response body type.
-    type ResponseBody: Stream<Item = Self::ResponseBuf, Error = ::Error>;
+    type ResponseBody: BufStream<Error = ::Error>;
 
     /// The future response value.
     type Future: Future<Item = Response<Self::ResponseBody>, Error = ::Error>;
@@ -36,12 +31,10 @@ impl<T, B1, B2> HttpService for T
 where T: Service<Request = Request<B1>,
                 Response = Response<B2>,
                    Error = ::Error>,
-      B1: Payload,
-      B2: Stream<Error = ::Error>,
-      B2::Item: Buf,
+      B1: BufStream<Error = ::Error>,
+      B2: BufStream<Error = ::Error>,
 {
     type RequestBody = B1;
-    type ResponseBuf = B2::Item;
     type ResponseBody = B2;
     type Future = T::Future;
 
@@ -57,7 +50,6 @@ where T: Service<Request = Request<B1>,
 impl<T, B1, B2> ::util::sealed::Sealed for T
 where T: Service<Request = Request<B1>,
                 Response = Response<B2>>,
-      B1: Payload,
-      B2: Stream<Error = ::Error>,
-      B2::Item: Buf,
+      B1: BufStream<Error = ::Error>,
+      B2: BufStream<Error = ::Error>,
 {}

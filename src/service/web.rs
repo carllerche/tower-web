@@ -1,6 +1,7 @@
 use response::{Context, IntoResponse, Serializer};
 use routing::RouteSet;
-use service::{Payload, Resource};
+use service::Resource;
+use util::BufStream;
 
 use bytes::Bytes;
 use futures::{Future, Stream, Poll};
@@ -81,7 +82,7 @@ impl<T, S, In> Service for WebService<T, S, In>
 where
     T: Resource,
     S: Serializer,
-    In: Payload,
+    In: BufStream,
 {
     type Request = http::Request<In>;
     type Response = http::Response<ResponseBody<T>>;
@@ -177,7 +178,7 @@ where T: Resource,
     }
 }
 
-impl<T: Resource> Stream for ResponseBody<T> {
+impl<T: Resource> BufStream for ResponseBody<T> {
     type Item = T::Buf;
     type Error = ::Error;
 

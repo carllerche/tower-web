@@ -1,6 +1,6 @@
-use service::{WebService, Payload, Resource};
+use service::{WebService, Resource};
 use response::DefaultSerializer;
-use util::Chain;
+use util::{Chain, BufStream};
 
 use std::io;
 use std::net::SocketAddr;
@@ -35,7 +35,7 @@ where
     }
 
     /// Build a service instance.
-    pub fn build<P: Payload>(self) -> WebService<T, DefaultSerializer, P> {
+    pub fn build<In: BufStream>(self) -> WebService<T, DefaultSerializer, In> {
         WebService::new(self.resource, DefaultSerializer::new())
     }
 }

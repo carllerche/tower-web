@@ -41,6 +41,13 @@ impl_web! {
         }
 
         /*
+        /// @get("/foo")
+        /// @content_type("plain")
+        fn qs(&mut self) -> Result<String, ()> {
+        }
+        */
+
+        /*
         /// @GET("/authx")
         fn get(&mut self, content_length: HeaderValue) -> Result<String, ()> {
             unimplemented!();

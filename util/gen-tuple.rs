@@ -36,8 +36,8 @@ pub fn main() {
 
 use response::{Context, IntoResponse, Serializer};
 use routing::{self, RouteSet, RouteMatch};
-use service::{Payload, Resource};
-use util::Chain;
+use service::Resource;
+use util::{BufStream, Chain};
 
 use bytes::{Bytes, Buf};
 use futures::{Future, Stream, Poll};
@@ -62,7 +62,7 @@ impl Resource for () {
         RouteSet::new()
     }
 
-    fn dispatch<T: Payload>(&mut self, _: (), _: &RouteMatch, _: &http::Request<()>, _: T) -> Self::Future {
+    fn dispatch<In: BufStream>(&mut self, _: (), _: &RouteMatch, _: &http::Request<()>, _: In) -> Self::Future {
         unreachable!();
     }
 }
@@ -326,11 +326,11 @@ impl Either {
         println!("        routes.build()");
         println!("    }}");
         println!("");
-        println!("    fn dispatch<T: Payload>(&mut self,");
-        println!("                            destination: Self::Destination,");
-        println!("                            route_match: &RouteMatch,");
-        println!("                            request: &http::Request<()>,");
-        println!("                            payload: T,)");
+        println!("    fn dispatch<In: BufStream>(&mut self,");
+        println!("                               destination: Self::Destination,");
+        println!("                               route_match: &RouteMatch,");
+        println!("                               request: &http::Request<()>,");
+        println!("                               payload: In)");
         println!("        -> Self::Future");
         println!("    {{");
         println!("        use self::Either{}::*;", self.level);

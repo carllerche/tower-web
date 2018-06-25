@@ -17,3 +17,13 @@ where T: Stream<Error = ::Error>,
         self.poll()
     }
 }
+
+/*
+impl Payload for String {
+    type Data = Vec<u8>;
+
+    fn poll_data(&mut self) -> Poll<Option<Self::Data>, ::Error> {
+        unimplemented!();
+    }
+}
+*/
