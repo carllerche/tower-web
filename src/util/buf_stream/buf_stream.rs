@@ -6,7 +6,7 @@ use super::{
 };
 
 use bytes::Buf;
-use futures::{Poll, Stream};
+use futures::Poll;
 
 use std::io;
 
@@ -17,12 +17,12 @@ pub trait BufStream {
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error>;
 
     fn size_hint(&self) -> SizeHint {
-        unimplemented!();
+        SizeHint::default()
     }
 
     fn chain<T>(self, other: T) -> Chain<Self, T>
     where Self: Sized,
-          T: BufStream,
+          T: BufStream<Error = Self::Error>,
     {
         Chain::new(self, other)
     }

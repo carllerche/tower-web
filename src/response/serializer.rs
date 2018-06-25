@@ -42,8 +42,8 @@ impl Serializer for DefaultSerializer {
 
     fn lookup(&self, name: &str) -> Option<Self::ContentType> {
         match name {
-            "json" => Some(ContentType::json()),
-            "plain" => Some(ContentType::plain()),
+            "json" | "application/jsoon" => Some(ContentType::json()),
+            "plain" | "text/plain" => Some(ContentType::plain()),
             _ => None,
         }
     }

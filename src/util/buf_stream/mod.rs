@@ -1,8 +1,8 @@
 mod buf_stream;
-mod chain;
+pub mod chain;
 mod collect;
 mod from;
-mod size_hint;
+pub mod size_hint;
 mod std;
 
 pub use self::buf_stream::BufStream;

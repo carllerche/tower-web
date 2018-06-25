@@ -17,9 +17,21 @@ pub struct WebService<T, S, In>
 where T: Resource,
       S: Serializer,
 {
+    /// Resource that handles the request
     resource: T,
+
+    /// Route set. Processes request to determine how the resource will process
+    /// it.
     routes: Arc<RouteSet<T::Destination, S::ContentType>>,
+
+    /// Serialize the resource's response
     serializer: Arc<S>,
+
+    /// TODO: Ideally content type negotation would be performed based on the
+    /// request. However, this is not implemented yet.
+    default_content_type: S::ContentType,
+
+    /// The request body type.
     _p: PhantomData<In>,
 }
 
@@ -32,6 +44,7 @@ where T: Resource + Clone,
             resource: self.resource.clone(),
             routes: self.routes.clone(),
             serializer: self.serializer.clone(),
+            default_content_type: self.default_content_type.clone(),
             _p: PhantomData,
         }
     }
@@ -44,7 +57,7 @@ where T: Resource,
 {
     inner: Option<T::Future>,
     serializer: Arc<S>,
-    content_type: Option<S::ContentType>,
+    content_type: S::ContentType,
 }
 
 #[derive(Debug)]
@@ -68,11 +81,14 @@ where
     pub(crate) fn new(resource: T, serializer: S) -> Self {
         let serializer = Arc::new(serializer);
         let routes = Arc::new(resource.routes(&*serializer));
+        let default_content_type = serializer.lookup("json")
+            .expect("response serializer must support JSON");
 
         WebService {
             resource,
             routes,
             serializer,
+            default_content_type,
             _p: PhantomData,
         }
     }
@@ -108,6 +124,9 @@ where
                     &request,
                     payload);
 
+                let content_type = content_type
+                    .unwrap_or_else(|| self.default_content_type.clone());
+
                 ResponseFuture {
                     inner: Some(fut),
                     serializer,
@@ -117,7 +136,7 @@ where
             None => ResponseFuture {
                 inner: None,
                 serializer,
-                content_type: None,
+                content_type: self.default_content_type.clone(),
             },
         }
     }
@@ -138,18 +157,10 @@ where T: Resource,
                 // binary format.
                 let serializer = &*self.serializer;
 
-                // The content-type determines the serialization format (json,
-                // html, etc...). Each route has an associated content-type. The
-                // content-type is passed to the serializer and is used to pick
-                // the format.
-                //
-                // TODO: Don't unwrap
-                let content_type = self.content_type.as_ref().unwrap();
-
                 // The context tracks all the various factors that are used to
                 // determine how a user response is converted to an HTTP
                 // response. This context is passed to `IntoResponse::response`.
-                let context = Context::new(serializer, content_type);
+                let context = Context::new(serializer, &self.content_type);
 
                 // Create the HTTP response.
                 let response = try_ready!(f.poll()).into_response(&context);

@@ -2,11 +2,9 @@ use super::{BufStream, FromBufStream};
 
 use futures::{Future, Poll};
 
-use std::marker::PhantomData;
-
-pub struct Collect<T, U> {
+pub struct Collect<T, U: FromBufStream> {
     stream: T,
-    buffer: Option<U>,
+    builder: Option<U::Builder>,
 }
 
 impl<T, U> Collect<T, U>
@@ -14,11 +12,11 @@ where T: BufStream,
       U: FromBufStream,
 {
     pub(crate) fn new(stream: T) -> Collect<T, U> {
-        let buffer = U::with_capacity(&stream.size_hint());
+        let builder = U::builder(&stream.size_hint());
 
         Collect {
             stream,
-            buffer: Some(buffer),
+            builder: Some(builder),
         }
     }
 }
@@ -34,12 +32,15 @@ where T: BufStream,
         loop {
             match try_ready!(self.stream.poll()) {
                 Some(mut buf) => {
-                    self.buffer.as_mut().expect("cannot poll after done")
-                        .extend(&mut buf);
+                    let builder = self.builder.as_mut()
+                        .expect("cannot poll after done");
+
+                    U::extend(builder, &mut buf);
                 }
                 None => {
-                    let val = self.buffer.take().expect("cannot poll after done");
-                    return Ok(val.into());
+                    let builder = self.builder.take().expect("cannot poll after done");
+                    let value = U::build(builder);
+                    return Ok(value.into());
                 }
             }
         }
