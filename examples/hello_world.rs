@@ -40,6 +40,12 @@ impl_web! {
             Ok("ZOOOOMG YO\n".to_string())
         }
 
+        /// @get("/whoami")
+        /// @content_type("plain")
+        fn who_am_i(&mut self, user_agent: String) -> Result<String, ()> {
+            Ok(format!("You are: {}\n", user_agent))
+        }
+
         /*
         /// @get("/foo")
         /// @content_type("plain")

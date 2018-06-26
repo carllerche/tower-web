@@ -2,7 +2,7 @@ use response::{Context, Serializer};
 
 use bytes::{Buf, Bytes};
 use futures::stream::{self, Once, Stream};
-use http;
+use http::{self, header};
 use serde;
 
 use std::io::Cursor;
@@ -34,12 +34,16 @@ where
         let body = context.serialize(&self).unwrap();
         let body = Cursor::new(Bytes::from(body));
 
-        http::Response::builder()
+        let mut response = http::Response::builder()
             // Customize response
             .status(200)
-            // This is not the right content type
-            .header("content-type", "text/plain")
             .body(stream::once(Ok(body)))
+            .unwrap();
+
+        response.headers_mut().entry(header::CONTENT_TYPE)
             .unwrap()
+            .or_insert_with(|| context.content_type());
+
+        response
     }
 }

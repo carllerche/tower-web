@@ -1,6 +1,7 @@
 use response::Serializer;
 
 use bytes::Bytes;
+use http::header::HeaderValue;
 use serde::Serialize;
 
 pub struct Context<'a, S: Serializer + 'a> {
@@ -26,5 +27,9 @@ where S: Serializer,
     where T: Serialize,
     {
         self.serializer.serialize(self.content_type, value)
+    }
+
+    pub fn content_type(&self) -> HeaderValue {
+        self.serializer.content_type(self.content_type)
     }
 }

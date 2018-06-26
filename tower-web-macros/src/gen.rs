@@ -132,6 +132,8 @@ pub fn generate(services: &[Service]) -> String {
 
         // Define `Resource` on the struct.
         tokens.append_all(quote! {
+            // TODO: Can these warnings be avoided?
+            #[allow(unused_imports, unused_variables)]
             impl ::tower_web::service::Resource for #ty {
                 type Destination = #destination;
                 type Buf = <Self::Response as ::tower_web::response::IntoResponse>::Buf;

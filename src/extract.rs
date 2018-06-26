@@ -24,6 +24,38 @@ impl<'a> Extract<'a> for String {
         drop((route, request));
         unimplemented!();
     }
+
+    fn callsite_extract(
+        callsite: &CallSite,
+        route_match: &'a RouteMatch,
+        request: &'a Request<()>,
+    ) -> Result<Self, ()> {
+        // Get the parameter index from the callsite info
+        match callsite.param() {
+            Some(idx) => {
+                match route_match.params().get(idx) {
+                    Some(param) => Ok(param.to_string()),
+                    None => Err(()),
+                }
+            }
+            None => {
+                match callsite.header_name() {
+                    Some(header_name) => {
+                        let val = match request.headers().get(header_name) {
+                            Some(val) => val,
+                            None => return Err(()),
+                        };
+
+                        match val.to_str() {
+                            Ok(s) => Ok(s.to_string()),
+                            Err(_) => Err(()),
+                        }
+                    }
+                    None => return Err(()),
+                }
+            }
+        }
+    }
 }
 
 impl<'a> Extract<'a> for &'a str {
