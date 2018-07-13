@@ -1,61 +1,52 @@
+use super::Params;
 use super::condition::Condition;
-use super::route_match::RouteMatch;
 
 use http::Request;
+use http::header::HeaderName;
 
 /// Matches an HTTP request with a service funtion.
 #[derive(Debug)]
-pub struct Route<T, U> {
+pub struct Route<T> {
     /// Where to route the request
     destination: T,
 
     /// When to match on this route
     condition: Condition,
-
-    /// Content-type produced by the route
-    content_type: Option<U>,
 }
 
-impl<T, U> Route<T, U> {
+impl<T> Route<T> {
     /// Create a new route
-    pub(crate) fn new(destination: T,
-                      condition: Condition,
-                      content_type: Option<U>) -> Self
-    {
+    pub(crate) fn new(destination: T, condition: Condition) -> Self {
         Route {
             destination,
             condition,
-            content_type,
         }
     }
 
-    pub(crate) fn map<F, T2>(self, f: F) -> Route<T2, U>
+    pub(crate) fn map<F, U>(self, f: F) -> Route<U>
     where
-        F: Fn(T) -> T2,
+        F: Fn(T) -> U,
     {
         let destination = f(self.destination);
 
         Route {
             destination,
             condition: self.condition,
-            content_type: self.content_type,
         }
     }
 }
 
-impl<T, U> Route<T, U>
-where T: Clone,
-      U: Clone
+impl<T> Route<T>
+where
+    T: Clone,
 {
     /// Try to match a request against this route.
-    pub(crate) fn test<'a>(&'a self, request: &'a Request<()>) -> Option<(T, Option<U>, RouteMatch<'a>)> {
-        self.condition
-            .test(request)
-            .map(|params| {
-                let content_type = self.content_type.clone();
-                let route_match = RouteMatch::new(params);
-
-                (self.destination.clone(), content_type, route_match)
-            })
+    pub(crate) fn test<'a>(
+        &'a self,
+        request: &Request<()>,
+    ) -> Option<(T, Params)> {
+        self.condition.test(request).map(|params| {
+            (self.destination.clone(), params)
+        })
     }
 }

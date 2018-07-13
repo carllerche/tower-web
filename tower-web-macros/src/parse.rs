@@ -1,5 +1,6 @@
+use {Arg, Route, Service};
+use attr::Attributes;
 use route;
-use {Route, Service};
 
 use syn;
 
@@ -50,7 +51,7 @@ impl ImplWeb {
 
     fn push_service(&mut self, self_ty: Box<syn::Type>) {
         self.curr_service = self.services.len();
-        self.services.push(Service::new(self_ty));
+        self.services.push(Service::new(self.curr_service, self_ty));
     }
 
     fn service(&mut self) -> &mut Service {
@@ -61,14 +62,14 @@ impl ImplWeb {
         &mut self,
         ident: syn::Ident,
         ret: syn::Type,
-        rules: route::Rules,
-        args: Vec<route::Arg>,
+        attrs: Attributes,
+        args: Vec<Arg>,
     ) {
         let index = self.service().routes.len();
         self.curr_route = index;
         self.service()
             .routes
-            .push(Route::new(index, ident, ret, rules, args));
+            .push(Route::new(index, ident, ret, attrs, args));
     }
 }
 
@@ -87,7 +88,7 @@ impl syn::fold::Fold for ImplWeb {
     fn fold_impl_item_method(&mut self, mut item: syn::ImplItemMethod) -> syn::ImplItemMethod {
         use syn::ReturnType;
 
-        let mut rules = route::Rules::new();
+        let mut rules = Attributes::new();
 
         item.attrs.retain(|attr| !rules.process_attr(attr));
 
@@ -113,6 +114,7 @@ impl syn::fold::Fold for ImplWeb {
 
             match arg {
                 FnArg::Captured(arg) => {
+                    let index = args.len();
                     match arg.pat {
                         Pat::Ident(ref ident) => {
                             // Convert the identifier to a string
@@ -121,13 +123,13 @@ impl syn::fold::Fold for ImplWeb {
                             // Check if the identifier matches any parameters
                             let param = rules.path_params.iter().position(|param| param == &ident);
 
-                            args.push(route::Arg::new(ident, param, arg.ty.clone()));
+                            args.push(Arg::new(index, ident, param, arg.ty.clone()));
                         }
                         _ => {
                             // In this case, we should proceed without
                             // generating a call site as we cannot infer enough
                             // information about the argument.
-                            args.push(route::Arg::ty_only(arg.ty.clone()));
+                            args.push(Arg::ty_only(index, arg.ty.clone()));
                         }
                     }
                 }

@@ -5,11 +5,11 @@ use http;
 
 use std::mem;
 
-pub struct Builder<T, U> {
-    routes: RouteSet<T, U>,
+pub struct Builder<T> {
+    routes: RouteSet<T>,
 }
 
-impl<T, U> Builder<T, U> {
+impl<T> Builder<T> {
     pub fn new() -> Self {
         Builder {
             routes: RouteSet::new(),
@@ -17,28 +17,27 @@ impl<T, U> Builder<T, U> {
     }
 
     /// Insert a new route into the route set.
-    pub fn route(&mut self,
-                 destination: T,
-                 method: http::Method,
-                 path: &str,
-                 content_type: Option<U>) -> &mut Self
-    {
-        let route = Route::new(
-            destination,
-            Condition::new(method, path),
-            content_type);
+    ///
+    /// TODO: Clean up route definition
+    pub fn route(
+        &mut self,
+        destination: T,
+        method: http::Method,
+        path: &str,
+    ) -> &mut Self {
+        let route = Route::new(destination, Condition::new(method, path));
 
         self.routes.push(route);
         self
     }
 
     /// Insert a route value
-    pub fn push(&mut self, route: Route<T, U>) -> &mut Self {
+    pub fn push(&mut self, route: Route<T>) -> &mut Self {
         self.routes.push(route);
         self
     }
 
-    pub fn build(&mut self) -> RouteSet<T, U> {
+    pub fn build(&mut self) -> RouteSet<T> {
         mem::replace(&mut self.routes, RouteSet::new())
     }
 }

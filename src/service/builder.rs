@@ -1,6 +1,6 @@
-use service::{WebService, Resource};
 use response::DefaultSerializer;
-use util::{Chain, BufStream};
+use service::{Resource, IntoResource, WebService};
+use util::{BufStream, Chain};
 
 use std::io;
 use std::net::SocketAddr;
@@ -21,12 +21,12 @@ impl ServiceBuilder<()> {
 
 impl<T> ServiceBuilder<T>
 where
-    T: Resource,
+    T: IntoResource<DefaultSerializer>,
 {
     /// Add a resource handler.
     pub fn resource<U>(self, resource: U) -> ServiceBuilder<<T as Chain<U>>::Output>
     where
-        U: Resource,
+        U: IntoResource<DefaultSerializer>,
         T: Chain<U>,
     {
         ServiceBuilder {
@@ -35,17 +35,18 @@ where
     }
 
     /// Build a service instance.
-    pub fn build<In: BufStream>(self) -> WebService<T, DefaultSerializer, In> {
-        WebService::new(self.resource, DefaultSerializer::new())
+    pub fn build<In: BufStream>(self) -> WebService<T::Resource, In> {
+        WebService::new(self.resource.into_resource(DefaultSerializer::new()))
     }
 }
 
 impl<T> ServiceBuilder<T>
 where
-    T: Resource,
-    T::Buf: Send,
-    T::Body: Send,
-    T::Future: Send,
+    T: IntoResource<DefaultSerializer>,
+    T::Resource: Send + 'static,
+    <T::Resource as Resource>::Buf: Send,
+    <T::Resource as Resource>::Body: Send,
+    <T::Resource as Resource>::Future: Send,
 {
     /// Run the service
     pub fn run(self, addr: &SocketAddr) -> io::Result<()> {

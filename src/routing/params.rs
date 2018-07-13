@@ -1,11 +1,11 @@
 #[derive(Debug)]
-pub struct Params<'a> {
+pub(crate) struct Params {
     /// Parameters extracted from the requet
-    params: Vec<&'a str>,
+    params: Vec<(usize, usize)>,
 }
 
-impl<'a> Params<'a> {
-    pub(crate) fn new(params: Vec<&'a str>) -> Params<'a> {
+impl Params {
+    pub(crate) fn new(params: Vec<(usize, usize)>) -> Params {
         Params { params }
     }
 
@@ -14,7 +14,8 @@ impl<'a> Params<'a> {
     }
 
     /// Get a parameter value
-    pub fn get(&self, index: usize) -> Option<&str> {
-        self.params.get(index).map(|s| *s)
+    pub fn get<'a>(&self, index: usize, src: &'a str) -> &'a str {
+        let (pos, len) = self.params[index];
+        &src[pos..(pos + len)]
     }
 }

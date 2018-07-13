@@ -3,13 +3,13 @@ use routing::{RouteMatch, RouteSet};
 use util::BufStream;
 
 use bytes::Buf;
-use futures::{Future, Stream};
+use futures::Future;
 use http;
 
 /// A resource
 ///
-/// TODO: Should `Send` be hard codeed?
-pub trait Resource: Clone + Send + 'static {
+/// TODO: Should `Clone + Send + 'static` be hard coded?
+pub trait Resource: Clone {
     /// Identifies a route.
     type Destination: Clone + Send + Sync + 'static;
 
@@ -17,23 +17,30 @@ pub trait Resource: Clone + Send + 'static {
     type Buf: Buf;
 
     /// The HTTP response body type.
-    type Body: Stream<Item = Self::Buf, Error = ::Error>;
+    type Body: BufStream<Item = Self::Buf, Error = ::Error>;
 
+    /*
     /// Responses returned by the resource
     type Response: IntoResponse<Buf = Self::Buf, Body = Self::Body>;
+    */
 
     /// Response future
-    type Future: Future<Item = Self::Response, Error = ::Error>;
+    type Future: Future<Item = http::Response<Self::Body>, Error = ::Error>;
 
     /// Return the routes associated with the resource.
-    fn routes<S: Serializer>(&self, serializer: &S)
-        -> RouteSet<Self::Destination, S::ContentType>;
+    fn routes(&self) -> RouteSet<Self::Destination>;
 
     fn dispatch<In: BufStream>(
         &mut self,
         destination: Self::Destination,
-        route_match: &RouteMatch,
-        request: &http::Request<()>,
-        payload: In,
+        route_match: RouteMatch,
+        body: In,
     ) -> Self::Future;
+}
+
+/// Convert a value into a `Resource`
+pub trait IntoResource<S> {
+    type Resource: Resource;
+
+    fn into_resource(self, serializer: S) -> Self::Resource;
 }

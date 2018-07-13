@@ -8,8 +8,9 @@ pub struct Collect<T, U: FromBufStream> {
 }
 
 impl<T, U> Collect<T, U>
-where T: BufStream,
-      U: FromBufStream,
+where
+    T: BufStream,
+    U: FromBufStream,
 {
     pub(crate) fn new(stream: T) -> Collect<T, U> {
         let builder = U::builder(&stream.size_hint());
@@ -22,8 +23,9 @@ where T: BufStream,
 }
 
 impl<T, U> Future for Collect<T, U>
-where T: BufStream,
-      U: FromBufStream,
+where
+    T: BufStream,
+    U: FromBufStream,
 {
     type Item = U;
     type Error = T::Error;
@@ -32,8 +34,7 @@ where T: BufStream,
         loop {
             match try_ready!(self.stream.poll()) {
                 Some(mut buf) => {
-                    let builder = self.builder.as_mut()
-                        .expect("cannot poll after done");
+                    let builder = self.builder.as_mut().expect("cannot poll after done");
 
                     U::extend(builder, &mut buf);
                 }

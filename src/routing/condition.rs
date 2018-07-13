@@ -4,7 +4,7 @@ use http::{Method, Request};
 
 /// Requirement on an HTTP request in order to match a route
 #[derive(Debug)]
-pub struct Condition {
+pub(crate) struct Condition {
     /// HTTP method used to match the route
     method: Method,
 
@@ -34,7 +34,7 @@ impl Condition {
     }
 
     /// Test a request
-    pub fn test<'a>(&self, request: &'a Request<()>) -> Option<Params<'a>> {
+    pub fn test(&self, request: &Request<()>) -> Option<Params> {
         if *request.method() != self.method {
             return None;
         }
@@ -66,13 +66,14 @@ impl Segments {
     }
 
     /// Test the path component of a request
-    fn test<'a>(&self, mut path: &'a str) -> Option<Params<'a>> {
+    fn test(&self, mut path: &str) -> Option<Params> {
         if !path.is_empty() && &path[path.len() - 1..path.len()] == "/" {
             path = &path[0..path.len() - 1];
         }
 
         let mut i = 0;
         let mut params = vec![];
+        let base = path.as_ptr() as usize;
 
         for segment in path.split("/") {
             if i == self.segments.len() {
@@ -80,7 +81,11 @@ impl Segments {
             }
 
             match self.segments[i] {
-                Segment::Param => params.push(segment),
+                Segment::Param => {
+                    let ptr = segment.as_ptr() as usize;
+
+                    params.push((ptr - base, segment.len()));
+                }
                 Segment::Literal(ref val) => {
                     if segment != val {
                         return None;

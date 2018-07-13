@@ -11,7 +11,8 @@ pub trait Serializer {
     fn content_type(&self, content_type: &Self::ContentType) -> HeaderValue;
 
     fn serialize<T>(&self, content_type: &Self::ContentType, value: &T) -> Result<Bytes, ::Error>
-        where T: Serialize;
+    where
+        T: Serialize;
 }
 
 /// Default serialization
@@ -60,10 +61,9 @@ impl Serializer for DefaultSerializer {
         }
     }
 
-    fn serialize<T>(&self,
-                    content_type: &Self::ContentType,
-                    value: &T) -> Result<Bytes, ::Error>
-    where T: Serialize,
+    fn serialize<T>(&self, content_type: &Self::ContentType, value: &T) -> Result<Bytes, ::Error>
+    where
+        T: Serialize,
     {
         match content_type.kind {
             Kind::Json => {
@@ -81,15 +81,11 @@ impl Serializer for DefaultSerializer {
 impl ContentType {
     /// Json
     fn json() -> ContentType {
-        ContentType {
-            kind: Kind::Json,
-        }
+        ContentType { kind: Kind::Json }
     }
 
     /// Plain
     fn plain() -> ContentType {
-        ContentType {
-            kind: Kind::Plain,
-        }
+        ContentType { kind: Kind::Plain }
     }
 }

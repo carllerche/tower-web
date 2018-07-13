@@ -1,46 +1,46 @@
-use http::header::{self, HeaderName};
+use self::Source::*;
+
+use http::header::HeaderName;
 
 #[derive(Debug)]
 pub struct CallSite {
-    /// The argument name
-    arg: &'static str,
+    /// Where to extract the parameter from when the argument type does not
+    /// provide the information.
+    source: Source,
+}
 
-    /// If the arg name matches a header name, this field is populated with the
-    /// header.
-    header_name: Option<HeaderName>,
-
-    /// Param index
-    param: Option<usize>,
+#[derive(Debug, Clone)]
+pub(crate) enum Source {
+    Param(usize),
+    Header(HeaderName),
+    QueryString,
+    Body,
+    Unknown,
 }
 
 impl CallSite {
-    // TODO: This should probably be a builder
-    pub fn new(arg: &'static str, param: Option<usize>) -> CallSite {
-        let header_name = match arg {
-            "content_type" => Some(header::CONTENT_TYPE),
-            "user_agent" => Some(header::USER_AGENT),
-            _ => None,
-        };
-
-        CallSite {
-            arg,
-            header_name,
-            param
-        }
+    pub fn new_param(index: usize) -> CallSite {
+        CallSite { source: Param(index) }
     }
 
-    /*
-    /// TODO: Dox
-    pub(crate) fn arg(&self) -> &'static str {
-        self.arg
-    }
-    */
-
-    pub(crate) fn header_name(&self) -> Option<&HeaderName> {
-        self.header_name.as_ref()
+    pub fn new_header(name: &'static str) -> CallSite {
+        CallSite { source: Header(HeaderName::from_static(name)) }
     }
 
-    pub(crate) fn param(&self) -> Option<usize> {
-        self.param
+    pub fn new_query_string() -> CallSite {
+        CallSite { source: QueryString }
+    }
+
+    pub fn new_body() -> CallSite {
+        CallSite { source: Body }
+    }
+
+    /// Cannot infer where to extract the parameter based on the call site.
+    pub fn new_unknown() -> CallSite {
+        CallSite { source: Unknown }
+    }
+
+    pub(crate) fn source(&self) -> &Source {
+        &self.source
     }
 }

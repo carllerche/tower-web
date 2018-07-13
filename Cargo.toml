@@ -14,11 +14,14 @@ members = [
 [dependencies]
 bytes = "0.4.7"
 futures = "0.1.21"
-http = "0.1.5"
+http = "0.1.7"
 hyper = "0.12.1"
 log = "0.4.1"
 tokio = "0.1.6"
 tower-service = { git = "https://github.com/tower-rs/tower" }
+
+# Parsing params
+atoi = "0.2.3"
 
 # Serializing responses, deserializing requests
 serde = "1.0.32"

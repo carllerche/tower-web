@@ -1,35 +1,116 @@
 //! Implementations of `Resource` for tuple types.
 
-use response::{Context, IntoResponse, Serializer};
+// NOTE: This file should not be updated directly. Instead, update
+// `util/gen-tuple.rs` and regenerate this file.
+
+use extract::{self, Extract, ExtractFuture, Immediate};
+use response::{Context, IntoResponse, MapErr, Serializer};
 use routing::{self, RouteSet, RouteMatch};
-use service::Resource;
+use service::{Resource, IntoResource};
 use util::{BufStream, Chain};
 
-use bytes::{Bytes, Buf};
-use futures::{Future, Stream, Poll};
+use bytes::Buf;
+use futures::{Future, Stream, Async, Poll};
 use futures::future::FutureResult;
-use futures::stream::Once;
 use http;
 
-use std::io;
+// ===== Utility traits =====
+
+pub trait IntoHttpFuture {
+    type Item;
+
+    fn poll_into_http<S: Serializer>(&mut self, context: &Context<S>)
+        -> Poll<http::Response<Self::Item>, ::Error>;
+}
+
+impl<T, R> IntoHttpFuture for T
+where T: Future<Item = R, Error = ::Error>,
+      R: IntoResponse
+{
+    type Item = R::Body;
+
+    fn poll_into_http<S: Serializer>(&mut self, context: &Context<S>)
+        -> Poll<http::Response<Self::Item>, ::Error>
+    {
+        let response = try_ready!(self.poll());
+        Ok(response.into_response(context).into())
+    }
+}
+
+pub trait HttpResponseFuture {
+    type Item;
+
+    fn poll_http_response(&mut self) -> Poll<http::Response<Self::Item>, ::Error>;
+}
+
+impl<T, B> HttpResponseFuture for T
+where T: Future<Item = http::Response<B>, Error = ::Error>
+{
+    type Item = B;
+
+    fn poll_http_response(&mut self) -> Poll<http::Response<Self::Item>, ::Error> {
+        self.poll()
+    }
+}
+
+pub struct LiftHttpResponse<T> {
+    inner: T,
+}
+
+impl<T: HttpResponseFuture> Future for LiftHttpResponse<T> {
+    type Item = http::Response<T::Item>;
+    type Error = ::Error;
+
+    fn poll(&mut self) -> Poll<Self::Item, ::Error> {
+        self.inner.poll_http_response()
+    }
+}
 
 // ===== 0 =====
 
 impl Resource for () {
     type Destination = ();
-    type Buf = io::Cursor<Bytes>;
-    type Body = Once<Self::Buf, ::Error>;
-    type Response = String;
-    type Future = FutureResult<String, ::Error>;
+    type Buf = <Self::Body as BufStream>::Item;
+    type Body = MapErr<String>;
+    type Future = FutureResult<http::Response<Self::Body>, ::Error>;
 
-    fn routes<S>(&self, _: &S) -> RouteSet<(), S::ContentType>
-    where S: Serializer,
-    {
+    fn routes(&self) -> RouteSet<()> {
         RouteSet::new()
     }
 
-    fn dispatch<In: BufStream>(&mut self, _: (), _: &RouteMatch, _: &http::Request<()>, _: In) -> Self::Future {
+    fn dispatch<In: BufStream>(&mut self, _: (), _: RouteMatch, _: In) -> Self::Future {
         unreachable!();
+    }
+}
+
+pub struct Join0 {
+    _p: (),
+}
+
+impl Join0 {
+    pub fn new() -> Self {
+        Self { _p: () }
+    }
+
+    pub fn into_inner(self) -> () {
+        ()
+    }
+}
+
+impl Future for Join0 {
+    type Item = ();
+    type Error = extract::Error;
+
+    fn poll(&mut self) -> Poll<(), extract::Error> {
+        Ok(().into())
+    }
+}
+
+impl<S> IntoResource<S> for () {
+    type Resource = ();
+
+    fn into_resource(self, _: S) -> Self::Resource {
+        ()
     }
 }
 
@@ -38,6 +119,174 @@ impl<U> Chain<U> for () {
 
     fn chain(self, other: U) -> Self::Output {
         other
+    }
+}
+// ===== 1 =====
+
+#[derive(Clone)]
+pub enum Either1<A> {
+    A(A),
+}
+
+impl<A> Future for Either1<A>
+where
+    A: Future,
+{
+    type Item = Either1<A::Item>;
+    type Error = A::Error;
+
+    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
+        use self::Either1::*;
+
+        match *self {
+            A(ref mut f) => Ok(A(try_ready!(f.poll())).into()),
+        }
+    }
+}
+
+impl<A> Either1<A>
+where
+    A: ExtractFuture,
+{
+
+    pub fn poll_ready(&mut self) -> Poll<(), extract::Error> {
+        use self::Either1::*;
+
+        match *self {
+            A(ref mut f) => f.poll(),
+        }
+    }
+}
+
+impl<A> HttpResponseFuture for Either1<A>
+where
+    A: HttpResponseFuture,
+{
+    type Item = Either1<A::Item>;
+
+    fn poll_http_response(&mut self) -> Poll<http::Response<Self::Item>, ::Error> {
+        use self::Either1::*;
+
+        match *self {
+            A(ref mut f) => Ok(try_ready!(f.poll_http_response()).map(A).into()),
+        }
+    }
+}
+
+impl<A> Stream for Either1<A>
+where
+    A: Stream,
+{
+    type Item = Either1<A::Item>;
+    type Error = A::Error;
+
+    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
+        use self::Either1::*;
+
+        match *self {
+            A(ref mut f) => Ok(try_ready!(f.poll()).map(A).into()),
+        }
+    }
+}
+
+impl<A> BufStream for Either1<A>
+where
+    A: BufStream,
+{
+    type Item = Either1<A::Item>;
+    type Error = A::Error;
+
+    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
+        use self::Either1::*;
+
+        match *self {
+            A(ref mut f) => Ok(try_ready!(f.poll()).map(A).into()),
+        }
+    }
+}
+
+impl<A> Buf for Either1<A>
+where
+    A: Buf,
+{
+    fn remaining(&self) -> usize {
+        use self::Either1::*;
+
+        match *self {
+            A(ref b) => b.remaining(),
+        }
+    }
+
+    fn bytes(&self) -> &[u8] {
+        use self::Either1::*;
+
+        match *self {
+            A(ref b) => b.bytes(),
+        }
+    }
+
+    fn advance(&mut self, cnt: usize) {
+        use self::Either1::*;
+
+        match *self {
+            A(ref mut b) => b.advance(cnt),
+        }
+    }
+}
+
+impl<A> IntoResponse for Either1<A>
+where
+    A: IntoResponse,
+{
+    type Buf = Either1<A::Buf>;
+    type Body = Either1<A::Body>;
+
+    fn into_response<S>(self, context: &Context<S>) ->  http::Response<Self::Body>
+    where S: Serializer
+    {
+        use self::Either1::*;
+
+        match self {
+            A(r) => r.into_response(context).map(Either1::A),
+        }
+    }
+}
+
+impl<R0> Resource for (R0,)
+where
+    R0: Resource,
+{
+    type Destination = Either1<R0::Destination>;
+    type Buf = Either1<R0::Buf>;
+    type Body = Either1<R0::Body>;
+    type Future = LiftHttpResponse<Either1<R0::Future>>;
+
+    fn routes(&self) -> RouteSet<Self::Destination>
+    {
+        let mut routes = routing::Builder::new();
+
+        for route in self.0.routes() {
+            routes.push(route.map(Either1::A));
+        }
+
+        routes.build()
+    }
+
+    fn dispatch<In: BufStream>(&mut self,
+                               destination: Self::Destination,
+                               route_match: RouteMatch,
+                               body: In)
+        -> Self::Future
+    {
+        use self::Either1::*;
+
+        let inner = match destination {
+            A(d) => {
+                A(self.0.dispatch(d, route_match, body))
+            }
+        };
+
+        LiftHttpResponse { inner }
     }
 }
 // ===== 2 =====
@@ -60,8 +309,41 @@ where
         use self::Either2::*;
 
         match *self {
-            A(ref mut f) => Ok(Either2::A(try_ready!(f.poll())).into()),
-            B(ref mut f) => Ok(Either2::B(try_ready!(f.poll())).into()),
+            A(ref mut f) => Ok(A(try_ready!(f.poll())).into()),
+            B(ref mut f) => Ok(B(try_ready!(f.poll())).into()),
+        }
+    }
+}
+
+impl<A, B> Either2<A, B>
+where
+    A: ExtractFuture,
+    B: ExtractFuture,
+{
+
+    pub fn poll_ready(&mut self) -> Poll<(), extract::Error> {
+        use self::Either2::*;
+
+        match *self {
+            A(ref mut f) => f.poll(),
+            B(ref mut f) => f.poll(),
+        }
+    }
+}
+
+impl<A, B> HttpResponseFuture for Either2<A, B>
+where
+    A: HttpResponseFuture,
+    B: HttpResponseFuture,
+{
+    type Item = Either2<A::Item, B::Item>;
+
+    fn poll_http_response(&mut self) -> Poll<http::Response<Self::Item>, ::Error> {
+        use self::Either2::*;
+
+        match *self {
+            A(ref mut f) => Ok(try_ready!(f.poll_http_response()).map(A).into()),
+            B(ref mut f) => Ok(try_ready!(f.poll_http_response()).map(B).into()),
         }
     }
 }
@@ -78,8 +360,26 @@ where
         use self::Either2::*;
 
         match *self {
-            A(ref mut f) => Ok(try_ready!(f.poll()).map(Either2::A).into()),
-            B(ref mut f) => Ok(try_ready!(f.poll()).map(Either2::B).into()),
+            A(ref mut f) => Ok(try_ready!(f.poll()).map(A).into()),
+            B(ref mut f) => Ok(try_ready!(f.poll()).map(B).into()),
+        }
+    }
+}
+
+impl<A, B> BufStream for Either2<A, B>
+where
+    A: BufStream,
+    B: BufStream<Error = A::Error>,
+{
+    type Item = Either2<A::Item, B::Item>;
+    type Error = A::Error;
+
+    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
+        use self::Either2::*;
+
+        match *self {
+            A(ref mut f) => Ok(try_ready!(f.poll()).map(A).into()),
+            B(ref mut f) => Ok(try_ready!(f.poll()).map(B).into()),
         }
     }
 }
@@ -137,7 +437,7 @@ where
     }
 }
 
-impl<R0, R1> Resource for (R0, R1)
+impl<R0, R1> Resource for (R0, R1,)
 where
     R0: Resource,
     R1: Resource,
@@ -145,19 +445,17 @@ where
     type Destination = Either2<R0::Destination, R1::Destination>;
     type Buf = Either2<R0::Buf, R1::Buf>;
     type Body = Either2<R0::Body, R1::Body>;
-    type Response = Either2<R0::Response, R1::Response>;
-    type Future = Either2<R0::Future, R1::Future>;
+    type Future = LiftHttpResponse<Either2<R0::Future, R1::Future>>;
 
-    fn routes<S>(&self, serializer: &S) -> RouteSet<Self::Destination, S::ContentType>
-    where S: Serializer,
+    fn routes(&self) -> RouteSet<Self::Destination>
     {
         let mut routes = routing::Builder::new();
 
-        for route in self.0.routes(serializer) {
+        for route in self.0.routes() {
             routes.push(route.map(Either2::A));
         }
 
-        for route in self.1.routes(serializer) {
+        for route in self.1.routes() {
             routes.push(route.map(Either2::B));
         }
 
@@ -166,198 +464,122 @@ where
 
     fn dispatch<In: BufStream>(&mut self,
                                destination: Self::Destination,
-                               route_match: &RouteMatch,
-                               request: &http::Request<()>,
-                               payload: In)
+                               route_match: RouteMatch,
+                               body: In)
         -> Self::Future
     {
         use self::Either2::*;
 
-        match destination {
+        let inner = match destination {
             A(d) => {
-                A(self.0.dispatch(d, route_match, request, payload))
+                A(self.0.dispatch(d, route_match, body))
             }
             B(d) => {
-                B(self.1.dispatch(d, route_match, request, payload))
+                B(self.1.dispatch(d, route_match, body))
             }
-        }
+        };
+
+        LiftHttpResponse { inner }
     }
 }
 
-impl<R0, R1, U> Chain<U> for (R0, R1) {
+impl<R0, U> Chain<U> for (R0,) {
+    type Output = (R0, U);
+
+    fn chain(self, other: U) -> Self::Output {
+        (self.0, other)
+    }
+}
+
+pub struct Join1<T0> {
+    futures: (T0,),
+    pending: (bool,),
+}
+
+impl<T0> Join1<T0>
+where
+    T0: ExtractFuture,
+{
+    pub fn new(t0: T0) -> Self {
+        Self {
+            pending: (false, ),
+            futures: (t0, ),
+        }
+    }
+
+    pub fn into_inner(self) -> (T0,)
+    {
+        self.futures
+    }
+}
+
+impl<T0> Future for Join1<T0>
+where
+    T0: ExtractFuture,
+{
+    type Item = ();
+    type Error = extract::Error;
+
+    fn poll(&mut self) -> Poll<(), extract::Error> {
+    let mut all_ready = true;
+
+        if !self.pending.0 {
+            self.pending.0 = self.futures.0.poll()?.is_ready();
+            all_ready &= self.pending.0;
+        }
+        Ok(if all_ready { Async::Ready(()) } else { Async::NotReady })
+    }
+}
+impl<R0, R1, U> Chain<U> for (R0, R1,) {
     type Output = (R0, R1, U);
 
     fn chain(self, other: U) -> Self::Output {
         (self.0, self.1, other)
     }
 }
-// ===== 3 =====
 
-#[derive(Clone)]
-pub enum Either3<A, B, C> {
-    A(A),
-    B(B),
-    C(C),
+pub struct Join2<T0, T1> {
+    futures: (T0, T1,),
+    pending: (bool, bool,),
 }
 
-impl<A, B, C> Future for Either3<A, B, C>
+impl<T0, T1> Join2<T0, T1>
 where
-    A: Future,
-    B: Future<Error = A::Error>,
-    C: Future<Error = A::Error>,
+    T0: ExtractFuture,
+    T1: ExtractFuture,
 {
-    type Item = Either3<A::Item, B::Item, C::Item>;
-    type Error = A::Error;
-
-    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-        use self::Either3::*;
-
-        match *self {
-            A(ref mut f) => Ok(Either3::A(try_ready!(f.poll())).into()),
-            B(ref mut f) => Ok(Either3::B(try_ready!(f.poll())).into()),
-            C(ref mut f) => Ok(Either3::C(try_ready!(f.poll())).into()),
-        }
-    }
-}
-
-impl<A, B, C> Stream for Either3<A, B, C>
-where
-    A: Stream,
-    B: Stream<Error = A::Error>,
-    C: Stream<Error = A::Error>,
-{
-    type Item = Either3<A::Item, B::Item, C::Item>;
-    type Error = A::Error;
-
-    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        use self::Either3::*;
-
-        match *self {
-            A(ref mut f) => Ok(try_ready!(f.poll()).map(Either3::A).into()),
-            B(ref mut f) => Ok(try_ready!(f.poll()).map(Either3::B).into()),
-            C(ref mut f) => Ok(try_ready!(f.poll()).map(Either3::C).into()),
-        }
-    }
-}
-
-impl<A, B, C> Buf for Either3<A, B, C>
-where
-    A: Buf,
-    B: Buf,
-    C: Buf,
-{
-    fn remaining(&self) -> usize {
-        use self::Either3::*;
-
-        match *self {
-            A(ref b) => b.remaining(),
-            B(ref b) => b.remaining(),
-            C(ref b) => b.remaining(),
+    pub fn new(t0: T0, t1: T1) -> Self {
+        Self {
+            pending: (false, false, ),
+            futures: (t0, t1, ),
         }
     }
 
-    fn bytes(&self) -> &[u8] {
-        use self::Either3::*;
-
-        match *self {
-            A(ref b) => b.bytes(),
-            B(ref b) => b.bytes(),
-            C(ref b) => b.bytes(),
-        }
-    }
-
-    fn advance(&mut self, cnt: usize) {
-        use self::Either3::*;
-
-        match *self {
-            A(ref mut b) => b.advance(cnt),
-            B(ref mut b) => b.advance(cnt),
-            C(ref mut b) => b.advance(cnt),
-        }
-    }
-}
-
-impl<A, B, C> IntoResponse for Either3<A, B, C>
-where
-    A: IntoResponse,
-    B: IntoResponse,
-    C: IntoResponse,
-{
-    type Buf = Either3<A::Buf, B::Buf, C::Buf>;
-    type Body = Either3<A::Body, B::Body, C::Body>;
-
-    fn into_response<S>(self, context: &Context<S>) ->  http::Response<Self::Body>
-    where S: Serializer
+    pub fn into_inner(self) -> (T0, T1,)
     {
-        use self::Either3::*;
-
-        match self {
-            A(r) => r.into_response(context).map(Either3::A),
-            B(r) => r.into_response(context).map(Either3::B),
-            C(r) => r.into_response(context).map(Either3::C),
-        }
+        self.futures
     }
 }
 
-impl<R0, R1, R2> Resource for (R0, R1, R2)
+impl<T0, T1> Future for Join2<T0, T1>
 where
-    R0: Resource,
-    R1: Resource,
-    R2: Resource,
+    T0: ExtractFuture,
+    T1: ExtractFuture,
 {
-    type Destination = Either3<R0::Destination, R1::Destination, R2::Destination>;
-    type Buf = Either3<R0::Buf, R1::Buf, R2::Buf>;
-    type Body = Either3<R0::Body, R1::Body, R2::Body>;
-    type Response = Either3<R0::Response, R1::Response, R2::Response>;
-    type Future = Either3<R0::Future, R1::Future, R2::Future>;
+    type Item = ();
+    type Error = extract::Error;
 
-    fn routes<S>(&self, serializer: &S) -> RouteSet<Self::Destination, S::ContentType>
-    where S: Serializer,
-    {
-        let mut routes = routing::Builder::new();
+    fn poll(&mut self) -> Poll<(), extract::Error> {
+    let mut all_ready = true;
 
-        for route in self.0.routes(serializer) {
-            routes.push(route.map(Either3::A));
+        if !self.pending.0 {
+            self.pending.0 = self.futures.0.poll()?.is_ready();
+            all_ready &= self.pending.0;
         }
-
-        for route in self.1.routes(serializer) {
-            routes.push(route.map(Either3::B));
+        if !self.pending.1 {
+            self.pending.1 = self.futures.1.poll()?.is_ready();
+            all_ready &= self.pending.1;
         }
-
-        for route in self.2.routes(serializer) {
-            routes.push(route.map(Either3::C));
-        }
-
-        routes.build()
-    }
-
-    fn dispatch<In: BufStream>(&mut self,
-                               destination: Self::Destination,
-                               route_match: &RouteMatch,
-                               request: &http::Request<()>,
-                               payload: In)
-        -> Self::Future
-    {
-        use self::Either3::*;
-
-        match destination {
-            A(d) => {
-                A(self.0.dispatch(d, route_match, request, payload))
-            }
-            B(d) => {
-                B(self.1.dispatch(d, route_match, request, payload))
-            }
-            C(d) => {
-                C(self.2.dispatch(d, route_match, request, payload))
-            }
-        }
-    }
-}
-
-impl<R0, R1, R2, U> Chain<U> for (R0, R1, R2) {
-    type Output = (R0, R1, R2, U);
-
-    fn chain(self, other: U) -> Self::Output {
-        (self.0, self.1, self.2, other)
+        Ok(if all_ready { Async::Ready(()) } else { Async::NotReady })
     }
 }

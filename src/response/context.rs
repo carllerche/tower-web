@@ -10,12 +10,11 @@ pub struct Context<'a, S: Serializer + 'a> {
 }
 
 impl<'a, S> Context<'a, S>
-where S: Serializer,
+where
+    S: Serializer,
 {
-    pub(crate) fn new(
-        serializer: &'a S,
-        content_type: &'a S::ContentType) -> Context<'a, S>
-    {
+    // TODO: Builder?
+    pub fn new(serializer: &'a S, content_type: &'a S::ContentType) -> Context<'a, S> {
         Context {
             serializer,
             content_type,
@@ -24,7 +23,8 @@ where S: Serializer,
 
     /// Serialize a value
     pub fn serialize<T>(&self, value: &T) -> Result<Bytes, ::Error>
-    where T: Serialize,
+    where
+        T: Serialize,
     {
         self.serializer.serialize(self.content_type, value)
     }

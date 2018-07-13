@@ -2,6 +2,7 @@
 
 mod callsite;
 pub use self::callsite::CallSite;
+pub(crate) use self::callsite::Source;
 
 pub mod bytes {
     //! Types provided by the `bytes` crate

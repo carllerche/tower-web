@@ -55,8 +55,7 @@ impl BufStream for LiftReqBody {
     type Error = ::Error;
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, ::Error> {
-        self.body.poll()
-            .map_err(|_| ::Error::Internal)
+        self.body.poll().map_err(|_| ::ErrorKind::internal().into())
     }
 }
 
@@ -74,10 +73,9 @@ where
 
     fn call(&mut self, request: http::Request<Self::ReqBody>) -> Self::Future {
         let request = request.map(|body| LiftReqBody { body });
-        let response = self.inner.call(request)
-            .map(|response| {
-                response.map(|body| LiftBody { body })
-            });
+        let response = self.inner
+            .call(request)
+            .map(|response| response.map(|body| LiftBody { body }));
 
         Box::new(response)
     }

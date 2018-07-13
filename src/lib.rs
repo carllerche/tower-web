@@ -1,3 +1,4 @@
+extern crate atoi;
 extern crate bytes;
 #[macro_use]
 extern crate futures;
@@ -11,17 +12,16 @@ extern crate tokio;
 extern crate tower_service;
 
 pub mod codegen;
+pub mod extract;
 pub mod response;
 pub mod routing;
 pub mod service;
 pub mod util;
 
 mod error;
-mod extract;
 mod run;
 
-pub use error::Error;
-pub use extract::Extract;
+pub use error::{Error, ErrorKind};
 pub use service::ServiceBuilder;
 
 // ===== proc_macro_hack junk =====

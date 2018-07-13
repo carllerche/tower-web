@@ -18,8 +18,9 @@ impl<T, U> Chain<T, U> {
 }
 
 impl<T, U> BufStream for Chain<T, U>
-where T: BufStream,
-      U: BufStream<Error = T::Error>,
+where
+    T: BufStream,
+    U: BufStream<Error = T::Error>,
 {
     type Item = Either<T::Item, U::Item>;
     type Error = T::Error;

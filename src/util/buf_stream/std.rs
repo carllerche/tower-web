@@ -1,7 +1,7 @@
 use util::BufStream;
 
 use bytes::Buf;
-use futures::{Stream, Poll};
+use futures::{Poll, Stream};
 
 pub struct StdStream<T>(T);
 
@@ -12,8 +12,9 @@ impl<T> StdStream<T> {
 }
 
 impl<T> BufStream for StdStream<T>
-where T: Stream,
-      T::Item: Buf,
+where
+    T: Stream,
+    T::Item: Buf,
 {
     type Item = T::Item;
     type Error = T::Error;

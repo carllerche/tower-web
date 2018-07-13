@@ -1,46 +1,37 @@
-use super::{Route, RouteMatch};
+use super::{Route, RouteMatch, Params};
 
 use http::Request;
 
 /// A set of routes
 #[derive(Debug)]
-pub struct RouteSet<T, U> {
-    routes: Vec<Route<T, U>>,
+pub struct RouteSet<T> {
+    routes: Vec<Route<T>>,
 }
 
 /// An iterator that moves routes of a `RouteSet`.
 #[derive(Debug)]
-pub struct IntoIter<T, U> {
-    inner: ::std::vec::IntoIter<Route<T, U>>,
+pub struct IntoIter<T> {
+    inner: ::std::vec::IntoIter<Route<T>>,
 }
 
 // ===== impl RouteSet =====
 
-impl<T, U> RouteSet<T, U> {
-    pub fn new() -> RouteSet<T, U> {
-        RouteSet {
-            routes: vec![],
-        }
+impl<T> RouteSet<T> {
+    pub fn new() -> RouteSet<T> {
+        RouteSet { routes: vec![] }
     }
 
-    pub(crate) fn push(&mut self, route: Route<T, U>) {
+    pub(crate) fn push(&mut self, route: Route<T>) {
         self.routes.push(route);
     }
-
-    /*
-    /// Create a new, empty, `RouteSet`
-    pub(crate) fn new(routes: Vec<Route<T, U>>) -> RouteSet<T, U> {
-        RouteSet { routes }
-    }
-    */
 }
 
-impl<T, U> RouteSet<T, U>
-where T: Clone,
-      U: Clone,
+impl<T> RouteSet<T>
+where
+    T: Clone,
 {
     /// Match a request against a route set
-    pub(crate) fn test<'a>(&'a self, request: &'a Request<()>) -> Option<(T, Option<U>, RouteMatch<'a>)> {
+    pub(crate) fn test(&self, request: &Request<()>) -> Option<(T, Params)> {
         for route in &self.routes {
             if let Some(m) = route.test(request) {
                 return Some(m);
@@ -51,9 +42,9 @@ where T: Clone,
     }
 }
 
-impl<T, U> IntoIterator for RouteSet<T, U> {
-    type Item = Route<T, U>;
-    type IntoIter = IntoIter<T, U>;
+impl<T> IntoIterator for RouteSet<T> {
+    type Item = Route<T>;
+    type IntoIter = IntoIter<T>;
 
     fn into_iter(self) -> Self::IntoIter {
         let inner = self.routes.into_iter();
@@ -63,8 +54,8 @@ impl<T, U> IntoIterator for RouteSet<T, U> {
 
 // ===== impl IntoIter =====
 
-impl<T, U> Iterator for IntoIter<T, U> {
-    type Item = Route<T, U>;
+impl<T> Iterator for IntoIter<T> {
+    type Item = Route<T>;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()

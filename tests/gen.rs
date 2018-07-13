@@ -2,8 +2,6 @@
 extern crate tower_web;
 
 mod empty_impl {
-    use tower_web::*;
-
     #[derive(Clone, Debug)]
     struct Empty;
 
@@ -19,8 +17,6 @@ mod empty_impl {
 }
 
 mod no_routes {
-    use tower_web::*;
-
     #[derive(Clone)]
     struct Empty;
 
@@ -39,8 +35,6 @@ mod no_routes {
 }
 
 mod other_attr {
-    use tower_web::*;
-
     #[derive(Clone)]
     struct Empty;
 
@@ -56,6 +50,26 @@ mod other_attr {
     fn use_type() {
         let mut v = Empty;
         v.foo();
+    }
+}
+
+mod one_route {
+    #[derive(Clone)]
+    struct OneRoute;
+
+    impl_web! {
+        impl OneRoute {
+            /// @get("/")
+            fn foo(&mut self) -> Result<String, ()> {
+                Ok("foo".to_string())
+            }
+        }
+    }
+
+    #[test]
+    fn use_type() {
+        let mut v = OneRoute;
+        assert_eq!("foo", v.foo().unwrap());
     }
 }
 

@@ -2,8 +2,8 @@
 const VARS: &[&str] = &[
     "A",
     "B",
-    "C",
     /*
+    "C",
     "D",
     "E",
     "F",
@@ -34,36 +34,117 @@ pub fn main() {
     println!("{}", &r##"
 //! Implementations of `Resource` for tuple types.
 
-use response::{Context, IntoResponse, Serializer};
+// NOTE: This file should not be updated directly. Instead, update
+// `util/gen-tuple.rs` and regenerate this file.
+
+use extract::{self, Extract, ExtractFuture, Immediate};
+use response::{Context, IntoResponse, MapErr, Serializer};
 use routing::{self, RouteSet, RouteMatch};
-use service::Resource;
+use service::{Resource, IntoResource};
 use util::{BufStream, Chain};
 
-use bytes::{Bytes, Buf};
-use futures::{Future, Stream, Poll};
+use bytes::Buf;
+use futures::{Future, Stream, Async, Poll};
 use futures::future::FutureResult;
-use futures::stream::Once;
 use http;
 
-use std::io;
+// ===== Utility traits =====
+
+pub trait IntoHttpFuture {
+    type Item;
+
+    fn poll_into_http<S: Serializer>(&mut self, context: &Context<S>)
+        -> Poll<http::Response<Self::Item>, ::Error>;
+}
+
+impl<T, R> IntoHttpFuture for T
+where T: Future<Item = R, Error = ::Error>,
+      R: IntoResponse
+{
+    type Item = R::Body;
+
+    fn poll_into_http<S: Serializer>(&mut self, context: &Context<S>)
+        -> Poll<http::Response<Self::Item>, ::Error>
+    {
+        let response = try_ready!(self.poll());
+        Ok(response.into_response(context).into())
+    }
+}
+
+pub trait HttpResponseFuture {
+    type Item;
+
+    fn poll_http_response(&mut self) -> Poll<http::Response<Self::Item>, ::Error>;
+}
+
+impl<T, B> HttpResponseFuture for T
+where T: Future<Item = http::Response<B>, Error = ::Error>
+{
+    type Item = B;
+
+    fn poll_http_response(&mut self) -> Poll<http::Response<Self::Item>, ::Error> {
+        self.poll()
+    }
+}
+
+pub struct LiftHttpResponse<T> {
+    inner: T,
+}
+
+impl<T: HttpResponseFuture> Future for LiftHttpResponse<T> {
+    type Item = http::Response<T::Item>;
+    type Error = ::Error;
+
+    fn poll(&mut self) -> Poll<Self::Item, ::Error> {
+        self.inner.poll_http_response()
+    }
+}
 
 // ===== 0 =====
 
 impl Resource for () {
     type Destination = ();
-    type Buf = io::Cursor<Bytes>;
-    type Body = Once<Self::Buf, ::Error>;
-    type Response = String;
-    type Future = FutureResult<String, ::Error>;
+    type Buf = <Self::Body as BufStream>::Item;
+    type Body = MapErr<String>;
+    type Future = FutureResult<http::Response<Self::Body>, ::Error>;
 
-    fn routes<S>(&self, _: &S) -> RouteSet<(), S::ContentType>
-    where S: Serializer,
-    {
+    fn routes(&self) -> RouteSet<()> {
         RouteSet::new()
     }
 
-    fn dispatch<In: BufStream>(&mut self, _: (), _: &RouteMatch, _: &http::Request<()>, _: In) -> Self::Future {
+    fn dispatch<In: BufStream>(&mut self, _: (), _: RouteMatch, _: In) -> Self::Future {
         unreachable!();
+    }
+}
+
+pub struct Join0 {
+    _p: (),
+}
+
+impl Join0 {
+    pub fn new() -> Self {
+        Self { _p: () }
+    }
+
+    pub fn into_inner(self) -> () {
+        ()
+    }
+}
+
+impl Future for Join0 {
+    type Item = ();
+    type Error = extract::Error;
+
+    fn poll(&mut self) -> Poll<(), extract::Error> {
+        Ok(().into())
+    }
+}
+
+impl<S> IntoResource<S> for () {
+    type Resource = ();
+
+    fn into_resource(self, _: S) -> Self::Resource {
+        ()
     }
 }
 
@@ -76,6 +157,10 @@ impl<U> Chain<U> for () {
 }"##[1..]);
 
     Either::gen_all();
+
+    println!("");
+
+    Tuple::gen_all();
 }
 
 struct Either {
@@ -88,8 +173,8 @@ impl Either {
             return;
         }
 
-        for i in 0..(VARS.len() - 1) {
-            let either = Either::new(2 + i);
+        for i in 0..VARS.len() {
+            let either = Either::new(1 + i);
             either.gen();
         }
     }
@@ -123,6 +208,7 @@ impl Either {
 
         println!("// ===== {} =====", self.level);
         println!("");
+
         println!("#[derive(Clone)]");
         println!("pub enum Either{}<{}> {{", self.level, gens);
 
@@ -156,7 +242,58 @@ impl Either {
         println!("        match *self {{");
 
         for n in 0..self.level {
-            println!("            {}(ref mut f) => Ok(Either{}::{}(try_ready!(f.poll())).into()),", VARS[n], self.level, VARS[n]);
+            println!("            {}(ref mut f) => Ok({}(try_ready!(f.poll())).into()),", VARS[n], VARS[n]);
+        }
+
+        println!("        }}");
+        println!("    }}");
+        println!("}}");
+        println!("");
+
+        // ===== impl Either =====
+
+        println!("impl<{}> Either{}<{}>", gens, self.level, gens);
+        println!("where");
+
+        for n in 0..self.level {
+            println!("    {}: ExtractFuture,", VARS[n]);
+        }
+
+        println!("{{");
+        println!("");
+        println!("    pub fn poll_ready(&mut self) -> Poll<(), extract::Error> {{");
+        println!("        use self::Either{}::*;", self.level);
+        println!("");
+        println!("        match *self {{");
+
+        for n in 0..self.level {
+            println!("            {}(ref mut f) => f.poll(),", VARS[n]);
+        }
+
+        println!("        }}");
+        println!("    }}");
+        println!("}}");
+        println!("");
+
+        // ===== impl HttpResponseFuture =====
+
+        println!("impl<{}> HttpResponseFuture for Either{}<{}>", gens, self.level, gens);
+        println!("where");
+
+        for n in 0..self.level {
+            println!("    {}: HttpResponseFuture,", VARS[n]);
+        }
+
+        println!("{{");
+        println!("    type Item = Either{}<{}>;", self.level, item_gens);
+        println!("");
+        println!("    fn poll_http_response(&mut self) -> Poll<http::Response<Self::Item>, ::Error> {{");
+        println!("        use self::Either{}::*;", self.level);
+        println!("");
+        println!("        match *self {{");
+
+        for n in 0..self.level {
+            println!("            {}(ref mut f) => Ok(try_ready!(f.poll_http_response()).map({}).into()),", VARS[n], VARS[n]);
         }
 
         println!("        }}");
@@ -187,7 +324,38 @@ impl Either {
         println!("        match *self {{");
 
         for n in 0..self.level {
-            println!("            {}(ref mut f) => Ok(try_ready!(f.poll()).map(Either{}::{}).into()),", VARS[n], self.level, VARS[n]);
+            println!("            {}(ref mut f) => Ok(try_ready!(f.poll()).map({}).into()),", VARS[n], VARS[n]);
+        }
+
+        println!("        }}");
+        println!("    }}");
+        println!("}}");
+        println!("");
+
+        // ===== impl BufStream or Either =====
+
+        println!("impl<{}> BufStream for Either{}<{}>", gens, self.level, gens);
+        println!("where");
+
+        for n in 0..self.level {
+            if n == 0 {
+                println!("    {}: BufStream,", VARS[n]);
+            } else {
+                println!("    {}: BufStream<Error = A::Error>,", VARS[n]);
+            }
+        }
+
+        println!("{{");
+        println!("    type Item = Either{}<{}>;", self.level, item_gens);
+        println!("    type Error = A::Error;");
+        println!("");
+        println!("    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {{");
+        println!("        use self::Either{}::*;", self.level);
+        println!("");
+        println!("        match *self {{");
+
+        for n in 0..self.level {
+            println!("            {}(ref mut f) => Ok(try_ready!(f.poll()).map({}).into()),", VARS[n], VARS[n]);
         }
 
         println!("        }}");
@@ -235,7 +403,7 @@ impl Either {
         println!("}}");
         println!("");
 
-        // ===== impl Response or Either =====
+        // ===== impl IntoResponse or Either =====
 
         println!("impl<{}> IntoResponse for Either{}<{}>", gens, self.level, gens);
         println!("where");
@@ -265,7 +433,7 @@ impl Either {
             .collect::<Vec<_>>()
             .join(", ");
 
-        println!("impl<{}> Resource for ({})", gens, gens);
+        println!("impl<{}> Resource for ({},)", gens, gens);
         println!("where");
 
 
@@ -297,27 +465,19 @@ impl Either {
         println!("    type Body = Either{}<{}>;", self.level, gens);
 
         let gens = (0..self.level)
-            .map(|ty| format!("R{}::Response", ty))
-            .collect::<Vec<_>>()
-            .join(", ");
-
-        println!("    type Response = Either{}<{}>;", self.level, gens);
-
-        let gens = (0..self.level)
             .map(|ty| format!("R{}::Future", ty))
             .collect::<Vec<_>>()
             .join(", ");
 
-        println!("    type Future = Either{}<{}>;", self.level, gens);
+        println!("    type Future = LiftHttpResponse<Either{}<{}>>;", self.level, gens);
         println!("");
-        println!("    fn routes<S>(&self, serializer: &S) -> RouteSet<Self::Destination, S::ContentType>");
-        println!("    where S: Serializer,");
+        println!("    fn routes(&self) -> RouteSet<Self::Destination>");
         println!("    {{");
         println!("        let mut routes = routing::Builder::new();");
         println!("");
 
         for n in 0..self.level {
-            println!("        for route in self.{}.routes(serializer) {{", n);
+            println!("        for route in self.{}.routes() {{", n);
             println!("            routes.push(route.map(Either{}::{}));", self.level, VARS[n]);
             println!("        }}");
             println!("");
@@ -328,32 +488,53 @@ impl Either {
         println!("");
         println!("    fn dispatch<In: BufStream>(&mut self,");
         println!("                               destination: Self::Destination,");
-        println!("                               route_match: &RouteMatch,");
-        println!("                               request: &http::Request<()>,");
-        println!("                               payload: In)");
+        println!("                               route_match: RouteMatch,");
+        println!("                               body: In)");
         println!("        -> Self::Future");
         println!("    {{");
         println!("        use self::Either{}::*;", self.level);
         println!("");
-        println!("        match destination {{");
+        println!("        let inner = match destination {{");
 
         for n in 0..self.level {
             println!("            {}(d) => {{", VARS[n]);
-            println!("                {}(self.{}.dispatch(d, route_match, request, payload))", VARS[n], n);
+            println!("                {}(self.{}.dispatch(d, route_match, body))", VARS[n], n);
             println!("            }}");
         }
 
-        println!("        }}");
+        println!("        }};");
+        println!("");
+        println!("        LiftHttpResponse {{ inner }}");
         println!("    }}");
         println!("}}");
-        println!("");
+    }
+}
 
+struct Tuple {
+    level: usize,
+}
+
+impl Tuple {
+    fn gen_all() {
+        for i in 0..2 {
+            let tuple = Tuple::new(1 + i);
+            tuple.gen();
+        }
+    }
+
+    fn new(level: usize) -> Tuple {
+        Tuple {
+            level,
+        }
+    }
+
+    fn gen(&self) {
         let gens = (0..self.level)
             .map(|ty| format!("R{}", ty))
             .collect::<Vec<_>>()
             .join(", ");
 
-        println!("impl<{}, U> Chain<U> for ({}) {{", gens, gens);
+        println!("impl<{}, U> Chain<U> for ({},) {{", gens, gens);
         println!("    type Output = ({}, U);", gens);
         println!("");
         println!("    fn chain(self, other: U) -> Self::Output {{");
@@ -364,6 +545,78 @@ impl Either {
             .join(", ");
 
         println!("        ({}, other)", vals);
+        println!("    }}");
+        println!("}}");
+        println!("");
+
+        let args = (0..self.level)
+            .map(|ty| format!("t{}: T{}", ty, ty))
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        let pending = (0..self.level)
+            .map(|_| "false, ")
+            .collect::<Vec<_>>()
+            .join("");
+
+        let futures = (0..self.level)
+            .map(|ty| format!("t{}, ", ty))
+            .collect::<Vec<_>>()
+            .join("");
+
+        let gens = (0..self.level)
+            .map(|ty| format!("T{}", ty))
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        let bools = (0..self.level)
+            .map(|_| "bool")
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        println!("pub struct Join{}<{}> {{", self.level, gens);
+        println!("    futures: ({},),", gens);
+        println!("    pending: ({},),", bools);
+        println!("}}");
+        println!("");
+        println!("impl<{}> Join{}<{}>", gens, self.level, gens);
+        println!("where");
+        for i in 0..self.level {
+            println!("    T{}: ExtractFuture,", i);
+        }
+        println!("{{");
+        println!("    pub fn new({}) -> Self {{", args);
+        println!("        Self {{");
+        println!("            pending: ({}),", pending);
+        println!("            futures: ({}),", futures);
+        println!("        }}");
+        println!("    }}");
+        println!("");
+        println!("    pub fn into_inner(self) -> ({},)", gens);
+        println!("    {{");
+        println!("        self.futures");
+        println!("    }}");
+        println!("}}");
+        println!("");
+        println!("impl<{}> Future for Join{}<{}>", gens, self.level, gens);
+        println!("where");
+        for i in 0..self.level {
+            println!("    T{}: ExtractFuture,", i);
+        }
+        println!("{{");
+        println!("    type Item = ();");
+        println!("    type Error = extract::Error;");
+        println!("");
+        println!("    fn poll(&mut self) -> Poll<(), extract::Error> {{");
+        println!("    let mut all_ready = true;");
+        println!("");
+        for i in 0..self.level {
+            println!("        if !self.pending.{} {{", i);
+            println!("            self.pending.{} = self.futures.{}.poll()?.is_ready();", i, i);
+            println!("            all_ready &= self.pending.{};", i);
+            println!("        }}");
+        }
+        println!("        Ok(if all_ready {{ Async::Ready(()) }} else {{ Async::NotReady }})");
         println!("    }}");
         println!("}}");
     }

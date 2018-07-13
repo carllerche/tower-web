@@ -24,10 +24,9 @@ pub struct User {
 
 impl_web! {
     impl HelloWorld {
-        /// Hello world endpoint
-        ///
         /// @get("/")
-        fn hello_world(&mut self) -> Result<HelloResponse, ()> {
+        /// @content_type("json")
+        fn hello_world(&self) -> Result<HelloResponse, ()> {
             Ok(HelloResponse {
                 msg: "hello world",
             })
@@ -35,16 +34,24 @@ impl_web! {
 
         /// @get("/users/:id")
         /// @content_type("plain")
-        fn get(&mut self, id: u32) -> Result<String, ()> {
+        fn get(&self, id: u32) -> Result<String, ()> {
             println!("GOT: id={:?};", id);
             Ok("ZOOOOMG YO\n".to_string())
         }
 
+        /*
         /// @get("/whoami")
         /// @content_type("plain")
         fn who_am_i(&mut self, user_agent: String) -> Result<String, ()> {
             Ok(format!("You are: {}\n", user_agent))
         }
+
+        /// @get("/custom-header")
+        /// @content_type("json")
+        fn custom_header(&mut self, x_foo: &str) -> Result<String, ()> {
+            Ok(format!("Sent: {}", x_foo))
+        }
+        */
 
         /*
         /// @get("/foo")
@@ -83,6 +90,7 @@ impl_web! {
         */
     }
 
+    /*
     impl GoodbyeWorld {
         /// @get("/goodbye")
         fn goodbye(&mut self) -> Result<HelloResponse, ()> {
@@ -91,6 +99,7 @@ impl_web! {
             })
         }
     }
+    */
 }
 
 pub fn main() {
@@ -98,7 +107,7 @@ pub fn main() {
 
     ServiceBuilder::new()
         .resource(HelloWorld)
-        .resource(GoodbyeWorld)
+        // .resource(GoodbyeWorld)
         .run(&addr)
         .unwrap();
 }

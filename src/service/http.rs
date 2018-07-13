@@ -2,8 +2,8 @@ use util::BufStream;
 
 use tower_service::Service;
 
-use http::{Request, Response};
 use futures::{Future, Poll};
+use http::{Request, Response};
 
 /// An HTTP service
 ///
@@ -12,7 +12,7 @@ use futures::{Future, Poll};
 /// `http::Request` and `http::Response` types.
 pub trait HttpService: ::util::sealed::Sealed {
     /// Request payload.
-    type RequestBody: BufStream<Error = ::Error>;
+    type RequestBody: BufStream;
 
     /// The HTTP response body type.
     type ResponseBody: BufStream<Error = ::Error>;
@@ -28,11 +28,10 @@ pub trait HttpService: ::util::sealed::Sealed {
 }
 
 impl<T, B1, B2> HttpService for T
-where T: Service<Request = Request<B1>,
-                Response = Response<B2>,
-                   Error = ::Error>,
-      B1: BufStream<Error = ::Error>,
-      B2: BufStream<Error = ::Error>,
+where
+    T: Service<Request = Request<B1>, Response = Response<B2>, Error = ::Error>,
+    B1: BufStream,
+    B2: BufStream<Error = ::Error>,
 {
     type RequestBody = B1;
     type ResponseBody = B2;
@@ -48,8 +47,9 @@ where T: Service<Request = Request<B1>,
 }
 
 impl<T, B1, B2> ::util::sealed::Sealed for T
-where T: Service<Request = Request<B1>,
-                Response = Response<B2>>,
-      B1: BufStream<Error = ::Error>,
-      B2: BufStream<Error = ::Error>,
-{}
+where
+    T: Service<Request = Request<B1>, Response = Response<B2>>,
+    B1: BufStream,
+    B2: BufStream<Error = ::Error>,
+{
+}
