@@ -140,7 +140,7 @@ impl Future for Join0 {
     }
 }
 
-impl<S> IntoResource<S> for () {
+impl<S: Serializer> IntoResource<S> for () {
     type Resource = ();
 
     fn into_resource(self, _: S) -> Self::Resource {
@@ -433,6 +433,8 @@ impl Either {
             .collect::<Vec<_>>()
             .join(", ");
 
+        // ===== impl Resource for (...) =====
+
         println!("impl<{}> Resource for ({},)", gens, gens);
         println!("where");
 
@@ -569,6 +571,11 @@ impl Tuple {
             .collect::<Vec<_>>()
             .join(", ");
 
+        let resources = (0..self.level)
+            .map(|ty| format!("T{}::Resource", ty))
+            .collect::<Vec<_>>()
+            .join(", ");
+
         let bools = (0..self.level)
             .map(|_| "bool")
             .collect::<Vec<_>>()
@@ -617,6 +624,27 @@ impl Tuple {
             println!("        }}");
         }
         println!("        Ok(if all_ready {{ Async::Ready(()) }} else {{ Async::NotReady }})");
+        println!("    }}");
+        println!("}}");
+
+        // ===== impl IntoResource for (...) =====
+
+        println!("impl<S: Serializer, {}> IntoResource<S> for ({},)", gens, gens);
+        println!("where");
+
+        for n in 0..self.level {
+            println!("    T{}: IntoResource<S>,", n);
+        }
+
+        println!("{{");
+        println!("    type Resource = ({},);", resources);
+        println!("");
+        println!("    fn into_resource(self, serializer: S) -> Self::Resource {{");
+        println!("        (");
+        for i in 0..self.level {
+            println!("            self.{}.into_resource(serializer.clone()),", i);
+        }
+        println!("        )");
         println!("    }}");
         println!("}}");
     }

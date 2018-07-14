@@ -10,7 +10,7 @@ use http::{Request, Response};
 /// This is not intended to be implemented directly. Instead, it is a trait
 /// alias of sorts. Implements the `tower_service::Service` trait using
 /// `http::Request` and `http::Response` types.
-pub trait HttpService: ::util::sealed::Sealed {
+pub trait HttpService: ::util::Sealed {
     /// Request payload.
     type RequestBody: BufStream;
 
@@ -46,7 +46,7 @@ where
     }
 }
 
-impl<T, B1, B2> ::util::sealed::Sealed for T
+impl<T, B1, B2> ::util::Sealed for T
 where
     T: Service<Request = Request<B1>, Response = Response<B2>>,
     B1: BufStream,

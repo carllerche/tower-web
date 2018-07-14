@@ -106,7 +106,7 @@ impl Future for Join0 {
     }
 }
 
-impl<S> IntoResource<S> for () {
+impl<S: Serializer> IntoResource<S> for () {
     type Resource = ();
 
     fn into_resource(self, _: S) -> Self::Resource {
@@ -530,6 +530,18 @@ where
         Ok(if all_ready { Async::Ready(()) } else { Async::NotReady })
     }
 }
+impl<S: Serializer, T0> IntoResource<S> for (T0,)
+where
+    T0: IntoResource<S>,
+{
+    type Resource = (T0::Resource,);
+
+    fn into_resource(self, serializer: S) -> Self::Resource {
+        (
+            self.0.into_resource(serializer.clone()),
+        )
+    }
+}
 impl<R0, R1, U> Chain<U> for (R0, R1,) {
     type Output = (R0, R1, U);
 
@@ -581,5 +593,19 @@ where
             all_ready &= self.pending.1;
         }
         Ok(if all_ready { Async::Ready(()) } else { Async::NotReady })
+    }
+}
+impl<S: Serializer, T0, T1> IntoResource<S> for (T0, T1,)
+where
+    T0: IntoResource<S>,
+    T1: IntoResource<S>,
+{
+    type Resource = (T0::Resource, T1::Resource,);
+
+    fn into_resource(self, serializer: S) -> Self::Resource {
+        (
+            self.0.into_resource(serializer.clone()),
+            self.1.into_resource(serializer.clone()),
+        )
     }
 }

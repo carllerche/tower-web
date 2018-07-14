@@ -39,7 +39,7 @@ pub trait Resource: Clone {
 }
 
 /// Convert a value into a `Resource`
-pub trait IntoResource<S> {
+pub trait IntoResource<S: Serializer> {
     type Resource: Resource;
 
     fn into_resource(self, serializer: S) -> Self::Resource;

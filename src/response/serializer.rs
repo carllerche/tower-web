@@ -3,7 +3,7 @@ use http::header::HeaderValue;
 use serde::Serialize;
 
 /// Serialize a response payload
-pub trait Serializer {
+pub trait Serializer: Clone + Send + Sync + 'static + ::util::Sealed {
     type ContentType: Clone + Send + Sync + 'static;
 
     fn lookup(&self, name: &str) -> Option<Self::ContentType>;
@@ -16,11 +16,13 @@ pub trait Serializer {
 }
 
 /// Default serialization
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DefaultSerializer {
     plain: HeaderValue,
     json: HeaderValue,
 }
+
+impl ::util::Sealed for DefaultSerializer {}
 
 /// Response type
 #[derive(Debug, Clone)]

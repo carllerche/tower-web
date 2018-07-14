@@ -90,16 +90,18 @@ impl_web! {
         */
     }
 
-    /*
     impl GoodbyeWorld {
         /// @get("/goodbye")
-        fn goodbye(&mut self) -> Result<HelloResponse, ()> {
+        /// @content_type("plain")
+        fn goodbye(&self) -> Result<String, ()> {
+            Ok("Other resource".to_string())
+            /*
             Ok(HelloResponse {
                 msg: "other resource",
             })
+            */
         }
     }
-    */
 }
 
 pub fn main() {
@@ -107,7 +109,7 @@ pub fn main() {
 
     ServiceBuilder::new()
         .resource(HelloWorld)
-        // .resource(GoodbyeWorld)
+        .resource(GoodbyeWorld)
         .run(&addr)
         .unwrap();
 }
