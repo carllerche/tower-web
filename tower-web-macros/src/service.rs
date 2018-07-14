@@ -60,6 +60,8 @@ impl Service {
                 use ::tower_web::codegen::{http, CallSite};
                 use ::tower_web::codegen::futures::{Future, IntoFuture, Poll, Async};
                 use ::tower_web::codegen::futures::future::FutureResult;
+                use ::tower_web::routing::RouteSet;
+                use ::tower_web::service::{Resource, IntoResource};
                 use ::tower_web::util::BufStream;
                 use ::tower_web::util::tuple;
                 use ::tower_web::util::tuple::*;
@@ -112,8 +114,18 @@ impl Service {
                     }
                 }
 
-                impl<S: Serializer> ::tower_web::service::IntoResource<S> for #ty {
+                impl<S: Serializer> IntoResource<S> for #ty {
+                    type Destination = #destination_ty;
                     type Resource = GeneratedResource<S>;
+
+                    fn routes(&self) -> RouteSet<Self::Destination> {
+                        // use ::tower_web::routing;
+                        // #destination_use
+
+                        routing::Builder::new()
+                        #build_routes_fn
+                        .build()
+                    }
 
                     fn into_resource(self, serializer: S) -> Self::Resource {
                         GeneratedResource::new(self, serializer)
@@ -122,7 +134,7 @@ impl Service {
 
                 // TODO: Can these warnings be avoided?
                 #[allow(unused_imports, unused_variables)]
-                impl<S: Serializer> ::tower_web::service::Resource for GeneratedResource<S> {
+                impl<S: Serializer> Resource for GeneratedResource<S> {
                     // The destination token is used to identify which action to
                     // call
                     type Destination = #destination_ty;
@@ -135,15 +147,6 @@ impl Service {
 
                     // Future representing processing the request.
                     type Future = DispatchFuture<S>;
-
-                    fn routes(&self) -> ::tower_web::routing::RouteSet<Self::Destination> {
-                        // use ::tower_web::routing;
-                        // #destination_use
-
-                        routing::Builder::new()
-                        #build_routes_fn
-                        .build()
-                    }
 
                     fn dispatch<In: ::tower_web::util::BufStream>(
                         &mut self,

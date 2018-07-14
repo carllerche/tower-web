@@ -61,14 +61,8 @@ impl<T, In> WebService<T, In>
 where
     T: Resource,
 {
-    pub(crate) fn new(resource: T) -> Self {
-        let routes = Arc::new(resource.routes());
-
-        /*
-        let default_content_type = serializer
-            .lookup("json")
-            .expect("response serializer must support JSON");
-            */
+    pub(crate) fn new(resource: T, routes: RouteSet<T::Destination>) -> Self {
+        let routes = Arc::new(routes);
 
         WebService {
             resource,

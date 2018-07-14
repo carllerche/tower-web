@@ -74,12 +74,21 @@ impl Resource for () {
     type Body = MapErr<String>;
     type Future = FutureResult<http::Response<Self::Body>, ::Error>;
 
+    fn dispatch<In: BufStream>(&mut self, _: (), _: RouteMatch, _: In) -> Self::Future {
+        unreachable!();
+    }
+}
+
+impl<S: Serializer> IntoResource<S> for () {
+    type Destination = ();
+    type Resource = ();
+
     fn routes(&self) -> RouteSet<()> {
         RouteSet::new()
     }
 
-    fn dispatch<In: BufStream>(&mut self, _: (), _: RouteMatch, _: In) -> Self::Future {
-        unreachable!();
+    fn into_resource(self, _: S) -> Self::Resource {
+        ()
     }
 }
 
@@ -103,14 +112,6 @@ impl Future for Join0 {
 
     fn poll(&mut self) -> Poll<(), extract::Error> {
         Ok(().into())
-    }
-}
-
-impl<S: Serializer> IntoResource<S> for () {
-    type Resource = ();
-
-    fn into_resource(self, _: S) -> Self::Resource {
-        ()
     }
 }
 
@@ -260,17 +261,6 @@ where
     type Buf = Either1<R0::Buf>;
     type Body = Either1<R0::Body>;
     type Future = LiftHttpResponse<Either1<R0::Future>>;
-
-    fn routes(&self) -> RouteSet<Self::Destination>
-    {
-        let mut routes = routing::Builder::new();
-
-        for route in self.0.routes() {
-            routes.push(route.map(Either1::A));
-        }
-
-        routes.build()
-    }
 
     fn dispatch<In: BufStream>(&mut self,
                                destination: Self::Destination,
@@ -447,21 +437,6 @@ where
     type Body = Either2<R0::Body, R1::Body>;
     type Future = LiftHttpResponse<Either2<R0::Future, R1::Future>>;
 
-    fn routes(&self) -> RouteSet<Self::Destination>
-    {
-        let mut routes = routing::Builder::new();
-
-        for route in self.0.routes() {
-            routes.push(route.map(Either2::A));
-        }
-
-        for route in self.1.routes() {
-            routes.push(route.map(Either2::B));
-        }
-
-        routes.build()
-    }
-
     fn dispatch<In: BufStream>(&mut self,
                                destination: Self::Destination,
                                route_match: RouteMatch,
@@ -534,7 +509,19 @@ impl<S: Serializer, T0> IntoResource<S> for (T0,)
 where
     T0: IntoResource<S>,
 {
+    type Destination = Either1<T0::Destination>;
     type Resource = (T0::Resource,);
+
+    fn routes(&self) -> RouteSet<Self::Destination>
+    {
+        let mut routes = routing::Builder::new();
+
+        for route in self.0.routes() {
+            routes.push(route.map(Either1::A));
+        }
+
+        routes.build()
+    }
 
     fn into_resource(self, serializer: S) -> Self::Resource {
         (
@@ -600,7 +587,23 @@ where
     T0: IntoResource<S>,
     T1: IntoResource<S>,
 {
+    type Destination = Either2<T0::Destination, T1::Destination>;
     type Resource = (T0::Resource, T1::Resource,);
+
+    fn routes(&self) -> RouteSet<Self::Destination>
+    {
+        let mut routes = routing::Builder::new();
+
+        for route in self.0.routes() {
+            routes.push(route.map(Either2::A));
+        }
+
+        for route in self.1.routes() {
+            routes.push(route.map(Either2::B));
+        }
+
+        routes.build()
+    }
 
     fn into_resource(self, serializer: S) -> Self::Resource {
         (

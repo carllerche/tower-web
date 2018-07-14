@@ -108,12 +108,21 @@ impl Resource for () {
     type Body = MapErr<String>;
     type Future = FutureResult<http::Response<Self::Body>, ::Error>;
 
+    fn dispatch<In: BufStream>(&mut self, _: (), _: RouteMatch, _: In) -> Self::Future {
+        unreachable!();
+    }
+}
+
+impl<S: Serializer> IntoResource<S> for () {
+    type Destination = ();
+    type Resource = ();
+
     fn routes(&self) -> RouteSet<()> {
         RouteSet::new()
     }
 
-    fn dispatch<In: BufStream>(&mut self, _: (), _: RouteMatch, _: In) -> Self::Future {
-        unreachable!();
+    fn into_resource(self, _: S) -> Self::Resource {
+        ()
     }
 }
 
@@ -137,14 +146,6 @@ impl Future for Join0 {
 
     fn poll(&mut self) -> Poll<(), extract::Error> {
         Ok(().into())
-    }
-}
-
-impl<S: Serializer> IntoResource<S> for () {
-    type Resource = ();
-
-    fn into_resource(self, _: S) -> Self::Resource {
-        ()
     }
 }
 
@@ -473,21 +474,6 @@ impl Either {
 
         println!("    type Future = LiftHttpResponse<Either{}<{}>>;", self.level, gens);
         println!("");
-        println!("    fn routes(&self) -> RouteSet<Self::Destination>");
-        println!("    {{");
-        println!("        let mut routes = routing::Builder::new();");
-        println!("");
-
-        for n in 0..self.level {
-            println!("        for route in self.{}.routes() {{", n);
-            println!("            routes.push(route.map(Either{}::{}));", self.level, VARS[n]);
-            println!("        }}");
-            println!("");
-        }
-
-        println!("        routes.build()");
-        println!("    }}");
-        println!("");
         println!("    fn dispatch<In: BufStream>(&mut self,");
         println!("                               destination: Self::Destination,");
         println!("                               route_match: RouteMatch,");
@@ -571,6 +557,11 @@ impl Tuple {
             .collect::<Vec<_>>()
             .join(", ");
 
+        let destinations = (0..self.level)
+            .map(|ty| format!("T{}::Destination", ty))
+            .collect::<Vec<_>>()
+            .join(", ");
+
         let resources = (0..self.level)
             .map(|ty| format!("T{}::Resource", ty))
             .collect::<Vec<_>>()
@@ -637,7 +628,23 @@ impl Tuple {
         }
 
         println!("{{");
+        println!("    type Destination = Either{}<{}>;", self.level, destinations);
         println!("    type Resource = ({},);", resources);
+        println!("");
+        println!("    fn routes(&self) -> RouteSet<Self::Destination>");
+        println!("    {{");
+        println!("        let mut routes = routing::Builder::new();");
+        println!("");
+
+        for n in 0..self.level {
+            println!("        for route in self.{}.routes() {{", n);
+            println!("            routes.push(route.map(Either{}::{}));", self.level, VARS[n]);
+            println!("        }}");
+            println!("");
+        }
+
+        println!("        routes.build()");
+        println!("    }}");
         println!("");
         println!("    fn into_resource(self, serializer: S) -> Self::Resource {{");
         println!("        (");

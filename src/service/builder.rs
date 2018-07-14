@@ -36,7 +36,8 @@ where
 
     /// Build a service instance.
     pub fn build<In: BufStream>(self) -> WebService<T::Resource, In> {
-        WebService::new(self.resource.into_resource(DefaultSerializer::new()))
+        let routes = self.resource.routes();
+        WebService::new(self.resource.into_resource(DefaultSerializer::new()), routes)
     }
 }
 

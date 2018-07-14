@@ -19,16 +19,13 @@ pub trait Resource: Clone {
     /// The HTTP response body type.
     type Body: BufStream<Item = Self::Buf, Error = ::Error>;
 
-    /*
-    /// Responses returned by the resource
-    type Response: IntoResponse<Buf = Self::Buf, Body = Self::Body>;
-    */
-
     /// Response future
     type Future: Future<Item = http::Response<Self::Body>, Error = ::Error>;
 
+    /*
     /// Return the routes associated with the resource.
     fn routes(&self) -> RouteSet<Self::Destination>;
+    */
 
     fn dispatch<In: BufStream>(
         &mut self,
@@ -40,7 +37,10 @@ pub trait Resource: Clone {
 
 /// Convert a value into a `Resource`
 pub trait IntoResource<S: Serializer> {
-    type Resource: Resource;
+    type Destination: Clone + Send + Sync + 'static;
+    type Resource: Resource<Destination = Self::Destination>;
+
+    fn routes(&self) -> RouteSet<Self::Destination>;
 
     fn into_resource(self, serializer: S) -> Self::Resource;
 }
