@@ -9,7 +9,8 @@ impl Params {
         Params { params }
     }
 
-    pub fn len(&self) -> usize {
+    #[cfg(test)]
+    pub(crate) fn len(&self) -> usize {
         self.params.len()
     }
 

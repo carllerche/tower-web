@@ -1,4 +1,4 @@
-use response::{IntoResponse, Serializer};
+use response::IntoResponse;
 
 use futures::{Future, Poll};
 use http;

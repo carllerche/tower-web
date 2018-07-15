@@ -1,4 +1,4 @@
-use response::{IntoResponse, Serializer};
+use response::Serializer;
 use routing::{RouteMatch, RouteSet};
 use util::BufStream;
 

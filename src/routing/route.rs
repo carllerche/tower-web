@@ -2,7 +2,6 @@ use super::Params;
 use super::condition::Condition;
 
 use http::Request;
-use http::header::HeaderName;
 
 /// Matches an HTTP request with a service funtion.
 #[derive(Debug)]

@@ -36,7 +36,7 @@ impl Error {
         &self.kind
     }
 
-    pub(crate) fn into_response(self) -> http::Response<Bytes> {
+    pub fn into_response(self) -> http::Response<Bytes> {
         if let Some(response) = self.response {
             return *response;
         }

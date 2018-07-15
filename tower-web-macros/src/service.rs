@@ -22,9 +22,37 @@ impl Service {
         }
     }
 
+    /// Generate the implementation
     pub fn gen(&self) -> TokenStream {
-        let dummy_const = self.dummy_const();
+        let resource_impl = if self.routes.is_empty() {
+            self.gen_empty_impl()
+        } else {
+            self.gen_impl()
+        };
 
+        let dummy_const = self.dummy_const();
+        let ty = &self.self_ty;
+
+        quote! {
+            const #dummy_const: () = {
+                extern crate tower_web;
+
+                use tower_web::util::Chain;
+
+                #resource_impl
+
+                impl<U> Chain<U> for #ty {
+                    type Output = (Self, U);
+
+                    fn chain(self, other: U) -> Self::Output {
+                        (self, other)
+                    }
+                }
+            };
+        }
+    }
+
+    fn gen_impl(&self) -> TokenStream {
         let ty = &self.self_ty;
 
         // The destination type is `Either{N}` where `N` is the number of routes
@@ -53,174 +81,188 @@ impl Service {
 
         // Define `Resource` on the struct.
         quote! {
-            const #dummy_const: () = {
-                use ::tower_web::extract::{Extract, ExtractFuture};
-                use ::tower_web::response::{self, IntoResponse, Serializer, MapErr};
-                use ::tower_web::routing;
-                use ::tower_web::codegen::{http, CallSite};
-                use ::tower_web::codegen::futures::{Future, IntoFuture, Poll, Async};
-                use ::tower_web::codegen::futures::future::FutureResult;
-                use ::tower_web::routing::RouteSet;
-                use ::tower_web::service::{Resource, IntoResource};
-                use ::tower_web::util::BufStream;
-                use ::tower_web::util::tuple;
-                use ::tower_web::util::tuple::*;
+            use self::tower_web::extract::{Extract, ExtractFuture};
+            use self::tower_web::response::{self, IntoResponse, Serializer, MapErr};
+            use self::tower_web::routing;
+            use self::tower_web::codegen::{http, CallSite};
+            use self::tower_web::codegen::futures::{Future, IntoFuture, Poll, Async};
+            use self::tower_web::codegen::futures::future::FutureResult;
+            use self::tower_web::routing::RouteSet;
+            use self::tower_web::service::{Resource, IntoResource};
+            use self::tower_web::util::BufStream;
+            use self::tower_web::util::tuple;
+            use self::tower_web::util::tuple::*;
 
-                use std::mem;
-                use std::sync::Arc;
+            use std::mem;
+            use std::sync::Arc;
 
-                macro_rules! try_ready {
-                    ($e:expr) => (match $e {
-                        Ok(Async::Ready(t)) => t,
-                        Ok(Async::NotReady) => return Ok(Async::NotReady),
-                        Err(e) => return Err(From::from(e)),
-                    })
+            macro_rules! try_ready {
+                ($e:expr) => (match $e {
+                    Ok(Async::Ready(t)) => t,
+                    Ok(Async::NotReady) => return Ok(Async::NotReady),
+                    Err(e) => return Err(From::from(e)),
+                })
+            }
+
+            pub struct GeneratedResource<S: Serializer> {
+                inner: Arc<Inner<S>>,
+            }
+
+            struct Inner<S: Serializer> {
+                handler: #ty,
+                callsites: CallSites,
+                content_types: ContentTypes<S>,
+                serializer: S,
+            }
+
+            #callsites_def
+            #content_types_def
+
+            impl<S: Serializer> GeneratedResource<S> {
+                fn new(handler: #ty, serializer: S) -> Self {
+                    let callsites = CallSites::new();
+                    let content_types = ContentTypes::new(&serializer);
+
+                    let inner = Arc::new(Inner {
+                        handler,
+                        callsites,
+                        content_types,
+                        serializer,
+                    });
+
+                    GeneratedResource { inner }
+                }
+            }
+
+            impl<S: Serializer> Clone for GeneratedResource<S> {
+                fn clone(&self) -> Self {
+                    let inner = self.inner.clone();
+                    GeneratedResource { inner }
+                }
+            }
+
+            impl<S: Serializer> IntoResource<S> for #ty {
+                type Destination = #destination_ty;
+                type Resource = GeneratedResource<S>;
+
+                fn routes(&self) -> RouteSet<Self::Destination> {
+                    // use ::tower_web::routing;
+                    // #destination_use
+
+                    routing::Builder::new()
+                    #build_routes_fn
+                    .build()
                 }
 
-                pub struct GeneratedResource<S: Serializer> {
-                    inner: Arc<Inner<S>>,
+                fn into_resource(self, serializer: S) -> Self::Resource {
+                    GeneratedResource::new(self, serializer)
                 }
+            }
 
-                struct Inner<S: Serializer> {
-                    handler: #ty,
-                    callsites: CallSites,
-                    content_types: ContentTypes<S>,
-                    serializer: S,
+            // TODO: Can these warnings be avoided?
+            #[allow(unused_imports, unused_variables)]
+            impl<S: Serializer> Resource for GeneratedResource<S> {
+                // The destination token is used to identify which action to
+                // call
+                type Destination = #destination_ty;
+
+                // The response body's chunk type.
+                type Buf = <Self::Body as BufStream>::Item;
+
+                // The reesponse body type
+                type Body = <Self::Future as HttpResponseFuture>::Item;
+
+                // Future representing processing the request.
+                type Future = DispatchFuture<S>;
+
+                fn dispatch<In: ::tower_web::util::BufStream>(
+                    &mut self,
+                    destination: Self::Destination,
+                    route_match: ::tower_web::routing::RouteMatch,
+                    _payload: In
+                ) -> Self::Future
+                {
+                    #dispatch_fn
                 }
+            }
 
-                #callsites_def
-                #content_types_def
+            pub struct DispatchFuture<S: Serializer> {
+                state: State,
+                inner: Arc<Inner<S>>,
+            }
 
-                impl<S: Serializer> GeneratedResource<S> {
-                    fn new(handler: #ty, serializer: S) -> Self {
-                        let callsites = CallSites::new();
-                        let content_types = ContentTypes::new(&serializer);
+            // Tracks the resource's response state. At a high level, the steps
+            // to process a dispatch are:
+            //
+            // 1) Extract arguments
+            // 2) Call handler
+            // 3) Wait on response future
+            // 4) Serialize.
+            //
+            // Of these steps, 1) and 3) are asynchronous.
+            enum State {
+                Extract(#extract_future_ty),
+                Response(#handler_future_ty),
+                Invalid,
+            }
 
-                        let inner = Arc::new(Inner {
-                            handler,
-                            callsites,
-                            content_types,
-                            serializer,
-                        });
+            impl<S: Serializer> Future for DispatchFuture<S> {
+                type Item = http::Response<<<#handler_future_ty as Future>::Item as IntoResponse>::Body>;
+                type Error = ::tower_web::Error;
 
-                        GeneratedResource { inner }
-                    }
-                }
-
-                impl<S: Serializer> Clone for GeneratedResource<S> {
-                    fn clone(&self) -> Self {
-                        let inner = self.inner.clone();
-                        GeneratedResource { inner }
-                    }
-                }
-
-                impl<S: Serializer> IntoResource<S> for #ty {
-                    type Destination = #destination_ty;
-                    type Resource = GeneratedResource<S>;
-
-                    fn routes(&self) -> RouteSet<Self::Destination> {
-                        // use ::tower_web::routing;
-                        // #destination_use
-
-                        routing::Builder::new()
-                        #build_routes_fn
-                        .build()
-                    }
-
-                    fn into_resource(self, serializer: S) -> Self::Resource {
-                        GeneratedResource::new(self, serializer)
-                    }
-                }
-
-                // TODO: Can these warnings be avoided?
-                #[allow(unused_imports, unused_variables)]
-                impl<S: Serializer> Resource for GeneratedResource<S> {
-                    // The destination token is used to identify which action to
-                    // call
-                    type Destination = #destination_ty;
-
-                    // The response body's chunk type.
-                    type Buf = <Self::Body as BufStream>::Item;
-
-                    // The reesponse body type
-                    type Body = <Self::Future as HttpResponseFuture>::Item;
-
-                    // Future representing processing the request.
-                    type Future = DispatchFuture<S>;
-
-                    fn dispatch<In: ::tower_web::util::BufStream>(
-                        &mut self,
-                        destination: Self::Destination,
-                        route_match: ::tower_web::routing::RouteMatch,
-                        _payload: In
-                    ) -> Self::Future
-                    {
-                        #dispatch_fn
-                    }
-                }
-
-                pub struct DispatchFuture<S: Serializer> {
-                    state: State,
-                    inner: Arc<Inner<S>>,
-                }
-
-                // Tracks the resource's response state. At a high level, the steps
-                // to process a dispatch are:
-                //
-                // 1) Extract arguments
-                // 2) Call handler
-                // 3) Wait on response future
-                // 4) Serialize.
-                //
-                // Of these steps, 1) and 3) are asynchronous.
-                enum State {
-                    Extract(#extract_future_ty),
-                    Response(#handler_future_ty),
-                    Invalid,
-                }
-
-                impl<S: Serializer> Future for DispatchFuture<S> {
-                    type Item = http::Response<<<#handler_future_ty as Future>::Item as IntoResponse>::Body>;
-                    type Error = ::tower_web::Error;
-
-                    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-                        loop {
-                            match self.state {
-                                State::Extract(ref mut extract_future) => {
-                                    try_ready!(Future::poll(extract_future));
-                                }
-                                State::Response(ref mut response) => {
-                                    return Ok(Async::Ready(match try_ready!(response.poll()) {
-                                        #match_into_response
-                                    }));
-                                }
-                                State::Invalid => unreachable!(),
+                fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
+                    loop {
+                        match self.state {
+                            State::Extract(ref mut extract_future) => {
+                                try_ready!(Future::poll(extract_future));
                             }
-
-                            let args = match mem::replace(&mut self.state, State::Invalid) {
-                                State::Extract(fut) => fut,
-                                _ => unreachable!(),
-                            };
-
-                            self.state = State::Response(match args {
-                                #match_extract
-                            });
+                            State::Response(ref mut response) => {
+                                return Ok(Async::Ready(match try_ready!(response.poll()) {
+                                    #match_into_response
+                                }));
+                            }
+                            State::Invalid => unreachable!(),
                         }
+
+                        let args = match mem::replace(&mut self.state, State::Invalid) {
+                            State::Extract(fut) => fut,
+                            _ => unreachable!(),
+                        };
+
+                        self.state = State::Response(match args {
+                            #match_extract
+                        });
                     }
                 }
-
-                impl<U> ::tower_web::util::Chain<U> for #ty {
-                    type Output = (Self, U);
-
-                    fn chain(self, other: U) -> Self::Output {
-                        (self, other)
-                    }
-                }
-            };
+            }
         }
     }
 
-    pub fn dummy_const(&self) -> syn::Ident {
+    /// Generate code for a resource with no routes
+    fn gen_empty_impl(&self) -> TokenStream {
+        let dummy_const = self.dummy_const();
+        let ty = &self.self_ty;
+
+        quote! {
+            use self::tower_web::service::IntoResource;
+            use self::tower_web::response::Serializer;
+            use self::tower_web::routing::RouteSet;
+
+            impl<S: Serializer> IntoResource<S> for #ty {
+                type Destination = ();
+                type Resource = ();
+
+                fn routes(&self) -> RouteSet<Self::Destination> {
+                    RouteSet::new()
+                }
+
+                fn into_resource(self, serializer: S) -> Self::Resource {
+                }
+            }
+        }
+    }
+
+    fn dummy_const(&self) -> syn::Ident {
         // A (slightly) helpful string snippet to identify *which* service
         // implementation this scope is for
         let helpful = dummy_const_ident(&self.self_ty);
@@ -336,9 +378,7 @@ impl Service {
     fn dispatch_fn(&self) -> TokenStream {
         use syn::{IntSuffix, LitInt};
 
-        if self.routes.is_empty() {
-            unimplemented!();
-        }
+        assert!(!self.routes.is_empty());
 
         let branches = self.destination_syms(|route, destination| {
             let left = destination.build_default();
@@ -436,9 +476,7 @@ impl Service {
     {
         let mut routes = &self.routes[..];
 
-        if routes.is_empty() {
-            unimplemented!();
-        }
+        assert!(!self.routes.is_empty());
 
         let mut ret = quote! { () };
         let mut level = 0;

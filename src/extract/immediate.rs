@@ -1,4 +1,4 @@
-use extract::{ExtractFuture, Error, Context};
+use extract::{ExtractFuture, Error};
 
 use futures::{Poll};
 

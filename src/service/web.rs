@@ -1,10 +1,7 @@
-use response::{Context, IntoResponse, Serializer, MapErr};
 use routing::{RouteSet, RouteMatch};
 use service::Resource;
 use util::BufStream;
-use util::tuple::Either2 as Either;
 
-use bytes::Bytes;
 use futures::{Future, Poll};
 use http;
 use tower_service::Service;
@@ -25,13 +22,6 @@ where
     /// it.
     routes: Arc<RouteSet<T::Destination>>,
 
-    /*
-
-    /// TODO: Ideally content type negotation would be performed based on the
-    /// request. However, this is not implemented yet.
-    default_content_type: S::ContentType,
-    */
-
     /// The request body type.
     _p: PhantomData<In>,
 }
@@ -48,12 +38,6 @@ where
         }
     }
 }
-
-/*
-
-
-type ResponseBody<T> = Either<T, MapErr<Bytes>>;
-*/
 
 // ===== impl WebService =====
 
@@ -104,67 +88,7 @@ where
             }
             None => {
                 unimplemented!();
-                /*
-                ResponseFuture {
-                    inner: None,
-                    serializer,
-                    content_type: self.default_content_type.clone(),
-                }
-                */
             }
         }
     }
 }
-
-/*
-impl<T, S> Future for ResponseFuture<T, S>
-where
-    T: Resource,
-    S: Serializer,
-{
-    type Item = http::Response<ResponseBody<T::Body>>;
-    type Error = ::Error;
-
-    fn poll(&mut self) -> Poll<Self::Item, ::Error> {
-        use futures::Async::*;
-        use self::Either::*;
-
-        match self.inner {
-            Some(ref mut f) => {
-                // Get a reference to the serializer. The serializer is what
-                // takes the response value from the user and converts it to a
-                // binary format.
-                let serializer = &*self.serializer;
-
-                // The context tracks all the various factors that are used to
-                // determine how a user response is converted to an HTTP
-                // response. This context is passed to `IntoResponse::response`.
-                let context = Context::new(serializer, &self.content_type);
-
-                let response = match f.poll() {
-                    Ok(Ready(response)) => {
-                        // Convert to an HTTP response and map the body
-                        response.into_response(&context).map(A)
-                    }
-                    Ok(NotReady) => return Ok(NotReady),
-                    Err(e) => {
-                        e.into_response()
-                            .map(MapErr::new)
-                            .map(B)
-                    }
-                };
-
-                Ok(response.into())
-            }
-            None => {
-                let response = ::Error::from(::ErrorKind::not_found())
-                    .into_response()
-                    .map(MapErr::new)
-                    .map(B);
-
-                Ok(Ready(response))
-            }
-        }
-    }
-}
-*/

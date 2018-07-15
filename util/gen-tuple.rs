@@ -37,7 +37,7 @@ pub fn main() {
 // NOTE: This file should not be updated directly. Instead, update
 // `util/gen-tuple.rs` and regenerate this file.
 
-use extract::{self, Extract, ExtractFuture, Immediate};
+use extract::{self, ExtractFuture};
 use response::{Context, IntoResponse, MapErr, Serializer};
 use routing::{self, RouteSet, RouteMatch};
 use service::{Resource, IntoResource};

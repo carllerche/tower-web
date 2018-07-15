@@ -122,13 +122,13 @@ fn test_segments() {
     let capture = Segments::new("/:id");
     let params = capture.test("/foo").unwrap();
     assert_eq!(params.len(), 1);
-    assert_eq!(params.get(0).unwrap(), "foo");
+    assert_eq!(params.get(0, "/foo"), "foo");
 
     assert!(capture.test("/").is_none());
 
     let multi = Segments::new("/:one/:two");
     let params = multi.test("/foo/bar").unwrap();
     assert_eq!(params.len(), 2);
-    assert_eq!(params.get(0).unwrap(), "foo");
-    assert_eq!(params.get(1).unwrap(), "bar");
+    assert_eq!(params.get(0, "/foo/bar"), "foo");
+    assert_eq!(params.get(1, "/foo/bar"), "bar");
 }
