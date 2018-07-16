@@ -1,6 +1,5 @@
 use {Arg, Route, Service};
 use attr::Attributes;
-use route;
 
 use syn;
 

@@ -24,6 +24,7 @@ pub struct User {
 
 impl_web! {
     impl HelloWorld {
+        /*
         /// @get("/")
         /// @content_type("json")
         fn hello_world(&self) -> Result<HelloResponse, ()> {
@@ -31,6 +32,7 @@ impl_web! {
                 msg: "hello world",
             })
         }
+        */
 
         /// @get("/users/:id")
         /// @content_type("plain")

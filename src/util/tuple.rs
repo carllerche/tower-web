@@ -6,7 +6,7 @@
 use extract::{self, ExtractFuture};
 use response::{Context, IntoResponse, MapErr, Serializer};
 use routing::{self, RouteSet, RouteMatch};
-use service::{Resource, IntoResource};
+use service::{Resource, IntoResource, HttpResponseFuture};
 use util::{BufStream, Chain};
 
 use bytes::Buf;
@@ -15,43 +15,6 @@ use futures::future::FutureResult;
 use http;
 
 // ===== Utility traits =====
-
-pub trait IntoHttpFuture {
-    type Item;
-
-    fn poll_into_http<S: Serializer>(&mut self, context: &Context<S>)
-        -> Poll<http::Response<Self::Item>, ::Error>;
-}
-
-impl<T, R> IntoHttpFuture for T
-where T: Future<Item = R, Error = ::Error>,
-      R: IntoResponse
-{
-    type Item = R::Body;
-
-    fn poll_into_http<S: Serializer>(&mut self, context: &Context<S>)
-        -> Poll<http::Response<Self::Item>, ::Error>
-    {
-        let response = try_ready!(self.poll());
-        Ok(response.into_response(context).into())
-    }
-}
-
-pub trait HttpResponseFuture {
-    type Item;
-
-    fn poll_http_response(&mut self) -> Poll<http::Response<Self::Item>, ::Error>;
-}
-
-impl<T, B> HttpResponseFuture for T
-where T: Future<Item = http::Response<B>, Error = ::Error>
-{
-    type Item = B;
-
-    fn poll_http_response(&mut self) -> Poll<http::Response<Self::Item>, ::Error> {
-        self.poll()
-    }
-}
 
 pub struct LiftHttpResponse<T> {
     inner: T,

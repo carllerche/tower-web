@@ -34,14 +34,13 @@ impl Service {
         let ty = &self.self_ty;
 
         quote! {
+            #[allow(unused_variables, non_upper_case_globals)]
             const #dummy_const: () = {
-                extern crate tower_web;
-
-                use tower_web::util::Chain;
+                extern crate tower_web as __tw;
 
                 #resource_impl
 
-                impl<U> Chain<U> for #ty {
+                impl<U> __tw::util::Chain<U> for #ty {
                     type Output = (Self, U);
 
                     fn chain(self, other: U) -> Self::Output {
@@ -81,34 +80,23 @@ impl Service {
 
         // Define `Resource` on the struct.
         quote! {
-            use self::tower_web::extract::{Extract, ExtractFuture};
-            use self::tower_web::response::{self, IntoResponse, Serializer, MapErr};
-            use self::tower_web::routing;
-            use self::tower_web::codegen::{http, CallSite};
-            use self::tower_web::codegen::futures::{Future, IntoFuture, Poll, Async};
-            use self::tower_web::codegen::futures::future::FutureResult;
-            use self::tower_web::routing::RouteSet;
-            use self::tower_web::service::{Resource, IntoResource};
-            use self::tower_web::util::BufStream;
-            use self::tower_web::util::tuple;
-            use self::tower_web::util::tuple::*;
-
-            use std::mem;
-            use std::sync::Arc;
-
             macro_rules! try_ready {
-                ($e:expr) => (match $e {
-                    Ok(Async::Ready(t)) => t,
-                    Ok(Async::NotReady) => return Ok(Async::NotReady),
-                    Err(e) => return Err(From::from(e)),
-                })
+                ($e:expr) => {{
+                    match $e {
+                        Ok(__tw::codegen::futures::Async::Ready(t)) => t,
+                        Ok(__tw::codegen::futures::Async::NotReady) => {
+                            return Ok(__tw::codegen::futures::Async::NotReady)
+                        }
+                        Err(e) => return Err(From::from(e)),
+                    }
+                }}
             }
 
-            pub struct GeneratedResource<S: Serializer> {
-                inner: Arc<Inner<S>>,
+            pub struct GeneratedResource<S: __tw::response::Serializer> {
+                inner: ::std::sync::Arc<Inner<S>>,
             }
 
-            struct Inner<S: Serializer> {
+            struct Inner<S: __tw::response::Serializer> {
                 handler: #ty,
                 callsites: CallSites,
                 content_types: ContentTypes<S>,
@@ -118,12 +106,12 @@ impl Service {
             #callsites_def
             #content_types_def
 
-            impl<S: Serializer> GeneratedResource<S> {
+            impl<S: __tw::response::Serializer> GeneratedResource<S> {
                 fn new(handler: #ty, serializer: S) -> Self {
                     let callsites = CallSites::new();
                     let content_types = ContentTypes::new(&serializer);
 
-                    let inner = Arc::new(Inner {
+                    let inner = ::std::sync::Arc::new(Inner {
                         handler,
                         callsites,
                         content_types,
@@ -134,22 +122,19 @@ impl Service {
                 }
             }
 
-            impl<S: Serializer> Clone for GeneratedResource<S> {
+            impl<S: __tw::response::Serializer> Clone for GeneratedResource<S> {
                 fn clone(&self) -> Self {
                     let inner = self.inner.clone();
                     GeneratedResource { inner }
                 }
             }
 
-            impl<S: Serializer> IntoResource<S> for #ty {
+            impl<S: __tw::response::Serializer> __tw::service::IntoResource<S> for #ty {
                 type Destination = #destination_ty;
                 type Resource = GeneratedResource<S>;
 
-                fn routes(&self) -> RouteSet<Self::Destination> {
-                    // use ::tower_web::routing;
-                    // #destination_use
-
-                    routing::Builder::new()
+                fn routes(&self) -> __tw::routing::RouteSet<Self::Destination> {
+                    __tw::routing::Builder::new()
                     #build_routes_fn
                     .build()
                 }
@@ -159,26 +144,24 @@ impl Service {
                 }
             }
 
-            // TODO: Can these warnings be avoided?
-            #[allow(unused_imports, unused_variables)]
-            impl<S: Serializer> Resource for GeneratedResource<S> {
+            impl<S: __tw::response::Serializer> __tw::service::Resource for GeneratedResource<S> {
                 // The destination token is used to identify which action to
                 // call
                 type Destination = #destination_ty;
 
                 // The response body's chunk type.
-                type Buf = <Self::Body as BufStream>::Item;
+                type Buf = <Self::Body as __tw::util::BufStream>::Item;
 
                 // The reesponse body type
-                type Body = <Self::Future as HttpResponseFuture>::Item;
+                type Body = <Self::Future as __tw::service::HttpResponseFuture>::Item;
 
                 // Future representing processing the request.
                 type Future = DispatchFuture<S>;
 
-                fn dispatch<In: ::tower_web::util::BufStream>(
+                fn dispatch<In: __tw::util::BufStream>(
                     &mut self,
                     destination: Self::Destination,
-                    route_match: ::tower_web::routing::RouteMatch,
+                    route_match: __tw::routing::RouteMatch,
                     _payload: In
                 ) -> Self::Future
                 {
@@ -186,9 +169,9 @@ impl Service {
                 }
             }
 
-            pub struct DispatchFuture<S: Serializer> {
+            pub struct DispatchFuture<S: __tw::response::Serializer> {
                 state: State,
-                inner: Arc<Inner<S>>,
+                inner: ::std::sync::Arc<Inner<S>>,
             }
 
             // Tracks the resource's response state. At a high level, the steps
@@ -206,25 +189,27 @@ impl Service {
                 Invalid,
             }
 
-            impl<S: Serializer> Future for DispatchFuture<S> {
-                type Item = http::Response<<<#handler_future_ty as Future>::Item as IntoResponse>::Body>;
-                type Error = ::tower_web::Error;
+            impl<S: __tw::response::Serializer> __tw::codegen::futures::Future for DispatchFuture<S> {
+                type Item = __tw::codegen::http::Response<
+                    <<#handler_future_ty as __tw::codegen::futures::Future>::Item as __tw::response::IntoResponse>::Body
+                >;
+                type Error = __tw::Error;
 
-                fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
+                fn poll(&mut self) -> __tw::codegen::futures::Poll<Self::Item, Self::Error> {
                     loop {
                         match self.state {
                             State::Extract(ref mut extract_future) => {
-                                try_ready!(Future::poll(extract_future));
+                                try_ready!(__tw::codegen::futures::Future::poll(extract_future));
                             }
                             State::Response(ref mut response) => {
-                                return Ok(Async::Ready(match try_ready!(response.poll()) {
+                                return Ok(__tw::codegen::futures::Async::Ready(match try_ready!(response.poll()) {
                                     #match_into_response
                                 }));
                             }
                             State::Invalid => unreachable!(),
                         }
 
-                        let args = match mem::replace(&mut self.state, State::Invalid) {
+                        let args = match ::std::mem::replace(&mut self.state, State::Invalid) {
                             State::Extract(fut) => fut,
                             _ => unreachable!(),
                         };
@@ -240,20 +225,15 @@ impl Service {
 
     /// Generate code for a resource with no routes
     fn gen_empty_impl(&self) -> TokenStream {
-        let dummy_const = self.dummy_const();
         let ty = &self.self_ty;
 
         quote! {
-            use self::tower_web::service::IntoResource;
-            use self::tower_web::response::Serializer;
-            use self::tower_web::routing::RouteSet;
-
-            impl<S: Serializer> IntoResource<S> for #ty {
+            impl<S: __tw::response::Serializer> __tw::service::IntoResource<S> for #ty {
                 type Destination = ();
                 type Resource = ();
 
-                fn routes(&self) -> RouteSet<Self::Destination> {
-                    RouteSet::new()
+                fn routes(&self) -> __tw::routing::RouteSet<Self::Destination> {
+                    __tw::routing::RouteSet::new()
                 }
 
                 fn into_resource(self, serializer: S) -> Self::Resource {
@@ -300,9 +280,9 @@ impl Service {
             level += 1;
 
             ret = match variants {
-                1 => quote! { ::tower_web::util::tuple::Either1<#ret> },
-                2 => quote! { ::tower_web::util::tuple::Either2<#ret, ()> },
-                3 => quote! { ::tower_web::util::tuple::Either3<#ret, (), ()> },
+                1 => quote! { __tw::util::tuple::Either1<#ret> },
+                2 => quote! { __tw::util::tuple::Either2<#ret, ()> },
+                3 => quote! { __tw::util::tuple::Either3<#ret, (), ()> },
                 n => panic!("unimplemented: {} variants Service::destination_ty", n),
             };
         }
@@ -315,7 +295,7 @@ impl Service {
             .map(|(i, route)| {
                 let name = route_n(i);
                 let tys = (0..route.args.len())
-                    .map(|_| quote!(CallSite,));
+                    .map(|_| quote!(__tw::codegen::CallSite,));
 
                 quote! { #name: (#(#tys)*) }
             });
@@ -359,12 +339,12 @@ impl Service {
             });
 
         quote! {
-            struct ContentTypes<S: Serializer> {
+            struct ContentTypes<S: __tw::response::Serializer> {
                 content_types: [Option<S::ContentType>; #num],
             }
 
             impl<S> ContentTypes<S>
-            where S: Serializer,
+            where S: __tw::response::Serializer,
             {
                 fn new(serializer: &S) -> Self {
                     ContentTypes {
@@ -376,8 +356,6 @@ impl Service {
     }
 
     fn dispatch_fn(&self) -> TokenStream {
-        use syn::{IntSuffix, LitInt};
-
         assert!(!self.routes.is_empty());
 
         let branches = self.destination_syms(|route, destination| {
@@ -436,11 +414,11 @@ impl Service {
                         .as_ref()
                         .unwrap();
 
-                    let context = response::Context::new(
+                    let context = __tw::response::Context::new(
                         &self.inner.serializer,
                         content_type);
 
-                    response.into_response(&context)
+                    __tw::response::IntoResponse::into_response(response, &context)
                         .map(|body| #map)
                 }
             }
@@ -453,7 +431,7 @@ impl Service {
             let ty = &route.ret;
 
             quote! {
-                MapErr<<#ty as IntoFuture>::Future>
+                __tw::response::MapErr<<#ty as __tw::codegen::futures::IntoFuture>::Future>
             }
         })
     }
@@ -504,7 +482,7 @@ impl Service {
             });
 
             let either: syn::Type = syn::parse_str(&format!(
-                "tuple::Either{}",
+                "__tw::util::tuple::Either{}",
                 variant_tys.len()
             )).unwrap();
 
@@ -597,7 +575,7 @@ impl Destination {
 
 fn variant(index: usize, max: usize, content: TokenStream) -> TokenStream {
     let either: syn::Type =
-        syn::parse_str(&format!("Either{}", max)).unwrap();
+        syn::parse_str(&format!("__tw::util::tuple::Either{}", max)).unwrap();
 
     match index {
         0 => quote! { #either::A(#content) },

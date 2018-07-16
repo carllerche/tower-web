@@ -39,23 +39,15 @@ impl Arg {
     /// Generate a call site for the argument
     pub fn new_callsite(&self) -> TokenStream {
         if let Some(idx) = self.param {
-            quote! { CallSite::new_param(#idx) }
+            quote! { __tw::codegen::CallSite::new_param(#idx) }
         } else if let Some(ref ident) = self.ident {
             match &ident[..] {
-                "query_string" => quote! { CallSite::new_query_string() },
-                "body" => quote! { CallSite::new_body() },
-                header => quote! { CallSite::new_header(#header) },
+                "query_string" => quote! { __tw::codegen::CallSite::new_query_string() },
+                "body" => quote! { __tw::codegen::CallSite::new_body() },
+                header => quote! { __tw::codegen::CallSite::new_header(#header) },
             }
         } else {
-            quote! { CallSite::new_unknown() }
-        }
-    }
-
-    pub fn extract(&self) -> TokenStream {
-        let ty = &self.ty;
-
-        quote! {
-            <#ty as Extract>::into_future(&route_match.extract_context(call_site))
+            quote! { __tw::codegen::CallSite::new_unknown() }
         }
     }
 }

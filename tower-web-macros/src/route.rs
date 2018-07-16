@@ -4,7 +4,6 @@ use ty_tree::TyTree;
 
 use proc_macro2::{TokenStream, Span};
 use syn;
-use quote::ToTokens;
 
 use std::fmt;
 
@@ -50,19 +49,6 @@ impl Route {
         }
     }
 
-    fn extract_args(&self) -> TokenStream {
-        let args = self.args.iter().enumerate().map(|(i, arg)| {
-            let extract = arg.extract();
-
-            quote! {{
-                let call_site = &route.#i;
-                #extract
-            }}
-        });
-
-        quote! { (#(#args),*) }
-    }
-
     pub fn dispatch_fn(&self) -> TokenStream {
         TyTree::new(&self.args)
             .extract_args()
@@ -72,14 +58,15 @@ impl Route {
         use syn::{LitInt, IntSuffix};
 
         let ident = &self.ident;
-        let args = self.args.iter().enumerate().map(|(i, arg)| {
+        let args = self.args.iter().map(|arg| {
             let index = LitInt::new(arg.index as u64, IntSuffix::None, Span::call_site());
-            quote! { args.#index.extract() }
+            quote! { __tw::extract::ExtractFuture::extract(args.#index) }
         });
 
         quote! {
             let args = args.into_inner();
-            MapErr::new(self.inner.handler.#ident(#(#args),*).into_future())
+            __tw::response::MapErr::new(
+                __tw::codegen::futures::IntoFuture::into_future(self.inner.handler.#ident(#(#args),*)))
         }
     }
 

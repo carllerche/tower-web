@@ -16,6 +16,7 @@ mod empty_impl {
     }
 }
 
+/*
 mod no_routes {
     #[derive(Clone)]
     struct Empty;
@@ -72,6 +73,7 @@ mod one_route {
         assert_eq!("foo", v.foo().unwrap());
     }
 }
+*/
 
 /*
 #[derive(Clone)]

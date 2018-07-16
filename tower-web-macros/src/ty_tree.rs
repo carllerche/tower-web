@@ -2,7 +2,6 @@
 
 use arg::Arg;
 
-use quote::ToTokens;
 use syn;
 use proc_macro2::{Span, TokenStream};
 
@@ -34,7 +33,7 @@ impl<'a> TyTree<'a, Arg> {
         self.map_reduce(
             |arg| {
                 let ty = &arg.ty;
-                quote! { <#ty as Extract>::Future }
+                quote! { <#ty as __tw::extract::Extract>::Future }
             },
             |tokens| {
                 let join_ty = join_ty(tokens.len());
@@ -51,7 +50,7 @@ impl<'a> TyTree<'a, Arg> {
                 let index = LitInt::new(arg.index as u64, IntSuffix::None, Span::call_site());
 
                 quote! {
-                    <#ty as Extract>::into_future(&{
+                    <#ty as __tw::extract::Extract>::into_future(&{
                         let callsite = &callsites.#index;
                         route_match.extract_context(callsite)
                     })
@@ -65,7 +64,7 @@ impl<'a> TyTree<'a, Arg> {
 }
 
 fn join_ty(len: usize) -> syn::Type {
-    syn::parse_str(&format!("Join{}", len)).unwrap()
+    syn::parse_str(&format!("__tw::util::tuple::Join{}", len)).unwrap()
 }
 
 fn reduce<F>(mut src: &[TokenStream], f: &mut F) -> TokenStream
