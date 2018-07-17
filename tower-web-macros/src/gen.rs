@@ -1,8 +1,8 @@
-use Service;
+use Resource;
 
-/// Generate the service implementations
-pub(crate) fn generate(services: &[Service]) -> String {
-    services.iter()
-        .map(|service| service.gen().to_string())
+/// Generate the `Resource` implementations
+pub(crate) fn generate(resources: &[Resource]) -> String {
+    resources.iter()
+        .map(|resource| resource.gen().to_string())
         .collect()
 }

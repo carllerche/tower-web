@@ -1,24 +1,24 @@
-use {Arg, Route, Service};
+use {Arg, Route, Resource};
 use attr::Attributes;
 
 use syn;
 
 /// Result of a parse
 pub struct Parse {
-    services: Vec<Service>,
+    resources: Vec<Resource>,
 }
 
 /// Builds up the state while traversing the AST.
 struct ImplWeb {
-    services: Vec<Service>,
-    curr_service: usize,
+    resources: Vec<Resource>,
+    curr_resource: usize,
     curr_route: usize,
 }
 
 impl Parse {
     /// Parse an input source
     pub fn parse(input: &str) -> Parse {
-        // Load the AST defining the web service
+        // Load the AST defining the resource
         let ast = syn::parse_str(input).unwrap();
 
         // AST transformer
@@ -28,13 +28,13 @@ impl Parse {
         syn::fold::fold_file(&mut v, ast);
 
         Parse {
-            services: v.services,
+            resources: v.resources,
         }
     }
 
-    /// Generate the service source
+    /// Generate the resource source
     pub fn generate(&self) -> String {
-        ::gen::generate(&self.services)
+        ::gen::generate(&self.resources)
     }
 }
 
@@ -42,19 +42,19 @@ impl ImplWeb {
     /// Returns a new `ImplWeb` instance with default values.
     fn new() -> ImplWeb {
         ImplWeb {
-            services: vec![],
-            curr_service: 0,
+            resources: vec![],
+            curr_resource: 0,
             curr_route: 0,
         }
     }
 
-    fn push_service(&mut self, self_ty: Box<syn::Type>) {
-        self.curr_service = self.services.len();
-        self.services.push(Service::new(self.curr_service, self_ty));
+    fn push_resource(&mut self, self_ty: Box<syn::Type>) {
+        self.curr_resource = self.resources.len();
+        self.resources.push(Resource::new(self.curr_resource, self_ty));
     }
 
-    fn service(&mut self) -> &mut Service {
-        &mut self.services[self.curr_service]
+    fn resource(&mut self) -> &mut Resource {
+        &mut self.resources[self.curr_resource]
     }
 
     fn push_route(
@@ -64,9 +64,9 @@ impl ImplWeb {
         attrs: Attributes,
         args: Vec<Arg>,
     ) {
-        let index = self.service().routes.len();
+        let index = self.resource().routes.len();
         self.curr_route = index;
-        self.service()
+        self.resource()
             .routes
             .push(Route::new(index, ident, ret, attrs, args));
     }
@@ -79,7 +79,7 @@ impl syn::fold::Fold for ImplWeb {
             "trait impls must not be in impl_web! block"
         );
 
-        self.push_service(item.self_ty.clone());
+        self.push_resource(item.self_ty.clone());
 
         syn::fold::fold_item_impl(self, item)
     }

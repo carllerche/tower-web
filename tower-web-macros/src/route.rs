@@ -7,7 +7,7 @@ use syn;
 
 use std::fmt;
 
-/// Represents a service route
+/// Represents a resource route
 pub(crate) struct Route {
     pub index: usize,
 

@@ -11,14 +11,14 @@ mod arg;
 mod attr;
 mod gen;
 mod parse;
+mod resource;
 mod route;
-mod service;
 mod ty_tree;
 
 use arg::Arg;
 use parse::*;
+use resource::*;
 use route::*;
-use service::*;
 
 const MAX_VARIANTS: usize = 3;
 

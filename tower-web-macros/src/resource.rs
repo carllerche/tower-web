@@ -7,15 +7,15 @@ use syn;
 use std::cmp;
 
 #[derive(Debug)]
-pub(crate) struct Service {
+pub(crate) struct Resource {
     index: usize,
     pub self_ty: Box<syn::Type>,
     pub routes: Vec<Route>,
 }
 
-impl Service {
-    pub fn new(index: usize, self_ty: Box<syn::Type>) -> Service {
-        Service {
+impl Resource {
+    pub fn new(index: usize, self_ty: Box<syn::Type>) -> Resource {
+        Resource {
             index,
             self_ty,
             routes: vec![],
@@ -60,11 +60,11 @@ impl Service {
         // them.
         let destination_ty = self.destination_ty();
 
-        // The service must store a `CallSite` instance for each arg for each
+        // The Resource must store a `CallSite` instance for each arg for each
         // route.
         let callsites_def = self.callsites_def();
 
-        // The service must store the response content type for each route
+        // The Resource must store the response content type for each route
         let content_types_def = self.content_types_def();
 
         // Adds lines for each route, adding the route the route builder.
