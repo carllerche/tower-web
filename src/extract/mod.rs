@@ -2,10 +2,8 @@ mod context;
 mod error;
 mod immediate;
 mod num;
+pub mod option;
 mod str;
-/*
-mod option;
-*/
 
 pub use self::error::Error;
 pub use self::context::Context;

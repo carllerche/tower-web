@@ -1,23 +1,45 @@
-use super::{CallSiteExtract, Error};
+use extract::{Extract, ExtractFuture, Error, Context};
 
-use codegen::CallSite;
-use routing::RouteMatch;
+use futures::{Async, Poll};
 
-use http::Request;
+pub struct ExtractOptionFuture<T> {
+    inner: T,
+    none: bool,
+}
 
-impl<'a, T> CallSiteExtract<'a> for Option<T>
-where T: CallSiteExtract<'a>
+impl<T> Extract for Option<T>
+where T: Extract,
 {
-    /// TODO: Dox
-    fn callsite_extract(
-        callsite: &CallSite,
-        route: &'a RouteMatch,
-        request: &'a Request<()>,
-    ) -> Result<Self, Error> {
-        match T::callsite_extract(callsite, route, request) {
-            Ok(v) => Ok(Some(v)),
-            Err(ref e) if e.is_missing_param() => Ok(None),
-            Err(e) => Err(e),
+    type Future = ExtractOptionFuture<T::Future>;
+
+    fn into_future(ctx: &Context) -> Self::Future {
+        ExtractOptionFuture {
+            inner: T::into_future(ctx),
+            none: false,
+        }
+    }
+}
+
+impl<T> ExtractFuture for ExtractOptionFuture<T>
+where T: ExtractFuture,
+{
+    type Item = Option<T::Item>;
+
+    fn poll(&mut self) -> Poll<(), Error> {
+        match self.inner.poll() {
+            Err(ref e) if e.is_missing_param() => {
+                self.none = true;
+                Ok(Async::Ready(()))
+            }
+            res => res,
+        }
+    }
+
+    fn extract(self) -> Self::Item {
+        if self.none {
+            None
+        } else {
+            Some(self.inner.extract())
         }
     }
 }

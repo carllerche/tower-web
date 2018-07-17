@@ -40,10 +40,9 @@ impl_web! {
             Ok("one_u32_header")
         }
 
-        /*
         /// @get("/option_hdr")
         /// @content_type("plain")
-        fn option_header(&self, user_agent: Option<&str>) -> Result<&'static str, ()> {
+        fn option_header(&self, user_agent: Option<String>) -> Result<&'static str, ()> {
             if let Some(user_agent) = user_agent {
                 assert_eq!(user_agent, "testin");
                 Ok("option_header - some")
@@ -51,7 +50,6 @@ impl_web! {
                 Ok("option_header - none")
             }
         }
-        */
     }
 }
 
@@ -95,7 +93,6 @@ fn one_u32_header() {
     assert_body!(response, "one_u32_header");
 }
 
-/*
 #[test]
 fn option_header() {
     let mut web = service(TestParams);
@@ -109,4 +106,3 @@ fn option_header() {
     assert_ok!(response);
     assert_body!(response, "option_header - some");
 }
-*/
