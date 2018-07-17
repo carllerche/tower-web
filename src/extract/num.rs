@@ -25,14 +25,13 @@ impl Extract for u32 {
                 let value = match ctx.request().headers().get(header_name) {
                     Some(value) => value,
                     None => {
-                        println!("WTF NONE");
                         return Immediate::error(Error::missing_param());
                     }
                 };
 
                 match atoi(value.as_bytes()) {
                     Some(s) => Immediate::ok(s),
-                    None => Immediate::error(Error::invalid_param(&"not valid integer")),
+                    None => Immediate::error(Error::invalid_param(&"invalid integer")),
                 }
             }
             QueryString => {

@@ -3,7 +3,7 @@
 pub use tower_web::service::HttpService;
 
 use tower_web::ServiceBuilder;
-use tower_web::response::{DefaultSerializer, Serializer};
+use tower_web::response::DefaultSerializer;
 use tower_web::service::IntoResource;
 
 pub use futures::Future;

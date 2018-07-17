@@ -12,14 +12,19 @@ struct TestParams;
 
 impl_web! {
     impl TestParams {
-        /*
         /// @get("/str/:foo")
         /// @content_type("plain")
-        fn one_str_param(&self, foo: &str) -> Result<&'static str, ()> {
+        fn one_str_param(&self, foo: String) -> Result<&'static str, ()> {
             assert_eq!(foo, "hello");
             Ok("one_str_param")
         }
-        */
+
+        /// @get("/x-hello")
+        /// @content_type("plain")
+        fn one_str_header(&self, x_hello: String) -> Result<&'static str, ()> {
+            assert_eq!(x_hello, "world");
+            Ok("one_str_header")
+        }
 
         /// @get("/u32/:foo")
         /// @content_type("plain")
@@ -53,7 +58,6 @@ impl_web! {
 // TODO:
 // - header missing
 
-/*
 #[test]
 fn one_str_param() {
     let mut web = service(TestParams);
@@ -62,7 +66,16 @@ fn one_str_param() {
     assert_ok!(response);
     assert_body!(response, "one_str_param");
 }
-*/
+
+#[test]
+fn one_str_header() {
+    let mut web = service(TestParams);
+
+
+    let response = web.call_unwrap(get!("/x-hello", "x-hello": "world"));
+    assert_ok!(response);
+    assert_body!(response, "one_str_header");
+}
 
 #[test]
 fn one_u32_param() {

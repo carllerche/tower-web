@@ -2,9 +2,9 @@ mod context;
 mod error;
 mod immediate;
 mod num;
+mod str;
 /*
 mod option;
-mod str;
 */
 
 pub use self::error::Error;
