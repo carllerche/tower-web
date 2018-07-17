@@ -22,11 +22,6 @@ pub trait Resource: Clone {
     /// Response future
     type Future: Future<Item = http::Response<Self::Body>, Error = ::Error>;
 
-    /*
-    /// Return the routes associated with the resource.
-    fn routes(&self) -> RouteSet<Self::Destination>;
-    */
-
     fn dispatch<In: BufStream>(
         &mut self,
         destination: Self::Destination,

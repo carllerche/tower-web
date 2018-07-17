@@ -44,7 +44,13 @@ impl Arg {
             match &ident[..] {
                 "query_string" => quote! { __tw::codegen::CallSite::new_query_string() },
                 "body" => quote! { __tw::codegen::CallSite::new_body() },
-                header => quote! { __tw::codegen::CallSite::new_header(#header) },
+                header => {
+                    let header = header
+                        .replace("_", "-")
+                        .to_lowercase();
+
+                    quote! { __tw::codegen::CallSite::new_header(#header) }
+                }
             }
         } else {
             quote! { __tw::codegen::CallSite::new_unknown() }

@@ -3,7 +3,8 @@
 pub use tower_web::service::HttpService;
 
 use tower_web::ServiceBuilder;
-use tower_web::service::Resource;
+use tower_web::response::{DefaultSerializer, Serializer};
+use tower_web::service::IntoResource;
 
 pub use futures::Future;
 use http;
@@ -60,7 +61,9 @@ macro_rules! assert_body {
     }}
 }
 
-pub fn service<U: Resource>(resource: U) -> impl TestHttpService<RequestBody = String> {
+pub fn service<U>(resource: U) -> impl TestHttpService<RequestBody = String>
+where U: IntoResource<DefaultSerializer>,
+{
     ServiceBuilder::new()
         .resource(resource)
         .build()

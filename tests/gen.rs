@@ -16,21 +16,20 @@ mod empty_impl {
     }
 }
 
-/*
 mod no_routes {
     #[derive(Clone)]
     struct Empty;
 
     impl_web! {
         impl Empty {
-            fn foo(&mut self) {
+            fn foo(&self) {
             }
         }
     }
 
     #[test]
     fn use_type() {
-        let mut v = Empty;
+        let v = Empty;
         v.foo();
     }
 }
@@ -42,14 +41,14 @@ mod other_attr {
     impl_web! {
         impl Empty {
             #[inline]
-            fn foo(&mut self) {
+            fn foo(&self) {
             }
         }
     }
 
     #[test]
     fn use_type() {
-        let mut v = Empty;
+        let v = Empty;
         v.foo();
     }
 }
@@ -61,7 +60,7 @@ mod one_route {
     impl_web! {
         impl OneRoute {
             /// @get("/")
-            fn foo(&mut self) -> Result<String, ()> {
+            fn foo(&self) -> Result<String, ()> {
                 Ok("foo".to_string())
             }
         }
@@ -69,11 +68,10 @@ mod one_route {
 
     #[test]
     fn use_type() {
-        let mut v = OneRoute;
+        let v = OneRoute;
         assert_eq!("foo", v.foo().unwrap());
     }
 }
-*/
 
 /*
 #[derive(Clone)]

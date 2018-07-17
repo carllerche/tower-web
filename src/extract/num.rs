@@ -21,22 +21,19 @@ impl Extract for u32 {
                     Error::invalid_param(&err.description())
                 }).into()
             }
-            Header(idx) => {
-                unimplemented!();
-                /*
-                // Get the header name for the argument.
-                let header_name = &route_match.header_names()[idx];
-
-                let val = match request.headers().get(header_name) {
-                    Some(val) => val,
-                    None => return Err(Error::missing_param()),
+            Header(header_name) => {
+                let value = match ctx.request().headers().get(header_name) {
+                    Some(value) => value,
+                    None => {
+                        println!("WTF NONE");
+                        return Immediate::error(Error::missing_param());
+                    }
                 };
 
-                match atoi(val.as_bytes()) {
-                    Some(s) => Ok(s),
-                    None => Err(Error::invalid_param(&"not valid integer")),
+                match atoi(value.as_bytes()) {
+                    Some(s) => Immediate::ok(s),
+                    None => Immediate::error(Error::invalid_param(&"not valid integer")),
                 }
-                */
             }
             QueryString => {
                 unimplemented!();
