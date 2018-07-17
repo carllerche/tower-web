@@ -16,31 +16,31 @@ impl_web! {
     impl TestMethods {
         /// @get("/")
         /// @content_type("plain")
-        fn sync_get_str(&mut self) -> Result<&'static str, ()> {
+        fn sync_get_str(&self) -> Result<&'static str, ()> {
             Ok("GET: hello world")
         }
 
         /// @post("/")
         /// @content_type("plain")
-        fn sync_post_str(&mut self) -> Result<&'static str, ()> {
+        fn sync_post_str(&self) -> Result<&'static str, ()> {
             Ok("POST: hello world")
         }
 
         /// @put("/")
         /// @content_type("plain")
-        fn sync_put_str(&mut self) -> Result<&'static str, ()> {
+        fn sync_put_str(&self) -> Result<&'static str, ()> {
             Ok("PUT: hello world")
         }
 
         /// @patch("/")
         /// @content_type("plain")
-        fn sync_patch_str(&mut self) -> Result<&'static str, ()> {
+        fn sync_patch_str(&self) -> Result<&'static str, ()> {
             Ok("PATCH: hello world")
         }
 
         /// @delete("/")
         /// @content_type("plain")
-        fn sync_delete_str(&mut self) -> Result<&'static str, ()> {
+        fn sync_delete_str(&self) -> Result<&'static str, ()> {
             Ok("DELETE: hello world")
         }
     }
