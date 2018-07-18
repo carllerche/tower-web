@@ -4,7 +4,7 @@
 // `util/gen-tuple.rs` and regenerate this file.
 
 use extract::{self, ExtractFuture};
-use response::{Context, IntoResponse, MapErr, Serializer};
+use response::{Context, Response, MapErr, Serializer};
 use routing::{self, RouteSet, RouteMatch};
 use service::{Resource, IntoResource, HttpResponseFuture};
 use util::{BufStream, Chain};
@@ -198,20 +198,20 @@ where
     }
 }
 
-impl<A> IntoResponse for Either1<A>
+impl<A> Response for Either1<A>
 where
-    A: IntoResponse,
+    A: Response,
 {
     type Buf = Either1<A::Buf>;
     type Body = Either1<A::Body>;
 
-    fn into_response<S>(self, context: &Context<S>) ->  http::Response<Self::Body>
+    fn into_http<S>(self, context: &Context<S>) ->  http::Response<Self::Body>
     where S: Serializer
     {
         use self::Either1::*;
 
         match self {
-            A(r) => r.into_response(context).map(Either1::A),
+            A(r) => r.into_http(context).map(Either1::A),
         }
     }
 }
@@ -370,22 +370,22 @@ where
     }
 }
 
-impl<A, B> IntoResponse for Either2<A, B>
+impl<A, B> Response for Either2<A, B>
 where
-    A: IntoResponse,
-    B: IntoResponse,
+    A: Response,
+    B: Response,
 {
     type Buf = Either2<A::Buf, B::Buf>;
     type Body = Either2<A::Body, B::Body>;
 
-    fn into_response<S>(self, context: &Context<S>) ->  http::Response<Self::Body>
+    fn into_http<S>(self, context: &Context<S>) ->  http::Response<Self::Body>
     where S: Serializer
     {
         use self::Either2::*;
 
         match self {
-            A(r) => r.into_response(context).map(Either2::A),
-            B(r) => r.into_response(context).map(Either2::B),
+            A(r) => r.into_http(context).map(Either2::A),
+            B(r) => r.into_http(context).map(Either2::B),
         }
     }
 }
@@ -563,24 +563,24 @@ where
     }
 }
 
-impl<A, B, C> IntoResponse for Either3<A, B, C>
+impl<A, B, C> Response for Either3<A, B, C>
 where
-    A: IntoResponse,
-    B: IntoResponse,
-    C: IntoResponse,
+    A: Response,
+    B: Response,
+    C: Response,
 {
     type Buf = Either3<A::Buf, B::Buf, C::Buf>;
     type Body = Either3<A::Body, B::Body, C::Body>;
 
-    fn into_response<S>(self, context: &Context<S>) ->  http::Response<Self::Body>
+    fn into_http<S>(self, context: &Context<S>) ->  http::Response<Self::Body>
     where S: Serializer
     {
         use self::Either3::*;
 
         match self {
-            A(r) => r.into_response(context).map(Either3::A),
-            B(r) => r.into_response(context).map(Either3::B),
-            C(r) => r.into_response(context).map(Either3::C),
+            A(r) => r.into_http(context).map(Either3::A),
+            B(r) => r.into_http(context).map(Either3::B),
+            C(r) => r.into_http(context).map(Either3::C),
         }
     }
 }

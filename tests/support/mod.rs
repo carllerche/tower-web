@@ -49,6 +49,31 @@ macro_rules! assert_ok {
     }
 }
 
+macro_rules! assert_created {
+    ($response:expr) => {
+        assert_eq!($response.status(), ::http::StatusCode::CREATED)
+    }
+}
+
+macro_rules! assert_accepted {
+    ($response:expr) => {
+        assert_eq!($response.status(), ::http::StatusCode::ACCEPTED)
+    }
+}
+
+macro_rules! assert_header {
+    ($response:expr, $name:expr, $value:expr) => {{
+        let n = $name;
+
+        let actual = match $response.headers().get(n) {
+            Some(v) => v,
+            None => panic!("missing header {:?}", n),
+        };
+
+        assert_eq!(actual, $value)
+    }}
+}
+
 macro_rules! assert_body {
     ($response:expr, $body:expr) => {{
         use ::tower_web::util::BufStream;

@@ -1,4 +1,4 @@
-use response::IntoResponse;
+use response::Response;
 
 use futures::{Future, Poll};
 use http;
@@ -24,7 +24,7 @@ pub struct ResponseFuture<T, S> {
 
 impl<T, F, S> Future for ResponseFuture<F, S>
 where
-    T: IntoResponse,
+    T: Response,
     F: Future<Item = T>,
 {
     type Item = http::Response<T::Body>;

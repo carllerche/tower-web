@@ -1,9 +1,6 @@
 #[macro_use]
 extern crate tower_web;
 
-#[macro_use]
-extern crate serde_derive;
-
 use tower_web::ServiceBuilder;
 
 #[derive(Clone, Debug)]
@@ -12,19 +9,29 @@ pub struct HelloWorld;
 #[derive(Clone, Debug)]
 pub struct GoodbyeWorld;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Response)]
 pub struct HelloResponse {
     msg: &'static str,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Response)]
+#[web(status = "201", header(name = "x-foo", value = "bar"))]
+pub struct CreateResponse {
+    msg: &'static str,
+
+    #[web(header)]
+    foo_bar: &'static str,
+}
+
+/*
+#[derive(Debug, Response)]
 pub struct User {
     id: usize,
 }
+*/
 
 impl_web! {
     impl HelloWorld {
-        /*
         /// @get("/")
         /// @content_type("json")
         fn hello_world(&self) -> Result<HelloResponse, ()> {
@@ -32,13 +39,21 @@ impl_web! {
                 msg: "hello world",
             })
         }
-        */
 
         /// @get("/users/:id")
         /// @content_type("plain")
         fn get(&self, id: u32) -> Result<String, ()> {
             println!("GOT: id={:?};", id);
             Ok("ZOOOOMG YO\n".to_string())
+        }
+
+        /// @post("/users")
+        /// @content_type("json")
+        fn post(&self) -> Result<CreateResponse, ()> {
+            Ok(CreateResponse {
+                msg: "done",
+                foo_bar: "winning",
+            })
         }
 
         /*

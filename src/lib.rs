@@ -24,6 +24,15 @@ mod run;
 pub use error::{Error, ErrorKind};
 pub use service::ServiceBuilder;
 
+// ===== serde_derive re-export =====
+
+#[allow(unused_imports)]
+#[macro_use]
+extern crate serde_derive;
+
+#[doc(hidden)]
+pub use serde_derive::*;
+
 // ===== proc_macro_hack junk =====
 
 #[macro_use]

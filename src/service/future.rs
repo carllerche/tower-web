@@ -1,4 +1,4 @@
-use response::{Context, Serializer, IntoResponse};
+use response::{Context, Serializer, Response};
 
 use futures::{Future, Poll};
 use http;
@@ -15,7 +15,7 @@ pub trait IntoHttpFuture {
 
 impl<T, R> IntoHttpFuture for T
 where T: Future<Item = R, Error = ::Error>,
-      R: IntoResponse
+      R: Response
 {
     type Item = R::Body;
 
@@ -23,7 +23,7 @@ where T: Future<Item = R, Error = ::Error>,
         -> Poll<http::Response<Self::Item>, ::Error>
     {
         let response = try_ready!(self.poll());
-        Ok(response.into_response(context).into())
+        Ok(response.into_http(context).into())
     }
 }
 

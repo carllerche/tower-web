@@ -38,7 +38,7 @@ pub fn main() {
 // `util/gen-tuple.rs` and regenerate this file.
 
 use extract::{self, ExtractFuture};
-use response::{Context, IntoResponse, MapErr, Serializer};
+use response::{Context, Response, MapErr, Serializer};
 use routing::{self, RouteSet, RouteMatch};
 use service::{Resource, IntoResource, HttpResponseFuture};
 use util::{BufStream, Chain};
@@ -367,25 +367,25 @@ impl Either {
         println!("}}");
         println!("");
 
-        // ===== impl IntoResponse or Either =====
+        // ===== impl Response or Either =====
 
-        println!("impl<{}> IntoResponse for Either{}<{}>", gens, self.level, gens);
+        println!("impl<{}> Response for Either{}<{}>", gens, self.level, gens);
         println!("where");
         for n in 0..self.level {
-            println!("    {}: IntoResponse,", VARS[n]);
+            println!("    {}: Response,", VARS[n]);
         }
         println!("{{");
         println!("    type Buf = Either{}<{}>;", self.level, buf_gens);
         println!("    type Body = Either{}<{}>;", self.level, body_gens);
         println!("");
-        println!("    fn into_response<S>(self, context: &Context<S>) ->  http::Response<Self::Body>");
+        println!("    fn into_http<S>(self, context: &Context<S>) ->  http::Response<Self::Body>");
         println!("    where S: Serializer");
         println!("    {{");
         println!("        use self::Either{}::*;", self.level);
         println!("");
         println!("        match self {{");
         for n in 0..self.level {
-            println!("            {}(r) => r.into_response(context).map(Either{}::{}),", VARS[n], self.level, VARS[n]);
+            println!("            {}(r) => r.into_http(context).map(Either{}::{}),", VARS[n], self.level, VARS[n]);
         }
         println!("        }}");
         println!("    }}");

@@ -7,7 +7,7 @@ pub(crate) use self::callsite::Source;
 pub mod bytes {
     //! Types provided by the `bytes` crate
 
-    pub use bytes::{Buf, Bytes};
+    pub use bytes::*;
 }
 
 pub mod tower {
@@ -18,10 +18,14 @@ pub mod tower {
 
 pub mod http {
     //! Types provided by the `http` crate.
-    pub use http::{Method, Request, Response};
+    pub use http::*;
 }
 
 pub mod futures {
     //! Types provided by the `futures` crate.
     pub use futures::*;
+}
+
+pub mod serde {
+    pub use serde::*;
 }

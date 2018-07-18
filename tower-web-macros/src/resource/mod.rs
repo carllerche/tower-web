@@ -12,14 +12,18 @@ use self::resource::*;
 use self::route::*;
 use self::ty_tree::TyTree;
 
+use proc_macro2::TokenStream;
+
 /// Implement a Web Service
-pub fn derive(input: &str) -> String {
+pub fn expand_derive_resource(input: TokenStream) -> TokenStream {
     let gen = Parse::parse(input)
         .generate();
 
+    /*
     println!("~~~~~~~~~~~~ GEN ~~~~~~~~~~~~~");
-    println!("{}", gen);
+    println!("{}", gen.to_string());
     println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    */
 
     gen
 }

@@ -191,7 +191,7 @@ impl Resource {
 
             impl<S: __tw::response::Serializer> __tw::codegen::futures::Future for DispatchFuture<S> {
                 type Item = __tw::codegen::http::Response<
-                    <<#handler_future_ty as __tw::codegen::futures::Future>::Item as __tw::response::IntoResponse>::Body
+                    <<#handler_future_ty as __tw::codegen::futures::Future>::Item as __tw::response::Response>::Body
                 >;
                 type Error = __tw::Error;
 
@@ -249,7 +249,7 @@ impl Resource {
 
         // The actual const identifieer uses the service index to ensure the
         // const name is uniquee
-        Ident::new(&format!("_IMPL_WEB_{}_FOR_{}", self.index, helpful), Span::call_site())
+        Ident::new(&format!("__IMPL_WEB_{}_FOR_{}", self.index, helpful), Span::call_site())
     }
 
     /// The resource destination type.
@@ -418,7 +418,7 @@ impl Resource {
                         &self.inner.serializer,
                         content_type);
 
-                    __tw::response::IntoResponse::into_response(response, &context)
+                    __tw::response::Response::into_http(response, &context)
                         .map(|body| #map)
                 }
             }

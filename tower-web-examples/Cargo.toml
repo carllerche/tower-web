@@ -1,7 +1,0 @@
-[package]
-name = "tower-web-examples"
-version = "0.1.0"
-authors = ["Carl Lerche <me@carllerche.com>"]
-
-[dependencies]
-tower-web = { path = "../" }

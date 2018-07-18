@@ -1,5 +1,6 @@
 use resource::{Arg, Attributes, Route, Resource};
 
+use proc_macro2::TokenStream;
 use syn;
 
 /// Result of a parse
@@ -16,9 +17,8 @@ struct ImplWeb {
 
 impl Parse {
     /// Parse an input source
-    pub fn parse(input: &str) -> Parse {
-        // Load the AST defining the resource
-        let ast = syn::parse_str(input).unwrap();
+    pub fn parse(input: TokenStream) -> Parse {
+        let ast = syn::parse2(input).unwrap();
 
         // AST transformer
         let mut v = ImplWeb::new();
@@ -32,10 +32,13 @@ impl Parse {
     }
 
     /// Generate the resource source
-    pub fn generate(&self) -> String {
-        self.resources.iter()
-            .map(|resource| resource.gen().to_string())
-            .collect()
+    pub fn generate(&self) -> TokenStream {
+        let impl_resources = self.resources.iter()
+            .map(|resource| resource.gen());
+
+        quote! {
+            #(#impl_resources)*
+        }
     }
 }
 

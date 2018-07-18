@@ -50,6 +50,24 @@ impl BufStream for String {
     }
 }
 
+impl BufStream for &'static str {
+    type Item = io::Cursor<&'static [u8]>;
+    type Error = ();
+
+    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
+        use std::mem;
+
+        if self.is_empty() {
+            return Ok(None.into());
+        }
+
+        let bytes = mem::replace(self, "").as_bytes();
+        let buf = io::Cursor::new(bytes);
+
+        Ok(Some(buf).into())
+    }
+}
+
 impl BufStream for Bytes {
     type Item = io::Cursor<Bytes>;
     type Error = ();

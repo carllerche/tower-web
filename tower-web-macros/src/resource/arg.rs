@@ -45,9 +45,8 @@ impl Arg {
                 "query_string" => quote! { __tw::codegen::CallSite::new_query_string() },
                 "body" => quote! { __tw::codegen::CallSite::new_body() },
                 header => {
-                    let header = header
-                        .replace("_", "-")
-                        .to_lowercase();
+                    let header = ::header::arg_to_header_name(header);
+                    let header = header.as_str();
 
                     quote! { __tw::codegen::CallSite::new_header(#header) }
                 }
