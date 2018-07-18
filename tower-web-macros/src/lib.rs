@@ -9,7 +9,6 @@ extern crate syn;
 
 mod arg;
 mod attr;
-mod gen;
 mod parse;
 mod resource;
 mod route;

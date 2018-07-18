@@ -34,7 +34,9 @@ impl Parse {
 
     /// Generate the resource source
     pub fn generate(&self) -> String {
-        ::gen::generate(&self.resources)
+        self.resources.iter()
+            .map(|resource| resource.gen().to_string())
+            .collect()
     }
 }
 
