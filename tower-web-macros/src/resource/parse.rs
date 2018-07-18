@@ -1,5 +1,4 @@
-use {Arg, Route, Resource};
-use attr::Attributes;
+use resource::{Arg, Attributes, Route, Resource};
 
 use syn;
 

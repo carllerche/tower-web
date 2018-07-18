@@ -1,6 +1,4 @@
-use arg::Arg;
-use attr::Attributes;
-use ty_tree::TyTree;
+use resource::{Arg, Attributes, TyTree};
 
 use proc_macro2::{TokenStream, Span};
 use syn;

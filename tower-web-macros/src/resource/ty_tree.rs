@@ -1,6 +1,6 @@
 //! Distribute a collection into a tree
 
-use arg::Arg;
+use resource::Arg;
 
 use syn;
 use proc_macro2::{Span, TokenStream};

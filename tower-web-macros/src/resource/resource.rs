@@ -1,4 +1,4 @@
-use Route;
+use resource::Route;
 
 use quote::{TokenStreamExt, ToTokens};
 use proc_macro2::{Ident, Span, TokenStream};
