@@ -1,4 +1,4 @@
-use response::{attr, Attribute};
+use super::{attr, Attribute};
 
 use http::{self, HeaderMap};
 use http::header::HeaderName;
@@ -163,6 +163,7 @@ impl Response {
                     }
                 }
 
+                // TODO: Remove this implementation
                 impl __tw::codegen::serde::Serialize for #ty {
                     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
                     where S: __tw::codegen::serde::Serializer

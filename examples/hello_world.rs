@@ -6,6 +6,7 @@ use tower_web::ServiceBuilder;
 #[derive(Clone, Debug)]
 pub struct HelloWorld;
 
+/*
 #[derive(Clone, Debug)]
 pub struct GoodbyeWorld;
 
@@ -29,9 +30,40 @@ pub struct User {
     id: usize,
 }
 */
+*/
+
+#[derive(Debug, Extract)]
+struct User {
+    id: usize,
+}
+
+#[derive(Debug, Extract)]
+struct MyArg {
+    foo: String,
+}
 
 impl_web! {
     impl HelloWorld {
+        /// @get("/hello-qs")
+        /// @content_type("plain")
+        fn hello_qs(&self, query_string: MyArg) -> Result<String, ()> {
+            println!("QUERY: {:?}", query_string);
+            Ok("We have received the query".to_string())
+        }
+
+        /// @post("/users")
+        /// @content_type("plain")
+        fn create_user(&self, body: User) -> Result<String, ()> {
+            println!("GOT = {:?}", body);
+            Ok("We have received the user".to_string())
+        }
+
+        /*
+        /// @post("/input")
+        fn post_input<S: BufStream>(&self, body: S, arg: MyArg) -> Result<String, ()> {
+            unimplemented!();
+        }
+
         /// @get("/")
         /// @content_type("json")
         fn hello_world(&self) -> Result<HelloResponse, ()> {
@@ -55,7 +87,6 @@ impl_web! {
                 foo_bar: "winning",
             })
         }
-
         /*
         /// @get("/whoami")
         /// @content_type("plain")
@@ -83,30 +114,11 @@ impl_web! {
             unimplemented!();
         }
          */
-
-        /*
-        // #[GET "/"]
-        fn hello_world(&mut self) -> Result<HelloResponse, ()> {
-            Ok(HelloResponse {
-                msg: "hello world",
-            })
-        }
-        */
-
-        /*
-        /// # Web
-        ///
-        /// @GET "/users/:id"
-        /// @arg content_length = Header("Content-Length")
-        #[GET "/users/:id"]
-        fn get(&mut self, id: usize) -> Result<User, ()> {
-            Ok(User {
-                id: 1,
-            })
-        }
         */
     }
+}
 
+/*
     impl GoodbyeWorld {
         /// @get("/goodbye")
         /// @content_type("plain")
@@ -120,13 +132,14 @@ impl_web! {
         }
     }
 }
+*/
 
 pub fn main() {
     let addr = "127.0.0.1:8080".parse().unwrap();
 
     ServiceBuilder::new()
         .resource(HelloWorld)
-        .resource(GoodbyeWorld)
+        // .resource(GoodbyeWorld)
         .run(&addr)
         .unwrap();
 }

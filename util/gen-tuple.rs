@@ -38,14 +38,13 @@ pub fn main() {
 // `util/gen-tuple.rs` and regenerate this file.
 
 use extract::{self, ExtractFuture};
-use response::{Context, Response, MapErr, Serializer};
+use response::{Context, Response, Serializer};
 use routing::{self, RouteSet, RouteMatch};
 use service::{Resource, IntoResource, HttpResponseFuture};
 use util::{BufStream, Chain};
 
 use bytes::Buf;
 use futures::{Future, Stream, Async, Poll};
-use futures::future::FutureResult;
 use http;
 
 // ===== Utility traits =====
@@ -64,30 +63,6 @@ impl<T: HttpResponseFuture> Future for LiftHttpResponse<T> {
 }
 
 // ===== 0 =====
-
-impl Resource for () {
-    type Destination = ();
-    type Buf = <Self::Body as BufStream>::Item;
-    type Body = MapErr<String>;
-    type Future = FutureResult<http::Response<Self::Body>, ::Error>;
-
-    fn dispatch<In: BufStream>(&mut self, _: (), _: RouteMatch, _: In) -> Self::Future {
-        unreachable!();
-    }
-}
-
-impl<S: Serializer> IntoResource<S> for () {
-    type Destination = ();
-    type Resource = ();
-
-    fn routes(&self) -> RouteSet<()> {
-        RouteSet::new()
-    }
-
-    fn into_resource(self, _: S) -> Self::Resource {
-        ()
-    }
-}
 
 pub struct Join0 {
     _p: (),
@@ -404,7 +379,11 @@ impl Either {
 
 
         for n in 0..self.level {
-            println!("    R{}: Resource,", n);
+            if n == 0 {
+                println!("    R{}: Resource,", n);
+            } else {
+                println!("    R{}: Resource<RequestBody = R0::RequestBody>,", n);
+            }
         }
 
         println!("{{");
@@ -415,6 +394,8 @@ impl Either {
             .join(", ");
 
         println!("    type Destination = Either{}<{}>;", self.level, gens);
+
+        println!("    type RequestBody = R0::RequestBody;");
 
         let gens = (0..self.level)
             .map(|ty| format!("R{}::Buf", ty))
@@ -437,10 +418,10 @@ impl Either {
 
         println!("    type Future = LiftHttpResponse<Either{}<{}>>;", self.level, gens);
         println!("");
-        println!("    fn dispatch<In: BufStream>(&mut self,");
-        println!("                               destination: Self::Destination,");
-        println!("                               route_match: RouteMatch,");
-        println!("                               body: In)");
+        println!("    fn dispatch(&mut self,");
+        println!("                destination: Self::Destination,");
+        println!("                route_match: RouteMatch,");
+        println!("                body: Self::RequestBody)");
         println!("        -> Self::Future");
         println!("    {{");
         println!("        use self::Either{}::*;", self.level);
@@ -583,11 +564,11 @@ impl Tuple {
 
         // ===== impl IntoResource for (...) =====
 
-        println!("impl<S: Serializer, {}> IntoResource<S> for ({},)", gens, gens);
+        println!("impl<S: Serializer, B: BufStream, {}> IntoResource<S, B> for ({},)", gens, gens);
         println!("where");
 
         for n in 0..self.level {
-            println!("    T{}: IntoResource<S>,", n);
+            println!("    T{}: IntoResource<S, B>,", n);
         }
 
         println!("{{");

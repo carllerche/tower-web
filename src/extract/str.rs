@@ -1,9 +1,10 @@
 use extract::{Extract, Error, Context, Immediate};
+use util::BufStream;
 
-impl Extract for String {
+impl<B: BufStream> Extract<B> for String {
     type Future = Immediate<String>;
 
-    fn into_future(ctx: &Context) -> Self::Future {
+    fn extract(ctx: &Context) -> Self::Future {
         use codegen::Source::*;
 
         // Get the parameter index from the callsite info
@@ -19,13 +20,13 @@ impl Extract for String {
                 let value = match ctx.request().headers().get(header_name) {
                     Some(value) => value,
                     None => {
-                        return Immediate::error(Error::missing_param());
+                        return Immediate::err(Error::missing_param());
                     }
                 };
 
                 match value.to_str() {
                     Ok(s) => Immediate::ok(s.to_string()),
-                    Err(_) => Immediate::error(Error::invalid_param(&"invalid UTF-8 string")),
+                    Err(_) => Immediate::err(Error::invalid_param(&"invalid UTF-8 string")),
                 }
             }
             QueryString => {

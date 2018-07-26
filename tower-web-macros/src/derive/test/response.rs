@@ -2,7 +2,7 @@
 macro_rules! expand {
     ($($tt:tt)*) => {{
         let input: ::syn::DeriveInput = ::syn::parse2(quote!($($tt)*)).unwrap();
-        ::response::expand_derive_response(input)
+        ::derive::expand_derive_response(input)
     }}
 }
 
@@ -73,3 +73,4 @@ fn invalid_field_status_3() {
    * serde remote annotation w/ derive response
 
  */
+

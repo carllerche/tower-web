@@ -49,6 +49,12 @@ macro_rules! assert_ok {
     }
 }
 
+macro_rules! assert_bad_request {
+    ($response:expr) => {
+        assert_eq!($response.status(), ::http::StatusCode::OK)
+    }
+}
+
 macro_rules! assert_created {
     ($response:expr) => {
         assert_eq!($response.status(), ::http::StatusCode::CREATED)
@@ -87,7 +93,7 @@ macro_rules! assert_body {
 }
 
 pub fn service<U>(resource: U) -> impl TestHttpService<RequestBody = String>
-where U: IntoResource<DefaultSerializer>,
+where U: IntoResource<DefaultSerializer, String>,
 {
     ServiceBuilder::new()
         .resource(resource)

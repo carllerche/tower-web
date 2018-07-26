@@ -33,7 +33,7 @@ impl<'a> TyTree<'a, Arg> {
         self.map_reduce(
             |arg| {
                 let ty = &arg.ty;
-                quote! { <#ty as __tw::extract::Extract>::Future }
+                quote! { <#ty as __tw::extract::Extract<B>>::Future }
             },
             |tokens| {
                 let join_ty = join_ty(tokens.len());
@@ -50,10 +50,17 @@ impl<'a> TyTree<'a, Arg> {
                 let index = LitInt::new(arg.index as u64, IntSuffix::None, Span::call_site());
 
                 quote! {
-                    <#ty as __tw::extract::Extract>::into_future(&{
-                        let callsite = &callsites.#index;
-                        route_match.extract_context(callsite)
-                    })
+                    if callsites.#index.1 {
+                        <#ty as __tw::extract::Extract<B>>::extract_body(&{
+                            let callsite = &callsites.#index.0;
+                            route_match.extract_context(callsite)
+                        }, body)
+                    } else {
+                        <#ty as __tw::extract::Extract<B>>::extract(&{
+                            let callsite = &callsites.#index.0;
+                            route_match.extract_context(callsite)
+                        })
+                    }
                 }
             },
             |tokens| {

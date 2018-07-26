@@ -1,14 +1,15 @@
 use extract::{Extract, Error, Context, Immediate};
+use util::BufStream;
 
 use atoi::atoi;
 
 use std::error::Error as E;
 use std::str::FromStr;
 
-impl Extract for u32 {
+impl<B: BufStream> Extract<B> for u32 {
     type Future = Immediate<u32>;
 
-    fn into_future(ctx: &Context) -> Self::Future {
+    fn extract(ctx: &Context) -> Self::Future {
         use codegen::Source::*;
 
         // Get the parameter index from the callsite info
@@ -25,13 +26,13 @@ impl Extract for u32 {
                 let value = match ctx.request().headers().get(header_name) {
                     Some(value) => value,
                     None => {
-                        return Immediate::error(Error::missing_param());
+                        return Immediate::err(Error::missing_param());
                     }
                 };
 
                 match atoi(value.as_bytes()) {
                     Some(s) => Immediate::ok(s),
-                    None => Immediate::error(Error::invalid_param(&"invalid integer")),
+                    None => Immediate::err(Error::invalid_param(&"invalid integer")),
                 }
             }
             QueryString => {

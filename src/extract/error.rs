@@ -31,6 +31,10 @@ impl Error {
     pub fn web(err: ::Error) -> Error {
         Error { kind: Web(err) }
     }
+
+    pub(crate) fn internal_error() -> Error {
+        Error::web(::ErrorKind::internal().into())
+    }
 }
 
 impl From<Error> for ::Error {

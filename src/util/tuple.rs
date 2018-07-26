@@ -4,14 +4,13 @@
 // `util/gen-tuple.rs` and regenerate this file.
 
 use extract::{self, ExtractFuture};
-use response::{Context, Response, MapErr, Serializer};
+use response::{Context, Response, Serializer};
 use routing::{self, RouteSet, RouteMatch};
 use service::{Resource, IntoResource, HttpResponseFuture};
 use util::{BufStream, Chain};
 
 use bytes::Buf;
 use futures::{Future, Stream, Async, Poll};
-use futures::future::FutureResult;
 use http;
 
 // ===== Utility traits =====
@@ -30,30 +29,6 @@ impl<T: HttpResponseFuture> Future for LiftHttpResponse<T> {
 }
 
 // ===== 0 =====
-
-impl Resource for () {
-    type Destination = ();
-    type Buf = <Self::Body as BufStream>::Item;
-    type Body = MapErr<String>;
-    type Future = FutureResult<http::Response<Self::Body>, ::Error>;
-
-    fn dispatch<In: BufStream>(&mut self, _: (), _: RouteMatch, _: In) -> Self::Future {
-        unreachable!();
-    }
-}
-
-impl<S: Serializer> IntoResource<S> for () {
-    type Destination = ();
-    type Resource = ();
-
-    fn routes(&self) -> RouteSet<()> {
-        RouteSet::new()
-    }
-
-    fn into_resource(self, _: S) -> Self::Resource {
-        ()
-    }
-}
 
 pub struct Join0 {
     _p: (),
@@ -221,14 +196,15 @@ where
     R0: Resource,
 {
     type Destination = Either1<R0::Destination>;
+    type RequestBody = R0::RequestBody;
     type Buf = Either1<R0::Buf>;
     type Body = Either1<R0::Body>;
     type Future = LiftHttpResponse<Either1<R0::Future>>;
 
-    fn dispatch<In: BufStream>(&mut self,
-                               destination: Self::Destination,
-                               route_match: RouteMatch,
-                               body: In)
+    fn dispatch(&mut self,
+                destination: Self::Destination,
+                route_match: RouteMatch,
+                body: Self::RequestBody)
         -> Self::Future
     {
         use self::Either1::*;
@@ -393,17 +369,18 @@ where
 impl<R0, R1> Resource for (R0, R1,)
 where
     R0: Resource,
-    R1: Resource,
+    R1: Resource<RequestBody = R0::RequestBody>,
 {
     type Destination = Either2<R0::Destination, R1::Destination>;
+    type RequestBody = R0::RequestBody;
     type Buf = Either2<R0::Buf, R1::Buf>;
     type Body = Either2<R0::Body, R1::Body>;
     type Future = LiftHttpResponse<Either2<R0::Future, R1::Future>>;
 
-    fn dispatch<In: BufStream>(&mut self,
-                               destination: Self::Destination,
-                               route_match: RouteMatch,
-                               body: In)
+    fn dispatch(&mut self,
+                destination: Self::Destination,
+                route_match: RouteMatch,
+                body: Self::RequestBody)
         -> Self::Future
     {
         use self::Either2::*;
@@ -588,18 +565,19 @@ where
 impl<R0, R1, R2> Resource for (R0, R1, R2,)
 where
     R0: Resource,
-    R1: Resource,
-    R2: Resource,
+    R1: Resource<RequestBody = R0::RequestBody>,
+    R2: Resource<RequestBody = R0::RequestBody>,
 {
     type Destination = Either3<R0::Destination, R1::Destination, R2::Destination>;
+    type RequestBody = R0::RequestBody;
     type Buf = Either3<R0::Buf, R1::Buf, R2::Buf>;
     type Body = Either3<R0::Body, R1::Body, R2::Body>;
     type Future = LiftHttpResponse<Either3<R0::Future, R1::Future, R2::Future>>;
 
-    fn dispatch<In: BufStream>(&mut self,
-                               destination: Self::Destination,
-                               route_match: RouteMatch,
-                               body: In)
+    fn dispatch(&mut self,
+                destination: Self::Destination,
+                route_match: RouteMatch,
+                body: Self::RequestBody)
         -> Self::Future
     {
         use self::Either3::*;
@@ -667,9 +645,9 @@ where
         Ok(if all_ready { Async::Ready(()) } else { Async::NotReady })
     }
 }
-impl<S: Serializer, T0> IntoResource<S> for (T0,)
+impl<S: Serializer, B: BufStream, T0> IntoResource<S, B> for (T0,)
 where
-    T0: IntoResource<S>,
+    T0: IntoResource<S, B>,
 {
     type Destination = Either1<T0::Destination>;
     type Resource = (T0::Resource,);
@@ -744,10 +722,10 @@ where
         Ok(if all_ready { Async::Ready(()) } else { Async::NotReady })
     }
 }
-impl<S: Serializer, T0, T1> IntoResource<S> for (T0, T1,)
+impl<S: Serializer, B: BufStream, T0, T1> IntoResource<S, B> for (T0, T1,)
 where
-    T0: IntoResource<S>,
-    T1: IntoResource<S>,
+    T0: IntoResource<S, B>,
+    T1: IntoResource<S, B>,
 {
     type Destination = Either2<T0::Destination, T1::Destination>;
     type Resource = (T0::Resource, T1::Resource,);

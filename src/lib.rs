@@ -8,6 +8,7 @@ extern crate log;
 extern crate serde;
 extern crate serde_json;
 extern crate serde_plain;
+extern crate serde_urlencoded;
 extern crate tokio;
 extern crate tower_service;
 

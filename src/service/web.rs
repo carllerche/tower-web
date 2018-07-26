@@ -11,7 +11,7 @@ use std::sync::Arc;
 
 /// Web service
 #[derive(Debug)]
-pub struct WebService<T, In>
+pub struct WebService<T, ReqBody>
 where
     T: Resource,
 {
@@ -23,14 +23,15 @@ where
     routes: Arc<RouteSet<T::Destination>>,
 
     /// The request body type.
-    _p: PhantomData<In>,
+    _p: PhantomData<ReqBody>,
 }
 
-impl<T: Resource + Clone, In> Clone for WebService<T, In>
+impl<T, ReqBody> Clone for WebService<T, ReqBody>
 where
     T: Resource + Clone,
+    ReqBody: BufStream,
 {
-    fn clone(&self) -> WebService<T, In> {
+    fn clone(&self) -> WebService<T, ReqBody> {
         WebService {
             resource: self.resource.clone(),
             routes: self.routes.clone(),
@@ -41,9 +42,10 @@ where
 
 // ===== impl WebService =====
 
-impl<T, In> WebService<T, In>
+impl<T, ReqBody> WebService<T, ReqBody>
 where
     T: Resource,
+    ReqBody: BufStream,
 {
     pub(crate) fn new(resource: T, routes: RouteSet<T::Destination>) -> Self {
         let routes = Arc::new(routes);
@@ -56,12 +58,12 @@ where
     }
 }
 
-impl<T, In> Service for WebService<T, In>
+impl<T, ReqBody> Service for WebService<T, ReqBody>
 where
-    T: Resource,
-    In: BufStream,
+    T: Resource<RequestBody = ReqBody>,
+    ReqBody: BufStream,
 {
-    type Request = http::Request<In>;
+    type Request = http::Request<ReqBody>;
     type Response = <Self::Future as Future>::Item;
     type Error = <Self::Future as Future>::Error;
     type Future = T::Future;

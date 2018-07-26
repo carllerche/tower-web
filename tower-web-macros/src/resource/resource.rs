@@ -34,7 +34,7 @@ impl Resource {
         let ty = &self.self_ty;
 
         quote! {
-            #[allow(unused_variables, non_upper_case_globals)]
+            #[allow(warnings)]
             const #dummy_const: () = {
                 extern crate tower_web as __tw;
 
@@ -92,11 +92,17 @@ impl Resource {
                 }}
             }
 
-            pub struct GeneratedResource<S: __tw::response::Serializer> {
+            pub struct GeneratedResource<S, B>
+            where S: __tw::response::Serializer,
+                  B: __tw::util::BufStream,
+            {
                 inner: ::std::sync::Arc<Inner<S>>,
+                _p: ::std::marker::PhantomData<B>,
             }
 
-            struct Inner<S: __tw::response::Serializer> {
+            struct Inner<S>
+            where S: __tw::response::Serializer,
+            {
                 handler: #ty,
                 callsites: CallSites,
                 content_types: ContentTypes<S>,
@@ -106,10 +112,15 @@ impl Resource {
             #callsites_def
             #content_types_def
 
-            impl<S: __tw::response::Serializer> GeneratedResource<S> {
+            impl<S, B> GeneratedResource<S, B>
+            where S: __tw::response::Serializer,
+                  B: __tw::util::BufStream,
+            {
                 fn new(handler: #ty, serializer: S) -> Self {
-                    let callsites = CallSites::new();
+                    let callsites = CallSites::new::<B>();
                     let content_types = ContentTypes::new(&serializer);
+
+                    callsites.verify();
 
                     let inner = ::std::sync::Arc::new(Inner {
                         handler,
@@ -118,20 +129,32 @@ impl Resource {
                         serializer,
                     });
 
-                    GeneratedResource { inner }
+                    GeneratedResource {
+                        inner,
+                        _p: ::std::marker::PhantomData,
+                    }
                 }
             }
 
-            impl<S: __tw::response::Serializer> Clone for GeneratedResource<S> {
+            impl<S, B> Clone for GeneratedResource<S, B>
+            where S: __tw::response::Serializer,
+                  B: __tw::util::BufStream,
+            {
                 fn clone(&self) -> Self {
                     let inner = self.inner.clone();
-                    GeneratedResource { inner }
+                    GeneratedResource {
+                        inner,
+                        _p: ::std::marker::PhantomData,
+                    }
                 }
             }
 
-            impl<S: __tw::response::Serializer> __tw::service::IntoResource<S> for #ty {
+            impl<S, B> __tw::service::IntoResource<S, B> for #ty
+            where S: __tw::response::Serializer,
+                  B: __tw::util::BufStream,
+            {
                 type Destination = #destination_ty;
-                type Resource = GeneratedResource<S>;
+                type Resource = GeneratedResource<S, B>;
 
                 fn routes(&self) -> __tw::routing::RouteSet<Self::Destination> {
                     __tw::routing::Builder::new()
@@ -144,10 +167,15 @@ impl Resource {
                 }
             }
 
-            impl<S: __tw::response::Serializer> __tw::service::Resource for GeneratedResource<S> {
+            impl<S, B> __tw::service::Resource for GeneratedResource<S, B>
+            where S: __tw::response::Serializer,
+                  B: __tw::util::BufStream,
+            {
                 // The destination token is used to identify which action to
                 // call
                 type Destination = #destination_ty;
+
+                type RequestBody = B;
 
                 // The response body's chunk type.
                 type Buf = <Self::Body as __tw::util::BufStream>::Item;
@@ -156,22 +184,26 @@ impl Resource {
                 type Body = <Self::Future as __tw::service::HttpResponseFuture>::Item;
 
                 // Future representing processing the request.
-                type Future = DispatchFuture<S>;
+                type Future = DispatchFuture<S, B>;
 
-                fn dispatch<In: __tw::util::BufStream>(
+                fn dispatch(
                     &mut self,
                     destination: Self::Destination,
                     route_match: __tw::routing::RouteMatch,
-                    _payload: In
+                    body: Self::RequestBody,
                 ) -> Self::Future
                 {
                     #dispatch_fn
                 }
             }
 
-            pub struct DispatchFuture<S: __tw::response::Serializer> {
-                state: State,
+            pub struct DispatchFuture<S, B>
+            where S: __tw::response::Serializer,
+                  B: __tw::util::BufStream,
+            {
+                state: State<B>,
                 inner: ::std::sync::Arc<Inner<S>>,
+                _p: ::std::marker::PhantomData<B>,
             }
 
             // Tracks the resource's response state. At a high level, the steps
@@ -183,13 +215,20 @@ impl Resource {
             // 4) Serialize.
             //
             // Of these steps, 1) and 3) are asynchronous.
-            enum State {
+            enum State<B>
+            where B: __tw::util::BufStream,
+            {
                 Extract(#extract_future_ty),
                 Response(#handler_future_ty),
-                Invalid,
+                // PhantomData is needed for when the resource has no routes
+                // that use the body component.
+                Invalid(::std::marker::PhantomData<B>),
             }
 
-            impl<S: __tw::response::Serializer> __tw::codegen::futures::Future for DispatchFuture<S> {
+            impl<S, B> __tw::codegen::futures::Future for DispatchFuture<S, B>
+            where S: __tw::response::Serializer,
+                  B: __tw::util::BufStream,
+            {
                 type Item = __tw::codegen::http::Response<
                     <<#handler_future_ty as __tw::codegen::futures::Future>::Item as __tw::response::Response>::Body
                 >;
@@ -206,10 +245,10 @@ impl Resource {
                                     #match_into_response
                                 }));
                             }
-                            State::Invalid => unreachable!(),
+                            State::Invalid(_) => unreachable!(),
                         }
 
-                        let args = match ::std::mem::replace(&mut self.state, State::Invalid) {
+                        let args = match ::std::mem::replace(&mut self.state, State::Invalid(::std::marker::PhantomData)) {
                             State::Extract(fut) => fut,
                             _ => unreachable!(),
                         };
@@ -228,15 +267,19 @@ impl Resource {
         let ty = &self.self_ty;
 
         quote! {
-            impl<S: __tw::response::Serializer> __tw::service::IntoResource<S> for #ty {
+            impl<S, B> __tw::service::IntoResource<S, B> for #ty
+            where S: __tw::response::Serializer,
+                  B: __tw::util::BufStream,
+            {
                 type Destination = ();
-                type Resource = ();
+                type Resource = __tw::service::Unit<B>;
 
                 fn routes(&self) -> __tw::routing::RouteSet<Self::Destination> {
                     __tw::routing::RouteSet::new()
                 }
 
                 fn into_resource(self, serializer: S) -> Self::Resource {
+                    __tw::service::Unit::new()
                 }
             }
         }
@@ -295,7 +338,7 @@ impl Resource {
             .map(|(i, route)| {
                 let name = route_n(i);
                 let tys = (0..route.args.len())
-                    .map(|_| quote!(__tw::codegen::CallSite,));
+                    .map(|_| quote!((__tw::codegen::CallSite, bool),));
 
                 quote! { #name: (#(#tys)*) }
             });
@@ -306,10 +349,46 @@ impl Resource {
                 let init = route.args.iter()
                     .map(|arg| {
                         let new = arg.new_callsite();
-                        quote! { #new, }
+                        let ty = &arg.ty;
+
+                        quote! {
+                            {
+                                let callsite = #new;
+                                let requires_body =
+                                    <#ty as __tw::extract::Extract<B>>::requires_body(&callsite);
+
+                                (callsite, requires_body)
+                            },
+                        }
                     });
 
                 quote! { #name: (#(#init)*) }
+            });
+
+        let verify = self.routes.iter()
+            .map(|route| {
+                let name = route_n(route.index);
+                let verify = route.args.iter()
+                    .map(|arg| {
+                        let index = arg.index;
+
+                        quote! {
+                            match (used_body, self.#name.#index.1) {
+                                (false, true) => {
+                                    used_body = true;
+                                }
+                                (true, true) => {
+                                    panic!("unimplemented: multi body extract");
+                                }
+                                _ => {}
+                            }
+                        }
+                    });
+
+                quote! {
+                    let mut used_body = false;
+                    #(#verify)*
+                }
             });
 
         quote! {
@@ -318,10 +397,14 @@ impl Resource {
             }
 
             impl CallSites {
-                fn new() -> CallSites {
+                fn new<B: __tw::util::BufStream>() -> CallSites {
                     CallSites {
                         #(#init),*
                     }
+                }
+
+                fn verify(&self) {
+                    #(#verify)*
                 }
             }
         }
@@ -384,6 +467,7 @@ impl Resource {
             DispatchFuture {
                 state,
                 inner,
+                _p: ::std::marker::PhantomData,
             }
         }
     }
@@ -412,7 +496,7 @@ impl Resource {
                     let content_type = self.inner.content_types
                         .content_types[#idx]
                         .as_ref()
-                        .unwrap();
+                        .expect("no content type specified");
 
                     let context = __tw::response::Context::new(
                         &self.inner.serializer,

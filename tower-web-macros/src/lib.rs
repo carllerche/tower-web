@@ -10,9 +10,9 @@ extern crate proc_macro2;
 extern crate quote;
 extern crate syn;
 
+mod derive;
 mod header;
 mod resource;
-mod response;
 
 use proc_macro::TokenStream;
 
@@ -31,19 +31,24 @@ proc_macro_item_impl! {
     }
 }
 
+#[proc_macro_derive(Extract, attributes(web))]
+pub fn derive_extract(input: TokenStream) -> TokenStream {
+    // Parse the input to `DeriveInput`
+    let input = syn::parse(input).unwrap();
+
+    derive::expand_derive_extract(input)
+        .unwrap_or_else(compile_error)
+        .into()
+}
+
 #[proc_macro_derive(Response, attributes(web))]
 pub fn derive_response(input: TokenStream) -> TokenStream {
     // Parse the input to `DeriveInput`
     let input = syn::parse(input).unwrap();
 
-    let output = response::expand_derive_response(input)
-        .unwrap_or_else(compile_error);
-
-    println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-    println!("{}", output);
-    println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-
-    output.into()
+    derive::expand_derive_response(input)
+        .unwrap_or_else(compile_error)
+        .into()
 }
 
 fn compile_error(message: String) -> proc_macro2::TokenStream {

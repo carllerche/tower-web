@@ -1,4 +1,5 @@
 use extract::{Extract, ExtractFuture, Error, Context};
+use util::BufStream;
 
 use futures::{Async, Poll};
 
@@ -7,14 +8,14 @@ pub struct ExtractOptionFuture<T> {
     none: bool,
 }
 
-impl<T> Extract for Option<T>
-where T: Extract,
+impl<T, B: BufStream> Extract<B> for Option<T>
+where T: Extract<B>,
 {
     type Future = ExtractOptionFuture<T::Future>;
 
-    fn into_future(ctx: &Context) -> Self::Future {
+    fn extract(ctx: &Context) -> Self::Future {
         ExtractOptionFuture {
-            inner: T::into_future(ctx),
+            inner: T::extract(ctx),
             none: false,
         }
     }

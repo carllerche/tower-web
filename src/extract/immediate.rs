@@ -7,12 +7,18 @@ pub struct Immediate<T> {
 }
 
 impl<T> Immediate<T> {
-    pub fn ok(value: T) -> Immediate<T> {
-        Immediate { inner: Ok(value) }
+    pub fn new(result: Result<T, Error>) -> Immediate<T> {
+        Immediate {
+            inner: result.map_err(Some),
+        }
     }
 
-    pub fn error(error: Error) -> Immediate<T> {
-        Immediate { inner: Err(Some(error)) }
+    pub fn ok(value: T) -> Immediate<T> {
+        Immediate::new(Ok(value))
+    }
+
+    pub fn err(error: Error) -> Immediate<T> {
+        Immediate::new(Err(error))
     }
 }
 
