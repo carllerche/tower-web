@@ -514,8 +514,12 @@ impl Resource {
         self.routes_ty(|route| {
             let ty = &route.ret;
 
-            quote! {
-                __tw::response::MapErr<<#ty as __tw::codegen::futures::IntoFuture>::Future>
+            if route.box_ret {
+                quote! { #ty }
+            } else {
+                quote! {
+                    __tw::response::MapErr<<#ty as __tw::codegen::futures::IntoFuture>::Future>
+                }
             }
         })
     }
