@@ -3,6 +3,7 @@ use util::BufStream;
 
 use bytes::Buf;
 use http::{self, header};
+use tokio::fs;
 
 use std::io;
 
@@ -54,5 +55,18 @@ where T: BufStream,
 
     fn into_http<S: Serializer>(self, _: &Context<S>) -> http::Response<Self::Body> {
         self.map(MapErr::new)
+    }
+}
+
+impl Response for fs::File {
+    type Buf = io::Cursor<Vec<u8>>;
+    type Body = MapErr<Self>;
+
+    fn into_http<S: Serializer>(self, context: &Context<S>) -> http::Response<Self::Body> {
+        http::Response::builder()
+            .status(200)
+            .header(header::CONTENT_TYPE, context.content_type())
+            .body(MapErr::new(self))
+            .unwrap()
     }
 }

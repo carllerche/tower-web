@@ -2,6 +2,7 @@ use super::{Chain, Collect, FromBufStream, SizeHint};
 
 use bytes::{Buf, Bytes};
 use futures::Poll;
+use tokio::fs;
 
 use std::io;
 
@@ -83,5 +84,22 @@ impl BufStream for Bytes {
         let buf = io::Cursor::new(bytes);
 
         Ok(Some(buf).into())
+    }
+}
+
+impl BufStream for fs::File {
+    type Item = io::Cursor<Vec<u8>>;
+    type Error = io::Error;
+
+    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
+        use tokio::io::AsyncRead;
+
+        let mut v = Vec::new();
+        let len = try_ready!(self.read_buf(&mut v));
+        if len == 0 {
+            Ok(::futures::Async::Ready(None))
+        } else {
+            Ok(::futures::Async::Ready(Some(io::Cursor::new(v))))
+        }
     }
 }
