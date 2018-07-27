@@ -115,7 +115,7 @@ impl_web! {
         //
         /// @post("/print_std")
         /// @content_type("plain")
-        fn upload(&self) -> Result<&'static str, ()> {
+        fn print_std(&self) -> Result<&'static str, ()> {
             println!("Hello from the web");
             Ok("done")
         }
