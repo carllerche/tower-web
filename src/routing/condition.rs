@@ -67,7 +67,7 @@ impl Segments {
 
     /// Test the path component of a request
     fn test(&self, mut path: &str) -> Option<Params> {
-        if !path.is_empty() && &path[path.len() - 1..path.len()] == "/" {
+        if path.ends_with("/") {
             path = &path[0..path.len() - 1];
         }
 
