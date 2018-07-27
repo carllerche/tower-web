@@ -32,13 +32,10 @@ where
 {
     /// Match a request against a route set
     pub(crate) fn test(&self, request: &Request<()>) -> Option<(T, Params)> {
-        for route in &self.routes {
-            if let Some(m) = route.test(request) {
-                return Some(m);
-            }
-        }
-
-        None
+        self.routes
+            .iter()
+            .flat_map(|route| route.test(request))
+            .next()
     }
 }
 
