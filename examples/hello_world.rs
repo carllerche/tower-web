@@ -1,7 +1,9 @@
 #[macro_use]
 extern crate tower_web;
+extern crate tokio;
 
 use tower_web::ServiceBuilder;
+use tokio::prelude::*;
 
 #[derive(Clone, Debug)]
 pub struct HelloWorld;
@@ -44,11 +46,36 @@ struct MyArg {
 
 impl_web! {
     impl HelloWorld {
-        /// @get("/hello-qs")
+        /// @get("/")
         /// @content_type("plain")
-        fn hello_qs(&self, query_string: MyArg) -> Result<String, ()> {
+        fn hello_world(&self) -> Result<&'static str, ()> {
+            Ok("This is a basic response served by tower-web")
+        }
+
+        /// @get("/hello-string")
+        /// @content_type("plain")
+        fn hello_string(&self) -> Result<String, ()> {
+            Ok("You can also respond with an owned String".to_string())
+        }
+
+        /// @get("/hello-future")
+        /// @content_type("plain")
+        fn hello_future(&self) -> impl Future<Item = String, Error = ()> + Send {
+            future::ok("Or return a future that resolves to the response".to_string())
+        }
+
+        /// @get("/hello-query-string")
+        /// @content_type("plain")
+        fn hello_query_string(&self, query_string: Option<MyArg>) -> Result<String, ()> {
             println!("QUERY: {:?}", query_string);
-            Ok("We have received the query".to_string())
+            Ok(format!("We received the query {:?}", query_string))
+        }
+
+        /// @get("/hello-query-string-required")
+        /// @content_type("plain")
+        fn hello_query_string_required(&self, query_string: MyArg) -> Result<String, ()> {
+            println!("QUERY: {:?}", query_string);
+            Ok(format!("We received the query {:?}", query_string))
         }
 
         /// @post("/users")
@@ -135,7 +162,8 @@ impl_web! {
 */
 
 pub fn main() {
-    let addr = "127.0.0.1:8080".parse().unwrap();
+    let addr = "127.0.0.1:8080".parse().expect("Invalid address");
+    println!("Listening on http://{}", addr);
 
     ServiceBuilder::new()
         .resource(HelloWorld)
