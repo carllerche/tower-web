@@ -1,9 +1,12 @@
 mod buf_stream;
+mod bytes;
 pub mod chain;
 mod collect;
+mod file;
 mod from;
 pub mod size_hint;
 mod std;
+mod str;
 
 pub use self::buf_stream::BufStream;
 pub use self::chain::Chain;

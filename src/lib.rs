@@ -10,6 +10,8 @@ extern crate serde_json;
 extern crate serde_plain;
 extern crate serde_urlencoded;
 extern crate tokio;
+extern crate tokio_fs;
+extern crate tokio_io;
 extern crate tower_service;
 
 pub mod codegen;

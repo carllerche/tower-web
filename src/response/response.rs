@@ -1,7 +1,7 @@
 use response::{Context, Serializer, MapErr};
 use util::BufStream;
 
-use bytes::Buf;
+use bytes::{Buf, BytesMut};
 use http::{self, header};
 use tokio::fs;
 
@@ -59,7 +59,7 @@ where T: BufStream,
 }
 
 impl Response for fs::File {
-    type Buf = io::Cursor<Vec<u8>>;
+    type Buf = io::Cursor<BytesMut>;
     type Body = MapErr<Self>;
 
     fn into_http<S: Serializer>(self, context: &Context<S>) -> http::Response<Self::Body> {

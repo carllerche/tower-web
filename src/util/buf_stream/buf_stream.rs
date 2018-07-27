@@ -1,10 +1,7 @@
 use super::{Chain, Collect, FromBufStream, SizeHint};
 
-use bytes::{Buf, Bytes};
+use bytes::Buf;
 use futures::Poll;
-use tokio::fs;
-
-use std::io;
 
 pub trait BufStream {
     type Item: Buf;
@@ -30,76 +27,5 @@ pub trait BufStream {
         T: FromBufStream,
     {
         Collect::new(self)
-    }
-}
-
-impl BufStream for String {
-    type Item = io::Cursor<Vec<u8>>;
-    type Error = ();
-
-    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        use std::mem;
-
-        if self.is_empty() {
-            return Ok(None.into());
-        }
-
-        let bytes = mem::replace(self, String::new()).into_bytes();
-        let buf = io::Cursor::new(bytes);
-
-        Ok(Some(buf).into())
-    }
-}
-
-impl BufStream for &'static str {
-    type Item = io::Cursor<&'static [u8]>;
-    type Error = ();
-
-    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        use std::mem;
-
-        if self.is_empty() {
-            return Ok(None.into());
-        }
-
-        let bytes = mem::replace(self, "").as_bytes();
-        let buf = io::Cursor::new(bytes);
-
-        Ok(Some(buf).into())
-    }
-}
-
-impl BufStream for Bytes {
-    type Item = io::Cursor<Bytes>;
-    type Error = ();
-
-    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        use std::mem;
-
-        if self.is_empty() {
-            return Ok(None.into());
-        }
-
-        let bytes = mem::replace(self, Bytes::new());
-        let buf = io::Cursor::new(bytes);
-
-        Ok(Some(buf).into())
-    }
-}
-
-impl BufStream for fs::File {
-    type Item = io::Cursor<Vec<u8>>;
-    type Error = io::Error;
-
-    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        use tokio::io::AsyncRead;
-
-        let mut v = Vec::new();
-        let len = try_ready!(self.read_buf(&mut v));
-        if len == 0 {
-            Ok(::futures::Async::Ready(None))
-        } else {
-            Ok(::futures::Async::Ready(Some(io::Cursor::new(v))))
-        }
     }
 }
