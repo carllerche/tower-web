@@ -43,4 +43,11 @@ impl CallSite {
     pub(crate) fn source(&self) -> &Source {
         &self.source
     }
+
+    pub(crate) fn requires_body(&self) -> bool {
+        match self.source() {
+            Body => true,
+            _ => false,
+        }
+    }
 }

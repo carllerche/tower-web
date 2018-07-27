@@ -1,3 +1,4 @@
+mod bytes;
 mod context;
 mod error;
 mod immediate;
@@ -16,6 +17,9 @@ use util::BufStream;
 use futures::Poll;
 
 /// Extract a value from a request.
+///
+/// The trait is generic over `B: BufStream`, which represents the HTTP request
+/// body stream.
 pub trait Extract<B: BufStream>: 'static + Sized {
     type Future: ExtractFuture<Item = Self>;
 
