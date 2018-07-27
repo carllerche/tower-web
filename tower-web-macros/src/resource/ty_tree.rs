@@ -54,7 +54,7 @@ impl<'a> TyTree<'a, Arg> {
                         <#ty as __tw::extract::Extract<B>>::extract_body(&{
                             let callsite = &callsites.#index.0;
                             route_match.extract_context(callsite)
-                        }, body)
+                        }, body.take().unwrap())
                     } else {
                         <#ty as __tw::extract::Extract<B>>::extract(&{
                             let callsite = &callsites.#index.0;

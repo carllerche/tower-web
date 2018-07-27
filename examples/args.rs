@@ -1,24 +1,10 @@
-/// # Hello world service.
-///
-/// A simple service that demonstrates how to get started with `tower-web`.
-///
-/// # Overview
-///
-/// `tower-web` lets you define a web service using a "plain old Rust type"
-/// (PORT). The idea is to decouple all HTTP concepts from the business logic.
-/// This is achieved by using macros that inspect the handler functions on your
-/// PORT and generate a [Tower `Service`][service] implementation.
-///
-/// By doing this, `tower-web` also removes most of the boiler plate from
-/// implementing web apps.
-///
-/// [service]: https://github.com/tower-rs/tower
+/// Web service with handler arguments
 ///
 /// ## Usage
 ///
 /// Run the example:
 ///
-///     cargo run --example hello_world
+///     cargo run --example args
 ///
 /// Then send a request:
 ///
@@ -33,51 +19,70 @@ use tokio::prelude::*;
 
 /// This type will be the web service implementation.
 #[derive(Clone, Debug)]
-pub struct HelloWorld {
-    /// The message that will be included in the response to `/motd`.
-    motd: String,
-}
+pub struct ArgResource;
 
 impl_web! {
-    impl HelloWorld {
-        /// @get("/")
+    impl ArgResource {
+
+        // ===== Path arguments =====
+
+        // Arguments can be extracted from the request path. Segments in the
+        // path that start with `:` (`:param` in this example) are path parameters.
+        //
+        // This route will match all of the following paths:
+        //
+        // * /one/foo
+        // * /one/bar
+        // * /one/123
+        //
+        // The handler function is able to get access to the value of the
+        // parameter. It specifies a function argument of the same name as the
+        // path parameter. When the function is called by `tower-web`, the
+        // valuee of the parameter is passed in.
+        //
+        // The key is to realize that `tower-web` users function argument names
+        // to determine how to populate them.
+        //
+        /// @get("/one/:param")
         /// @content_type("plain")
-        fn hello_world(&self) -> Result<&'static str, ()> {
-            Ok("This is a basic response served by tower-web")
+        fn path_str(&self, param: String) -> Result<String, ()> {
+            Ok(format!("We received: {} in the path", param))
         }
 
-        /// @get("/motd")
+        // This route has two path parameters. Both are provided to the
+        // function. The function is not *required* to include them in the
+        // function argument list.
+        //
+        /// @get("/two/:foo/:bar")
         /// @content_type("plain")
-        fn motd(&self) -> Result<String, ()> {
-            // You can also respond with an owned `String`.
-            Ok(format!("MOTD: {}", self.motd))
+        fn path_multi_str(&self, foo: String, bar: String) -> Result<String, ()> {
+            Ok(format!("We received: {} and {} in the path", foo, bar))
         }
 
-        /// @get("/hello-future")
+        // The argument type is used to validate the arument. If `:num` is not a
+        // valid `u32` value, then the HTTP request will fail and a 400 bad
+        // request is returned as a response.
+        //
+        /// @get("/num/:num")
         /// @content_type("plain")
-        fn hello_future(&self) -> impl Future<Item = String, Error = ()> + Send {
-            future::ok("Or return a future that resolves to the response".to_string())
+        fn path_num(&self, num: u32) -> Result<String, ()> {
+            Ok(format!("We received: {} in the path", num))
         }
 
-        /// @get("/hello-query-string")
+        // ===== Query string arguments =====
+
+        // The HTTP request's query string is accessed by including an argument
+        // named `query_string`.
+        //
+        // The following two requests will succeed:
+        //
+        // curl -vv http://localhost:8080/query-string?foo
+        // curl -vv http://localhost:8080/query-string
+        //
+        /// @get("/query-string")
         /// @content_type("plain")
-        fn hello_query_string(&self, query_string: Option<MyArg>) -> Result<String, ()> {
-            println!("QUERY: {:?}", query_string);
+        fn hello_query_string(&self, query_string: String) -> Result<String, ()> {
             Ok(format!("We received the query {:?}", query_string))
-        }
-
-        /// @get("/hello-query-string-required")
-        /// @content_type("plain")
-        fn hello_query_string_required(&self, query_string: MyArg) -> Result<String, ()> {
-            println!("QUERY: {:?}", query_string);
-            Ok(format!("We received the query {:?}", query_string))
-        }
-
-        /// @post("/users")
-        /// @content_type("plain")
-        fn create_user(&self, body: User) -> Result<String, ()> {
-            println!("GOT = {:?}", body);
-            Ok("We have received the user".to_string())
         }
     }
 }
@@ -87,7 +92,7 @@ pub fn main() {
     println!("Listening on http://{}", addr);
 
     ServiceBuilder::new()
-        .resource(HelloWorld)
+        .resource(ArgResource)
         .run(&addr)
         .unwrap();
 }

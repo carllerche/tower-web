@@ -16,3 +16,6 @@ order:
   demonstrates how to get a basic web service running.
 
 * [`args`](args.rs) - Handler arguments are populated using the HTTP request.
+
+* [`derive_extract`](derive_extract.rs) - Custom type handler arguments are
+  populated using the HTTP request.

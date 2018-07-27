@@ -30,7 +30,12 @@ impl<B: BufStream> Extract<B> for String {
                 }
             }
             QueryString => {
-                unimplemented!();
+                let query = ctx.request().uri()
+                    .path_and_query()
+                    .and_then(|path_and_query| path_and_query.query())
+                    .unwrap_or("");
+
+                Immediate::ok(query.to_string())
             }
             Body => {
                 unimplemented!();

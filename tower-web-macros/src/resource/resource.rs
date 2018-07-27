@@ -193,6 +193,7 @@ impl Resource {
                     body: Self::RequestBody,
                 ) -> Self::Future
                 {
+                    let mut body = Some(body);
                     #dispatch_fn
                 }
             }
