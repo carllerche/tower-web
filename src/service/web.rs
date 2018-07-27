@@ -89,7 +89,7 @@ where
                     .dispatch(destination, route_match, body)
             }
             None => {
-                unimplemented!();
+                unimplemented!("No route matches {:?}", request);
             }
         }
     }
