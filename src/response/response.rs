@@ -1,11 +1,8 @@
 use response::{Context, Serializer, MapErr};
 use util::BufStream;
 
-use bytes::{Buf, BytesMut};
-use http::{self, header};
-use tokio::fs;
-
-use std::io;
+use bytes::Buf;
+use http;
 
 /// Types can be returned as responses to HTTP requests.
 pub trait Response {
@@ -19,34 +16,6 @@ pub trait Response {
     fn into_http<S: Serializer>(self, context: &Context<S>) -> http::Response<Self::Body>;
 }
 
-impl Response for String {
-    type Buf = io::Cursor<Vec<u8>>;
-    type Body = MapErr<String>;
-
-    fn into_http<S: Serializer>(self, context: &Context<S>) -> http::Response<Self::Body> {
-        http::Response::builder()
-            // Customize response
-            .status(200)
-            .header(header::CONTENT_TYPE, context.content_type())
-            .body(MapErr::new(self))
-            .unwrap()
-    }
-}
-
-impl Response for &'static str {
-    type Buf = io::Cursor<&'static [u8]>;
-    type Body = MapErr<&'static str>;
-
-    fn into_http<S: Serializer>(self, context: &Context<S>) -> http::Response<Self::Body> {
-        http::Response::builder()
-            // Customize response
-            .status(200)
-            .header(header::CONTENT_TYPE, context.content_type())
-            .body(MapErr::new(self))
-            .unwrap()
-    }
-}
-
 impl<T> Response for http::Response<T>
 where T: BufStream,
 {
@@ -55,18 +24,5 @@ where T: BufStream,
 
     fn into_http<S: Serializer>(self, _: &Context<S>) -> http::Response<Self::Body> {
         self.map(MapErr::new)
-    }
-}
-
-impl Response for fs::File {
-    type Buf = io::Cursor<BytesMut>;
-    type Body = MapErr<Self>;
-
-    fn into_http<S: Serializer>(self, context: &Context<S>) -> http::Response<Self::Body> {
-        http::Response::builder()
-            .status(200)
-            .header(header::CONTENT_TYPE, context.content_type())
-            .body(MapErr::new(self))
-            .unwrap()
     }
 }

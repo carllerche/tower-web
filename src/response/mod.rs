@@ -1,9 +1,11 @@
 mod context;
+mod file;
 mod future;
 mod map_err;
 mod response;
 mod serde;
 mod serializer;
+mod str;
 
 pub use self::context::Context;
 pub use self::future::ResponseFuture;
