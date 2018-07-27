@@ -28,6 +28,13 @@ impl Error {
         Error { kind: Invalid(reason.to_string()) }
     }
 
+    pub fn is_invalid_param(&self) -> bool {
+        match self.kind {
+            Invalid(_) => true,
+            _ => false,
+        }
+    }
+
     pub fn web(err: ::Error) -> Error {
         Error { kind: Web(err) }
     }
