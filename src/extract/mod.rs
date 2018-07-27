@@ -4,6 +4,7 @@ mod error;
 mod immediate;
 mod num;
 pub mod option;
+mod pathbuf;
 pub mod serde;
 mod str;
 
