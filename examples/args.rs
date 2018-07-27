@@ -59,12 +59,25 @@ impl_web! {
             future::ok("Or return a future that resolves to the response".to_string())
         }
 
-        // Other HTTP verbs are supported as well.
-
-        /// @post("/upload")
+        /// @get("/hello-query-string")
         /// @content_type("plain")
-        fn upload(&self, body: Vec<u8>) -> Result<&'static str, ()> {
-            unimplemented!();
+        fn hello_query_string(&self, query_string: Option<MyArg>) -> Result<String, ()> {
+            println!("QUERY: {:?}", query_string);
+            Ok(format!("We received the query {:?}", query_string))
+        }
+
+        /// @get("/hello-query-string-required")
+        /// @content_type("plain")
+        fn hello_query_string_required(&self, query_string: MyArg) -> Result<String, ()> {
+            println!("QUERY: {:?}", query_string);
+            Ok(format!("We received the query {:?}", query_string))
+        }
+
+        /// @post("/users")
+        /// @content_type("plain")
+        fn create_user(&self, body: User) -> Result<String, ()> {
+            println!("GOT = {:?}", body);
+            Ok("We have received the user".to_string())
         }
     }
 }
@@ -74,9 +87,7 @@ pub fn main() {
     println!("Listening on http://{}", addr);
 
     ServiceBuilder::new()
-        .resource(HelloWorld {
-            motd: "tower-web is amazing!!!".to_string(),
-        })
+        .resource(HelloWorld)
         .run(&addr)
         .unwrap();
 }

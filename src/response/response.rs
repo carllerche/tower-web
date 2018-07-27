@@ -7,6 +7,8 @@ use http;
 /// Types can be returned as responses to HTTP requests.
 pub trait Response {
     /// Data chunk type
+    ///
+    /// This type is always `Body::Buf`.
     type Buf: Buf;
 
     /// The HTTP response body type.
