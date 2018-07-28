@@ -21,6 +21,7 @@ struct Segments {
 enum Segment {
     Literal(String),
     Param,
+    Glob,
 }
 
 // ===== impl Condition =====
@@ -54,8 +55,12 @@ impl Segments {
 
         let segments = path.split("/")
             .map(|segment| {
-                if segment.chars().next() == Some(':') {
+                let c = segment.chars().next();
+
+                if c == Some(':') {
                     Segment::Param
+                } else if c == Some('*') {
+                    Segment::Glob
                 } else {
                     Segment::Literal(segment.to_string())
                 }
@@ -67,7 +72,7 @@ impl Segments {
 
     /// Test the path component of a request
     fn test(&self, mut path: &str) -> Option<Params> {
-        if !path.is_empty() && &path[path.len() - 1..path.len()] == "/" {
+        if path.ends_with("/") {
             path = &path[0..path.len() - 1];
         }
 
@@ -85,6 +90,14 @@ impl Segments {
                     let ptr = segment.as_ptr() as usize;
 
                     params.push((ptr - base, segment.len()));
+                }
+                Segment::Glob => {
+                    let ptr = segment.as_ptr() as usize;
+                    let start_offset = ptr - base;
+                    let len = path.len() - start_offset;
+                    params.push((start_offset, len));
+                    i += 1;
+                    break;
                 }
                 Segment::Literal(ref val) => {
                     if segment != val {
@@ -131,4 +144,56 @@ fn test_segments() {
     assert_eq!(params.len(), 2);
     assert_eq!(params.get(0, "/foo/bar"), "foo");
     assert_eq!(params.get(1, "/foo/bar"), "bar");
+}
+
+
+#[test]
+fn test_glob_segments() {
+    let glob = Segments::new("/*foo");
+
+    // I don't think this should be supported
+    // let path = "/";
+    // let params = glob.test(path).unwrap();
+    // assert_eq!(params.len(), 1);
+    // assert_eq!(params.get(0, path), "");
+
+    let path = "/alpha";
+    let params = glob.test(path).unwrap();
+    assert_eq!(params.len(), 1);
+    assert_eq!(params.get(0, path), "alpha");
+
+    let path = "/beta";
+    let params = glob.test(path).unwrap();
+    assert_eq!(params.len(), 1);
+    assert_eq!(params.get(0, path), "beta");
+
+    let path = "/alpha/beta";
+    let params = glob.test(path).unwrap();
+    assert_eq!(params.len(), 1);
+    assert_eq!(params.get(0, path), "alpha/beta");
+
+    let path = "/alpha/beta/gamma";
+    let params = glob.test(path).unwrap();
+    assert_eq!(params.len(), 1);
+    assert_eq!(params.get(0, path), "alpha/beta/gamma");
+}
+
+#[test]
+fn test_glob_and_parameter_segments() {
+    let glob = Segments::new("/:id/*foo");
+
+    assert!(glob.test("/42").is_none());
+    assert!(glob.test("/42/").is_none());
+
+    let path = "/42/a";
+    let params = glob.test(path).unwrap();
+    assert_eq!(params.len(), 2);
+    assert_eq!(params.get(0, path), "42");
+    assert_eq!(params.get(1, path), "a");
+
+    let path = "/42/a/b";
+    let params = glob.test(path).unwrap();
+    assert_eq!(params.len(), 2);
+    assert_eq!(params.get(0, path), "42");
+    assert_eq!(params.get(1, path), "a/b");
 }

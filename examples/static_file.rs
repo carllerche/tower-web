@@ -14,9 +14,26 @@ impl_web! {
         /// @get("/")
         /// @content_type("plain")
         fn index(&self) -> impl Future<Item = File, Error = io::Error> + Send {
-            let mut d = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-            d.push(file!());
-            File::open(d)
+            let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+            path.push(file!());
+            File::open(path)
+        }
+
+        /// @get("/unsafe-files/*relative_path")
+        /// @content_type("plain")
+        fn unsafe_files(&self, relative_path: String) -> impl Future<Item = File, Error = io::Error> + Send {
+            let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+            // String does no checks for path traversal; do not use this in production!
+            path.push(relative_path);
+            File::open(path)
+        }
+
+        /// @get("/files/*relative_path")
+        /// @content_type("plain")
+        fn files(&self, relative_path: PathBuf) -> impl Future<Item = File, Error = io::Error> + Send {
+            let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+            path.push(relative_path);
+            File::open(path)
         }
     }
 }

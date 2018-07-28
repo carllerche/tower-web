@@ -1,6 +1,7 @@
 #[derive(Debug)]
 pub(crate) struct Params {
-    /// Parameters extracted from the requet
+    /// Parameters extracted from the request
+    // (start offset, length)
     params: Vec<(usize, usize)>,
 }
 

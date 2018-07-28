@@ -159,7 +159,10 @@ impl Attributes {
                 //
                 // TODO: Validate param format
                 self.path_params = path.split("/")
-                    .filter(|segment| segment.chars().next() == Some(':'))
+                    .filter(|segment| {
+                        let c = segment.chars().next();
+                        c == Some(':') || c == Some('*')
+                    })
                     .map(|segment| segment[1..].to_string())
                     .collect();
 
