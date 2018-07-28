@@ -416,7 +416,7 @@ impl Resource {
         let init = self.routes.iter()
             .map(|route| {
                 if let Some(ref content_type) = route.rules.content_type {
-                    quote!(Some(serializer.lookup(#content_type).expect("unsupported format")))
+                    quote!(Some(serializer.lookup(#content_type).unwrap_or_else(|| panic!("unsupported format '{}'", #content_type))))
                 } else {
                     quote!(None)
                 }
