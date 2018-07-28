@@ -2,6 +2,7 @@ mod buf_stream;
 mod bytes;
 pub mod chain;
 mod collect;
+mod either;
 mod file;
 mod from;
 pub mod size_hint;
