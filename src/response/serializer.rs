@@ -36,11 +36,14 @@ enum Kind {
     Plain,
 }
 
+const CT_TEXT_PLAIN: &str = "text/plain";
+const CT_APPLICATION_JSON: &str = "application/json";
+
 impl DefaultSerializer {
     pub fn new() -> DefaultSerializer {
         DefaultSerializer {
-            plain: HeaderValue::from_static("text/plain"),
-            json: HeaderValue::from_static("application/json"),
+            plain: HeaderValue::from_static(CT_TEXT_PLAIN),
+            json: HeaderValue::from_static(CT_APPLICATION_JSON),
         }
     }
 }
@@ -50,8 +53,8 @@ impl Serializer for DefaultSerializer {
 
     fn lookup(&self, name: &str) -> Option<Self::ContentType> {
         match name {
-            "json" | "application/jsoon" => Some(ContentType::json()),
-            "plain" | "text/plain" => Some(ContentType::plain()),
+            "json" | CT_APPLICATION_JSON => Some(ContentType::json()),
+            "plain" | CT_TEXT_PLAIN => Some(ContentType::plain()),
             _ => None,
         }
     }
