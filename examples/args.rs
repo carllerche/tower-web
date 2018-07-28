@@ -1,5 +1,16 @@
 /// Web service with handler arguments
 ///
+/// ## Overview
+///
+/// Web handlers are "plain old Rust methods". `tower-web` will call them when a
+/// request is received that matches the route. The way to get information from
+/// the request is to use function arguments on the handler. The `impl_web!`
+/// macro will see these arguments and populate them with the appropriate data
+/// from the HTTP request.
+///
+/// `tower-web` uses the argument type to perform validation on the HTTP request
+/// and rejects requests that do not match with an HTTP 400 -- bad request.
+///
 /// ## Usage
 ///
 /// Run the example:
@@ -8,7 +19,7 @@
 ///
 /// Then send a request:
 ///
-///     curl -v http://localhost:8080/
+///     curl -v http://localhost:8080/one/world
 
 #[macro_use]
 extern crate tower_web;

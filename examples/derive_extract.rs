@@ -1,5 +1,10 @@
 /// Web service with a custom type argument.
 ///
+/// ## Overview
+///
+/// Custom types can be used as arguments to web handler functions.
+/// `[derive(Extract)]`.
+///
 /// ## Usage
 ///
 /// Run the example:
