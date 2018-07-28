@@ -32,6 +32,7 @@ mod pathbuf;
 #[doc(hidden)]
 pub mod serde;
 mod str;
+pub mod http_date_time;
 
 pub use self::error::Error;
 pub use self::context::Context;
