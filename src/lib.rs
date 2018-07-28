@@ -1,5 +1,6 @@
 extern crate atoi;
 extern crate bytes;
+extern crate chrono;
 #[macro_use]
 extern crate futures;
 extern crate http;

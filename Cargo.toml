@@ -23,6 +23,7 @@ tower-service = { git = "https://github.com/tower-rs/tower" }
 
 # Parsing params
 atoi = "0.2.3"
+chrono = "0.4.4"
 
 # Serializing responses, deserializing requests
 serde = "1.0.70"
