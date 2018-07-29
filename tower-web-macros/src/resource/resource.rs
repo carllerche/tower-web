@@ -184,7 +184,7 @@ impl Resource {
                 type Body = <Self::Future as __tw::service::HttpResponseFuture>::Item;
 
                 // Future representing processing the request.
-                type Future = DispatchFuture<S, B>;
+                type Future = ResponseFuture<S, B>;
 
                 fn dispatch(
                     &mut self,
@@ -198,7 +198,7 @@ impl Resource {
                 }
             }
 
-            pub struct DispatchFuture<S, B>
+            pub struct ResponseFuture<S, B>
             where S: __tw::response::Serializer,
                   B: __tw::util::BufStream,
             {
@@ -226,7 +226,7 @@ impl Resource {
                 Invalid(::std::marker::PhantomData<B>),
             }
 
-            impl<S, B> __tw::codegen::futures::Future for DispatchFuture<S, B>
+            impl<S, B> __tw::codegen::futures::Future for ResponseFuture<S, B>
             where S: __tw::response::Serializer,
                   B: __tw::util::BufStream,
             {
@@ -512,7 +512,7 @@ impl Resource {
             let state = State::Extract(either);
             let inner = self.inner.clone();
 
-            DispatchFuture {
+            ResponseFuture {
                 state,
                 inner,
                 _p: ::std::marker::PhantomData,
