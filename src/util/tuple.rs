@@ -62,7 +62,7 @@ impl<U> Chain<U> for () {
 }
 // ===== 1 =====
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum Either1<A> {
     A(A),
 }
@@ -220,7 +220,7 @@ where
 }
 // ===== 2 =====
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum Either2<A, B> {
     A(A),
     B(B),
@@ -399,7 +399,7 @@ where
 }
 // ===== 3 =====
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum Either3<A, B, C> {
     A(A),
     B(B),

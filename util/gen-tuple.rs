@@ -148,7 +148,7 @@ impl Either {
         println!("// ===== {} =====", self.level);
         println!("");
 
-        println!("#[derive(Clone)]");
+        println!("#[derive(Debug, Clone)]");
         println!("pub enum Either{}<{}> {{", self.level, gens);
 
         for n in 0..self.level {

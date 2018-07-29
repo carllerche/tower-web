@@ -49,7 +49,7 @@ pub struct StaticHeader {
 }
 
 #[derive(Debug, Response)]
-pub struct DynHeader1 {
+struct DynHeader1 {
     msg: &'static str,
 
     #[web(header)]

@@ -2,10 +2,12 @@ use util::BufStream;
 
 use futures::{Future, Poll};
 
+#[derive(Debug)]
 pub struct MapErr<T> {
     inner: State<T>,
 }
 
+#[derive(Debug)]
 enum State<T> {
     Inner(T),
     Immediate(Option<::Error>),

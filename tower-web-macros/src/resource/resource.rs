@@ -230,9 +230,7 @@ impl Resource {
             where S: __tw::response::Serializer,
                   B: __tw::util::BufStream,
             {
-                type Item = __tw::codegen::http::Response<
-                    <<#handler_future_ty as __tw::codegen::futures::Future>::Item as __tw::response::Response>::Body
-                >;
+                type Item = __tw::codegen::http::Response<ResponseBody>;
                 type Error = __tw::Error;
 
                 fn poll(&mut self) -> __tw::codegen::futures::Poll<Self::Item, Self::Error> {
@@ -258,6 +256,55 @@ impl Resource {
                             #match_extract
                         });
                     }
+                }
+            }
+
+            /// Response body
+            pub struct ResponseBody(<<#handler_future_ty as __tw::codegen::futures::Future>::Item as __tw::response::Response>::Body);
+
+            /// Response buf
+            pub struct ResponseBuf(<<#handler_future_ty as __tw::codegen::futures::Future>::Item as __tw::response::Response>::Buf);
+
+            impl __tw::util::BufStream for ResponseBody {
+                type Item = ResponseBuf;
+                type Error = __tw::Error;
+
+                fn poll(&mut self) -> __tw::codegen::futures::Poll<Option<Self::Item>, Self::Error> {
+                    let buf = try_ready!(self.0.poll());
+                    Ok(buf.map(ResponseBuf).into())
+                }
+
+                fn size_hint(&self) -> __tw::util::buf_stream::SizeHint {
+                    self.0.size_hint()
+                }
+            }
+
+            impl ::std::fmt::Debug for ResponseBody {
+                fn fmt(&self, fmt: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                    fmt.debug_struct("ResponseBody")
+                        .finish()
+                }
+            }
+
+            // TODO: Implement default fns
+            impl __tw::codegen::bytes::Buf for ResponseBuf {
+                fn remaining(&self) -> usize {
+                    self.0.remaining()
+                }
+
+                fn bytes(&self) -> &[u8] {
+                    self.0.bytes()
+                }
+
+                fn advance(&mut self, cnt: usize) {
+                    self.0.advance(cnt)
+                }
+            }
+
+            impl ::std::fmt::Debug for ResponseBuf {
+                fn fmt(&self, fmt: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                    fmt.debug_struct("ResponseBuf")
+                        .finish()
                 }
             }
         }
@@ -504,7 +551,7 @@ impl Resource {
                         content_type);
 
                     __tw::response::Response::into_http(response, &context)
-                        .map(|body| #map)
+                        .map(|body| ResponseBody(#map))
                 }
             }
         })
