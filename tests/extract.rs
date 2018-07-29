@@ -20,6 +20,14 @@ pub struct Foo2 {
     foo: Option<String>,
 }
 
+#[derive(Debug, Extract)]
+pub struct FooWrap(Inner);
+
+#[derive(Debug, Deserialize)]
+pub struct Inner {
+    foo: String,
+}
+
 impl_web! {
     impl TestExtract {
         /// @get("/extract_query")
@@ -27,6 +35,13 @@ impl_web! {
         fn extract_query(&self, query_string: Foo) -> Result<&'static str, ()> {
             assert_eq!(query_string.foo, "bar");
             Ok("extract_query")
+        }
+
+        /// @get("/extract_query_wrap")
+        /// @content_type("plain")
+        fn extract_query_wrap(&self, query_string: FooWrap) -> Result<&'static str, ()> {
+            assert_eq!(query_string.0.foo, "bar");
+            Ok("extract_query_wrap")
         }
 
         /// @get("/extract_query_missing_ok")
@@ -45,6 +60,13 @@ impl_web! {
         fn extract_body(&self, body: Foo) -> Result<&'static str, ()> {
             assert_eq!(body.foo, "body bar");
             Ok("extract_body")
+        }
+
+        /// @post("/extract_body_wrap")
+        /// @content_type("plain")
+        fn extract_body_wrap(&self, body: FooWrap) -> Result<&'static str, ()> {
+            assert_eq!(body.0.foo, "body bar");
+            Ok("extract_body_wrap")
         }
     }
 }
@@ -68,6 +90,16 @@ fn extract_query_missing_not_ok() {
 }
 
 #[test]
+#[ignore]
+fn extract_query_wrap() {
+    let mut web = service(TestExtract);
+
+    let response = web.call_unwrap(get!("/extract_query_wrap?foo=bar"));
+    assert_ok!(response);
+    assert_body!(response, "extract_query");
+}
+
+#[test]
 fn extract_query_missing_ok() {
     let mut web = service(TestExtract);
 
@@ -85,4 +117,15 @@ fn extract_body_json_success() {
     let response = web.call_unwrap(post!("/extract_body", body, "content-type": "application/json"));
     assert_ok!(response);
     assert_body!(response, "extract_body");
+}
+
+#[test]
+fn extract_body_wrap_json_success() {
+    let mut web = service(TestExtract);
+
+    let body = r#"{"foo":"body bar"}"#;
+
+    let response = web.call_unwrap(post!("/extract_body_wrap", body, "content-type": "application/json"));
+    assert_ok!(response);
+    assert_body!(response, "extract_body_wrap");
 }

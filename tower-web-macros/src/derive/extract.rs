@@ -11,9 +11,6 @@ pub(crate) struct Extract {
 
     /// Data (struct / enum) definition to interface with `serde`
     shadow_ty: DeriveInput,
-
-    /// List of fields on the shadow type
-    shadow_fields: Vec<syn::Ident>,
 }
 
 impl Extract {
@@ -30,7 +27,6 @@ impl Extract {
             Span::call_site());
 
         let mut fold_shadow_ty = FoldShadowTy {
-            src_fields: vec![],
             err: None,
         };
 
@@ -48,7 +44,6 @@ impl Extract {
             ty,
             vis,
             shadow_ty: output,
-            shadow_fields: fold_shadow_ty.src_fields,
         })
     }
 
@@ -58,8 +53,7 @@ impl Extract {
         let vis = &self.vis;
         let shadow_ty = &self.shadow_ty.ident;
         let shadow_def = self.shadow_def();
-        let fields_1 = &self.shadow_fields;
-        let fields_2 = &self.shadow_fields;
+        let from_shadow = self.from_shadow();
 
         Ok(quote! {
             #[allow(unused_variables, non_upper_case_globals)]
@@ -111,10 +105,7 @@ impl Extract {
 
                     fn extract(self) -> Self::Item {
                         let shadow = self.inner.extract();
-
-                        #ty {
-                            #(#fields_1: shadow.#fields_2,)*
-                        }
+                        #from_shadow
                     }
                 }
             };
@@ -135,13 +126,60 @@ impl Extract {
             &format!("__IMPL_EXTRACT_FOR_{}", self.ty),
             Span::call_site())
     }
+
+    fn from_shadow(&self) -> TokenStream {
+        use syn::Data;
+
+        match self.shadow_ty.data {
+            Data::Struct(ref data_struct) => {
+                from_shadow_struct(&self.ty, data_struct)
+            }
+            _ => unimplemented!(),
+        }
+    }
+}
+
+fn from_shadow_struct(
+    ty: &syn::Ident,
+    data_struct: &syn::DataStruct) -> TokenStream
+{
+    use syn::Fields;
+
+    match data_struct.fields {
+        Fields::Named(ref fields) => {
+            let idents: Vec<_> = fields.named.iter()
+                .map(|f| f.ident.as_ref().unwrap())
+                .collect();
+
+            let fields_1 = &idents;
+            let fields_2 = &idents;
+
+            quote! {
+                #ty {
+                    #(#fields_1: shadow.#fields_2,)*
+                }
+            }
+        }
+        Fields::Unnamed(ref fields) => {
+            let fields = fields.unnamed.iter().enumerate()
+                .map(|(i, _)| {
+                    syn::LitInt::new(
+                        i as u64,
+                        syn::IntSuffix::None,
+                        Span::call_site())
+                });
+
+            quote! {
+                #ty(
+                    #(shadow.#fields,)*
+                )
+            }
+        }
+        Fields::Unit => unimplemented!(),
+    }
 }
 
 struct FoldShadowTy {
-    /// Fields in original structure to use when converting to the shadow
-    /// structure.
-    src_fields: Vec<syn::Ident>,
-
     /// Any error encountered
     err: Option<String>,
 }
@@ -171,12 +209,11 @@ impl syn::fold::Fold for FoldShadowTy {
         let named = mem::replace(&mut fields.named, Punctuated::new());
 
         for field in named {
-            assert!(field.ident.is_some(), "unimplemented: fields with no name");
+            assert!(field.ident.is_some(), "unimplemented: named fields with no name");
 
             let attrs = try!(Attribute::from_ast(&field.attrs));
 
             if attrs.is_empty() {
-                self.src_fields.push(field.ident.clone().unwrap());
                 fields.named.push(field);
             } else {
                 unimplemented!();
@@ -186,7 +223,41 @@ impl syn::fold::Fold for FoldShadowTy {
         fields
     }
 
-    fn fold_fields_unnamed(&mut self, _: syn::FieldsUnnamed) -> syn::FieldsUnnamed {
-        unimplemented!("file={}; line={}", file!(), line!());
+    fn fold_fields_unnamed(&mut self, mut fields: syn::FieldsUnnamed) -> syn::FieldsUnnamed {
+        use syn::punctuated::Punctuated;
+        use std::mem;
+
+        macro_rules! try {
+            ($e:expr) => {{
+                match $e {
+                    Ok(ret) => ret,
+                    Err(err) => {
+                        self.err = Some(err);
+                        return fields;
+                    }
+                }
+            }}
+        }
+
+        // If an error has previously been encountered, do not do any work.
+        if self.err.is_some() {
+            return fields;
+        }
+
+        let unnamed = mem::replace(&mut fields.unnamed, Punctuated::new());
+
+        for field in unnamed {
+            assert!(field.ident.is_none(), "unimplemented: unnamed fields with name");
+
+            let attrs = try!(Attribute::from_ast(&field.attrs));
+
+            if attrs.is_empty() {
+                fields.unnamed.push(field);
+            } else {
+                unimplemented!();
+            }
+        }
+
+        fields
     }
 }
