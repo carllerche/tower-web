@@ -21,6 +21,9 @@ pub struct NestedResponse {
 }
 
 #[derive(Debug, Response)]
+pub struct WrappedNestedResponse(Inner);
+
+#[derive(Debug, Serialize)]
 struct Inner {
     msg: &'static str,
 }
@@ -79,6 +82,14 @@ impl_web! {
                     msg: "nested",
                 }
             })
+        }
+
+        /// @get("/wrapped_nested")
+        /// @content_type("json")
+        fn wrapped_nested(&self) -> Result<WrappedNestedResponse, ()> {
+            Ok(WrappedNestedResponse(Inner {
+                msg: "nested",
+            }))
         }
 
         /// @get("/http_response")
@@ -150,6 +161,15 @@ fn nested() {
     let response = web.call_unwrap(get!("/nested"));
     assert_ok!(response);
     assert_body!(response, "{\"inner\":{\"msg\":\"nested\"}}");
+}
+
+#[test]
+fn wrapped_nested() {
+    let mut web = service(TestResponse);
+
+    let response = web.call_unwrap(get!("/wrapped_nested"));
+    assert_ok!(response);
+    assert_body!(response, "{\"msg\":\"nested\"}");
 }
 
 #[test]

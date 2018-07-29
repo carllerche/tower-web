@@ -82,7 +82,7 @@ impl Response {
 
         // Walks the `DeriveInput` syntax tree, observing and transforming.
         let mut fold_shadow_ty = FoldShadowTy {
-            src_fields: vec![],
+            src_fields: None,
             status_field: None,
             header_fields: vec![],
             err: None,
@@ -233,10 +233,32 @@ impl Response {
     }
 }
 
+impl Fields {
+    /// # Panics
+    ///
+    /// Panics if `self` represents unnamed fields
+    fn named(&mut self) -> &mut Vec<syn::Ident> {
+        match *self {
+            Fields::Named(ref mut s) => s,
+            _ => panic!(),
+        }
+    }
+
+    /// # Panics
+    ///
+    /// Panics if `self` represents named fields
+    fn unnamed(&mut self) -> &mut Vec<syn::LitInt> {
+        match *self {
+            Fields::Unnamed(ref mut s) => s,
+            _ => panic!(),
+        }
+    }
+}
+
 struct FoldShadowTy {
     /// Fields in original structure to use when converting to the shadow
     /// structure.
-    src_fields: Vec<syn::Ident>,
+    src_fields: Option<Fields>,
 
     /// Field representing the HTTP status code
     status_field: Option<syn::Ident>,
@@ -246,6 +268,11 @@ struct FoldShadowTy {
 
     /// Any error encountered
     err: Option<String>,
+}
+
+enum Fields {
+    Named(Vec<syn::Ident>),
+    Unnamed(Vec<syn::LitInt>),
 }
 
 impl syn::fold::Fold for FoldShadowTy {
@@ -278,7 +305,11 @@ impl syn::fold::Fold for FoldShadowTy {
             let attrs = try!(Attribute::from_ast(&field.attrs));
 
             if attrs.is_empty() {
-                self.src_fields.push(field.ident.clone().unwrap());
+                self.src_fields
+                    .get_or_insert_with(|| Fields::Named(vec![]))
+                    .named()
+                    .push(field.ident.clone().unwrap());
+
                 fields.named.push(field);
             } else {
                 for attr in attrs {
@@ -330,7 +361,51 @@ impl syn::fold::Fold for FoldShadowTy {
         fields
     }
 
-    fn fold_fields_unnamed(&mut self, _: syn::FieldsUnnamed) -> syn::FieldsUnnamed {
-        unimplemented!("file={}; line={}", file!(), line!());
+    fn fold_fields_unnamed(&mut self, mut fields: syn::FieldsUnnamed) -> syn::FieldsUnnamed {
+        use syn::punctuated::Punctuated;
+        use std::mem;
+
+        macro_rules! try {
+            ($e:expr) => {{
+                match $e {
+                    Ok(ret) => ret,
+                    Err(err) => {
+                        self.err = Some(err);
+                        return fields;
+                    }
+                }
+            }}
+        }
+
+
+        if self.err.is_some() {
+            return fields;
+        }
+
+        let unnamed = mem::replace(&mut fields.unnamed, Punctuated::new());
+
+        for (i, field) in unnamed.into_iter().enumerate() {
+            assert!(field.ident.is_none(), "unimplemented: field with name");
+
+            let attrs = try!(Attribute::from_ast(&field.attrs));
+
+            if attrs.is_empty() {
+                let index = syn::LitInt::new(
+                    i as u64,
+                    syn::IntSuffix::None,
+                    Span::call_site());
+
+                self.src_fields
+                    .get_or_insert_with(|| Fields::Unnamed(vec![]))
+                    .unnamed()
+                    .push(index);
+
+                fields.unnamed.push(field);
+            } else {
+                unimplemented!("file={}; line={}", file!(), line!());
+            }
+        }
+
+        fields
     }
 }
