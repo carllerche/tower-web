@@ -1,4 +1,4 @@
-use super::{CorsFilter, Config};
+use super::{CorsMiddleware, Config};
 
 use http;
 
@@ -28,9 +28,9 @@ impl CorsBuilder {
         }
     }
 
-    /// Build a `CorsFilter` instance.
-    pub fn build(&self) -> CorsFilter {
-        CorsFilter::new(self.config.clone())
+    /// Build a `CorsMiddleware` instance.
+    pub fn build(&self) -> CorsMiddleware {
+        CorsMiddleware::new(self.config.clone())
     }
 }
 

@@ -1,5 +1,5 @@
 use super::{CorsService, Config};
-use middleware::Filter;
+use middleware::Middleware;
 
 use http;
 use tower_service::Service;
@@ -7,18 +7,18 @@ use tower_service::Service;
 use std::sync::Arc;
 
 #[derive(Debug)]
-pub struct CorsFilter {
+pub struct CorsMiddleware {
     config: Arc<Config>,
 }
 
-impl CorsFilter {
-    pub(super) fn new(config: Config) -> CorsFilter {
+impl CorsMiddleware {
+    pub(super) fn new(config: Config) -> CorsMiddleware {
         let config = Arc::new(config);
-        CorsFilter { config }
+        CorsMiddleware { config }
     }
 }
 
-impl<S, RequestBody, ResponseBody> Filter<S> for CorsFilter
+impl<S, RequestBody, ResponseBody> Middleware<S> for CorsMiddleware
 where S: Service<Request = http::Request<RequestBody>,
                 Response = http::Response<ResponseBody>>,
 {

@@ -1,4 +1,7 @@
 pub mod cors;
-pub mod filter;
 
-pub use self::filter::Filter;
+mod chain;
+mod middleware;
+
+pub use self::chain::Chain;
+pub use self::middleware::Middleware;

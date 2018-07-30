@@ -1,12 +1,12 @@
-use super::Filter;
+use super::Middleware;
 
 use tower_service::Service;
 
 use std::marker::PhantomData;
 
-/// Two filters chained together.
+/// Two middlewares chained together.
 ///
-/// This type is produced by `Filter::chain`.
+/// This type is produced by `Middleware::chain`.
 pub struct Chain<S, Inner, Outer>
 {
     inner: Inner,
@@ -25,10 +25,10 @@ impl<S, Inner, Outer> Chain<S, Inner, Outer> {
     }
 }
 
-impl<S, Inner, Outer> Filter<S> for Chain<S, Inner, Outer>
+impl<S, Inner, Outer> Middleware<S> for Chain<S, Inner, Outer>
 where S: Service,
-      Inner: Filter<S>,
-      Outer: Filter<Inner::Service>,
+      Inner: Middleware<S>,
+      Outer: Middleware<Inner::Service>,
 {
     type Service = Outer::Service;
 

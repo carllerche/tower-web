@@ -47,9 +47,7 @@ where
     T: Resource,
     ReqBody: BufStream,
 {
-    pub(crate) fn new(resource: T, routes: RouteSet<T::Destination>) -> Self {
-        let routes = Arc::new(routes);
-
+    pub(crate) fn new(resource: T, routes: Arc<RouteSet<T::Destination>>) -> Self {
         WebService {
             resource,
             routes,

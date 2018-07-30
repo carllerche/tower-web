@@ -54,6 +54,7 @@ where S: Serializer,
     fn into_resource(self, serializer: S) -> Self::Resource;
 }
 
+/// TODO: Where to put this type?
 pub struct Unit<B> {
     _p: PhantomData<B>,
 }

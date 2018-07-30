@@ -5,6 +5,7 @@ use util::{BufStream, Chain};
 use std::io;
 use std::marker::PhantomData;
 use std::net::SocketAddr;
+use std::sync::Arc;
 
 /// Builds a web service
 #[derive(Debug)]
@@ -44,8 +45,11 @@ where
 {
     /// Build a service instance.
     pub fn build(self) -> WebService<T::Resource, RequestBody> {
-        let routes = self.resource.routes();
-        WebService::new(self.resource.into_resource(DefaultSerializer::new()), routes)
+        let routes = Arc::new(self.resource.routes());
+
+        WebService::new(
+            self.resource.into_resource(DefaultSerializer::new()),
+            routes)
     }
 }
 
