@@ -1,9 +1,8 @@
 use codegen::CallSite;
 use extract::{Context, Error, ExtractFuture};
-use util::BufStream;
+use util::buf_stream::{self, BufStream};
 
-use bytes::{BytesMut, BufMut};
-use futures::Poll;
+use futures::{Future, Poll};
 use serde::de::DeserializeOwned;
 use serde_urlencoded;
 
@@ -18,10 +17,7 @@ pub struct SerdeFuture<T, B> {
 
 enum State<T, B> {
     Complete(Result<T, Option<Error>>),
-    Body {
-        buffer: BytesMut,
-        body: B,
-    }
+    Body(buf_stream::Collect<B, Vec<u8>>),
 }
 
 pub fn requires_body(callsite: &CallSite) -> bool {
@@ -107,8 +103,7 @@ where T: DeserializeOwned,
                         .unwrap_or(false)
                 });
 
-                let buffer = BytesMut::new();
-                let state = State::Body { buffer, body };
+                let state = State::Body(body.collect());
 
                 SerdeFuture { state }
             }
@@ -136,22 +131,18 @@ where T: DeserializeOwned,
                 Complete(Ok(_)) => {
                     return Ok(().into());
                 }
-                Body { ref mut buffer, ref mut body } => {
-                    loop {
-                        let res = body.poll()
-                            .map_err(|_| Error::internal_error());
+                Body(ref mut collect) => {
+                    let res = collect.poll()
+                        // TODO: Is there a better way to handle errors?
+                        .map_err(|_| Error::internal_error());
 
-                        match try_ready!(res) {
-                            Some(buf) => buffer.put(buf),
-                            None => break,
-                        }
-                    }
+                    let res = try_ready!(res);
 
                     // And here we deserialize, but we have not determined the
                     // content type yet :(
                     //
                     // TODO: Make content type pluggable
-                    ::serde_json::from_slice(&buffer[..])
+                    ::serde_json::from_slice(&res[..])
                         .map_err(|_| {
                             // TODO: Handle error better
                             Some(Error::internal_error())
