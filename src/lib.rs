@@ -16,6 +16,7 @@ extern crate tower_service;
 
 pub mod codegen;
 pub mod extract;
+pub mod middleware;
 pub mod response;
 pub mod routing;
 pub mod service;
