@@ -10,6 +10,8 @@ use std::marker::PhantomData;
 use std::sync::Arc;
 
 /// Web service
+///
+/// TODO: Is `ReqBody` needed??
 #[derive(Debug)]
 pub struct WebService<T, ReqBody>
 where

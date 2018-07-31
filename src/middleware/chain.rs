@@ -30,6 +30,9 @@ where S: Service,
       Inner: Middleware<S>,
       Outer: Middleware<Inner::Service>,
 {
+    type Request = Outer::Request;
+    type Response = Outer::Response;
+    type Error = Outer::Error;
     type Service = Outer::Service;
 
     fn wrap(&self, service: S) -> Self::Service {

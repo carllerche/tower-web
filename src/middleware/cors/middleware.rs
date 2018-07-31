@@ -22,6 +22,9 @@ impl<S, RequestBody, ResponseBody> Middleware<S> for CorsMiddleware
 where S: Service<Request = http::Request<RequestBody>,
                 Response = http::Response<ResponseBody>>,
 {
+    type Request = http::Request<RequestBody>;
+    type Response = http::Response<ResponseBody>;
+    type Error = S::Error;
     type Service = CorsService<S>;
 
     fn wrap(&self, service: S) -> Self::Service {

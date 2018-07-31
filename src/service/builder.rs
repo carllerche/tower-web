@@ -1,3 +1,4 @@
+use middleware::Identity;
 use response::DefaultSerializer;
 use service::{Resource, IntoResource, WebService};
 use util::{BufStream, Chain};
@@ -8,39 +9,46 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 /// Builds a web service
+///
+/// TODO: Is `RequestBody` required here?
 #[derive(Debug)]
-pub struct ServiceBuilder<T, RequestBody> {
+pub struct ServiceBuilder<T, Middleware, RequestBody> {
     /// The inner resource
     resource: T,
+    middleware: Middleware,
     _p: PhantomData<RequestBody>,
 }
 
-impl<RequestBody> ServiceBuilder<(), RequestBody> {
+impl<RequestBody> ServiceBuilder<(), Identity, RequestBody> {
     /// Create a new `ServiceBuilder`
     pub fn new() -> Self {
         ServiceBuilder {
             resource: (),
+            middleware: Identity::new(),
             _p: PhantomData,
         }
     }
 }
 
-impl<T, RequestBody> ServiceBuilder<T, RequestBody> {
+impl<T, Middleware, RequestBody> ServiceBuilder<T, Middleware, RequestBody> {
     /// Add a resource handler.
-    pub fn resource<U>(self, resource: U) -> ServiceBuilder<<T as Chain<U>>::Output, RequestBody>
+    pub fn resource<U>(self, resource: U)
+        -> ServiceBuilder<<T as Chain<U>>::Output, Middleware, RequestBody>
     where
         T: Chain<U>,
     {
         ServiceBuilder {
             resource: self.resource.chain(resource),
+            middleware: self.middleware,
             _p: PhantomData,
         }
     }
 }
 
-impl<T, RequestBody> ServiceBuilder<T, RequestBody>
+impl<T, Middleware, RequestBody> ServiceBuilder<T, Middleware, RequestBody>
 where
     T: IntoResource<DefaultSerializer, RequestBody>,
+    // Middleware: Middleware<?>,
     RequestBody: BufStream,
 {
     /// Build a service instance.
@@ -53,7 +61,7 @@ where
     }
 }
 
-impl<T> ServiceBuilder<T, ::run::LiftReqBody>
+impl<T, M> ServiceBuilder<T, M, ::run::LiftReqBody>
 where
     T: IntoResource<DefaultSerializer, ::run::LiftReqBody>,
     T::Resource: Send + 'static,
