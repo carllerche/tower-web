@@ -9,7 +9,6 @@ use futures::future::{self, FutureResult};
 use http;
 use tower_service::NewService;
 
-use std::marker::PhantomData;
 use std::sync::Arc;
 
 /// Creates new `WebService` values.
@@ -17,7 +16,7 @@ use std::sync::Arc;
 /// Instances of this type are created by `ServiceBuilder`. A `NewWebService`
 /// instance is used to generate a `WebService` instance per connection.
 #[derive(Debug)]
-pub struct NewWebService<T, M, RequestBody>
+pub struct NewWebService<T, M>
 where
     T: Resource,
 {
@@ -30,16 +29,12 @@ where
     /// Route set. Processes request to determine how the resource will process
     /// it.
     routes: Arc<RouteSet<T::Destination>>,
-
-    /// The request body type.
-    _p: PhantomData<RequestBody>,
 }
 
-impl<T, M, RequestBody> NewWebService<T, M, RequestBody>
+impl<T, M> NewWebService<T, M>
 where
-    T: Resource<RequestBody = RequestBody>,
-    M: Middleware<WebService<T, RequestBody>>,
-    RequestBody: BufStream,
+    T: Resource,
+    M: Middleware<WebService<T>>,
 {
     /// Create a new `NewWebService` instance.
     pub(crate) fn new(resource: T,
@@ -53,16 +48,16 @@ where
             resource,
             middleware,
             routes,
-            _p: PhantomData,
         }
     }
 }
 
+/*
 impl<T, M, RequestBody, ResponseBody> NewService for NewWebService<T, M, RequestBody>
 where
     T: Resource<RequestBody = RequestBody>,
     M: Middleware<WebService<T, RequestBody>, Request = http::Request<RequestBody>,
-                                             Response = http::Response<ResponseBody>>,
+                                             Response = http::Response<>>,
     RequestBody: BufStream,
     ResponseBody: BufStream,
 {
@@ -83,3 +78,4 @@ where
         future::ok(service)
     }
 }
+*/

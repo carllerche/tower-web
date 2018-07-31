@@ -4,7 +4,6 @@ use service::{Resource, IntoResource, WebService};
 use util::{BufStream, Chain};
 
 use std::io;
-use std::marker::PhantomData;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
@@ -40,7 +39,7 @@ impl<T, Middleware> ServiceBuilder<T, Middleware> {
     }
 
     /// Build a service instance.
-    pub fn build<RequestBody>(self) -> WebService<T::Resource, RequestBody>
+    pub fn build<RequestBody>(self) -> WebService<T::Resource>
     where T: IntoResource<DefaultSerializer, RequestBody>,
           RequestBody: BufStream,
     {
