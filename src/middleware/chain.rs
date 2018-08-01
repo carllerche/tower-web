@@ -16,12 +16,20 @@ pub struct Chain<S, Inner, Outer>
 
 impl<S, Inner, Outer> Chain<S, Inner, Outer> {
     /// Create a new `Chain`.
-    pub(crate) fn new(inner: Inner, outer: Outer) -> Self {
+    pub fn new(inner: Inner, outer: Outer) -> Self {
         Chain {
             inner,
             outer,
             _p: PhantomData,
         }
+    }
+
+    pub fn get_inner(&self) -> &Inner {
+        &self.inner
+    }
+
+    pub fn get_outer(&self) -> &Outer {
+        &self.outer
     }
 }
 

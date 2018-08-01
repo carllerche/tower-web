@@ -1,4 +1,4 @@
-use middleware::Middleware;
+use middleware::{Middleware, Chain};
 use util::BufStream;
 
 use tower_service::{Service, NewService};
@@ -157,6 +157,13 @@ pub trait HttpMiddleware<S: HttpService>: sealed::Middleware<S> {
                                     Error = Self::Error>;
 
     fn wrap(&self, inner: S) -> Self::Service;
+
+    fn chain<T>(self, middleware: T) -> Chain<S, Self, T>
+    where T: HttpMiddleware<Self::Service>,
+          Self: Sized,
+    {
+        Chain::new(self, middleware)
+    }
 }
 
 pub struct LiftMiddleware<T> {
