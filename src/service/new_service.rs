@@ -1,7 +1,6 @@
 use Error;
-use middleware::Middleware;
 use routing::RouteSet;
-use service::{Resource, WebService};
+use service::{Resource, WebService, HttpMiddleware, HttpService, LiftService};
 use util::{BufStream, Never};
 
 use futures::Future;
@@ -34,7 +33,7 @@ where
 impl<T, M> NewWebService<T, M>
 where
     T: Resource,
-    M: Middleware<WebService<T>>,
+    M: HttpMiddleware<WebService<T>>,
 {
     /// Create a new `NewWebService` instance.
     pub(crate) fn new(resource: T,
@@ -52,19 +51,15 @@ where
     }
 }
 
-/*
-impl<T, M, RequestBody, ResponseBody> NewService for NewWebService<T, M, RequestBody>
+impl<T, M> NewService for NewWebService<T, M>
 where
-    T: Resource<RequestBody = RequestBody>,
-    M: Middleware<WebService<T, RequestBody>, Request = http::Request<RequestBody>,
-                                             Response = http::Response<>>,
-    RequestBody: BufStream,
-    ResponseBody: BufStream,
+    T: Resource,
+    M: HttpMiddleware<WebService<T>>,
 {
-    type Request = http::Request<RequestBody>;
-    type Response = M::Response;
+    type Request = http::Request<M::RequestBody>;
+    type Response = http::Response<M::ResponseBody>;
     type Error = M::Error;
-    type Service = M::Service;
+    type Service = LiftService<M::Service>;
     type InitError = Never;
     type Future = FutureResult<Self::Service, Self::InitError>;
 
@@ -75,7 +70,6 @@ where
                 self.routes.clone())
         });
 
-        future::ok(service)
+        future::ok(service.lift())
     }
 }
-*/

@@ -1,6 +1,6 @@
 use middleware::Identity;
 use response::DefaultSerializer;
-use service::{Resource, IntoResource, WebService};
+use service::{Resource, IntoResource, WebService, HttpService, NewWebService, HttpMiddleware};
 use util::{BufStream, Chain};
 
 use std::io;
@@ -25,10 +25,10 @@ impl ServiceBuilder<(), Identity> {
     }
 }
 
-impl<T, Middleware> ServiceBuilder<T, Middleware> {
+impl<T, M> ServiceBuilder<T, M> {
     /// Add a resource handler.
     pub fn resource<U>(self, resource: U)
-        -> ServiceBuilder<<T as Chain<U>>::Output, Middleware>
+        -> ServiceBuilder<<T as Chain<U>>::Output, M>
     where
         T: Chain<U>,
     {
@@ -38,29 +38,37 @@ impl<T, Middleware> ServiceBuilder<T, Middleware> {
         }
     }
 
-    /// Build a service instance.
-    pub fn build<RequestBody>(self) -> WebService<T::Resource>
+    /// Build a `NewWebService` instance
+    ///
+    /// This instance is used to generate service values.
+    pub fn build_new_service<RequestBody>(self) -> NewWebService<T::Resource, M>
     where T: IntoResource<DefaultSerializer, RequestBody>,
+          M: HttpMiddleware<WebService<T::Resource>>,
           RequestBody: BufStream,
     {
-        let routes = Arc::new(self.resource.routes());
+        // Build the routes
+        let routes = self.resource.routes();
+        let serializer = DefaultSerializer::new();
 
-        WebService::new(
-            self.resource.into_resource(DefaultSerializer::new()),
+        NewWebService::new(
+            self.resource.into_resource(serializer),
+            self.middleware,
             routes)
     }
 
     /// Run the service
     pub fn run(self, addr: &SocketAddr) -> io::Result<()>
     where T: IntoResource<DefaultSerializer, ::run::LiftReqBody>,
+          M: HttpMiddleware<WebService<T::Resource>, RequestBody = ::run::LiftReqBody> + Send + 'static,
+          M::Service: Send,
+          <M::Service as HttpService>::Future: Send,
+          M::ResponseBody: Send,
+          <M::ResponseBody as BufStream>::Item: Send,
           T::Resource: Send + 'static,
           <T::Resource as Resource>::Buf: Send,
           <T::Resource as Resource>::Body: Send,
           <T::Resource as Resource>::Future: Send,
     {
-        fn assert_send<T: Send>() {}
-        assert_send::<::run::LiftReqBody>();
-        assert_send::<DefaultSerializer>();
-        ::run::run(addr, self.build())
+        ::run::run(addr, self.build_new_service())
     }
 }
