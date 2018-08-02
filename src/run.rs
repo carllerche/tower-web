@@ -106,7 +106,7 @@ where
 
                 tokio::spawn({
                     new_service.new_service()
-                        .map_err(|e| unimplemented!())
+                        .map_err(|_| unimplemented!())
                         .and_then(move |service| {
                             let service = Lift::new(service);
 

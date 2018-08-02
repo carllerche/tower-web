@@ -1,5 +1,3 @@
-use response::{Context, Serializer, Response};
-
 use futures::{Future, Poll};
 use http;
 

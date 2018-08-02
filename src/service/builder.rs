@@ -1,4 +1,4 @@
-use middleware::{self, Identity};
+use middleware::{Identity};
 use response::DefaultSerializer;
 use routing::{Resource, IntoResource};
 use service::{WebService, HttpService, NewWebService, HttpMiddleware};
@@ -6,7 +6,6 @@ use util::{BufStream, Chain};
 
 use std::io;
 use std::net::SocketAddr;
-use std::sync::Arc;
 
 /// Builds a web service
 #[derive(Debug)]

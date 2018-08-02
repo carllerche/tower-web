@@ -2,8 +2,6 @@ use super::Middleware;
 
 use tower_service::Service;
 
-use std::marker::PhantomData;
-
 /// Two middlewares chained together.
 ///
 /// This type is produced by `Middleware::chain`.

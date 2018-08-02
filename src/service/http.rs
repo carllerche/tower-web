@@ -1,12 +1,10 @@
-use middleware::{Middleware, Chain};
+use middleware::Middleware;
 use util::BufStream;
 
 use tower_service::{Service, NewService};
 
 use futures::{Future, Poll};
 use http::{Request, Response};
-
-use std::marker::PhantomData;
 
 /// An HTTP service
 ///
@@ -159,16 +157,6 @@ pub trait HttpMiddleware<S: HttpService>: sealed::Middleware<S> {
                                     Error = Self::Error>;
 
     fn wrap(&self, inner: S) -> Self::Service;
-
-    fn lift(self) -> LiftMiddleware<Self>
-    where Self: Sized,
-    {
-        LiftMiddleware { inner: self }
-    }
-}
-
-pub struct LiftMiddleware<T> {
-    inner: T,
 }
 
 impl<T, S, B1, B2, B3, B4> HttpMiddleware<S> for T
@@ -201,23 +189,6 @@ where T: Middleware<S, Request = Request<B3>,
       B3: BufStream,
       B4: BufStream,
 {}
-
-impl<T, S, B1, B2> Middleware<S> for LiftMiddleware<T>
-where T: HttpMiddleware<S>,
-      S: Service<Request = Request<B1>,
-                Response = Response<B2>>,
-      B1: BufStream,
-      B2: BufStream,
-{
-    type Request = Request<T::RequestBody>;
-    type Response = Response<T::ResponseBody>;
-    type Error = T::Error;
-    type Service = LiftService<T::Service>;
-
-    fn wrap(&self, inner: S) -> Self::Service {
-        unimplemented!();
-    }
-}
 
 mod sealed {
     pub trait Service {}

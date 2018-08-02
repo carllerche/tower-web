@@ -1,9 +1,7 @@
-use Error;
 use routing::{RouteSet, Resource};
 use service::{WebService, HttpMiddleware, HttpService, LiftService};
-use util::{BufStream, Never};
+use util::{Never};
 
-use futures::Future;
 use futures::future::{self, FutureResult};
 use http;
 use tower_service::NewService;
