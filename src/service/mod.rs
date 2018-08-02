@@ -8,7 +8,7 @@ mod web;
 
 pub use self::builder::ServiceBuilder;
 // TODO: These aren't critical
-pub use self::future::{HttpResponseFuture, IntoHttpFuture};
+pub use self::future::{HttpResponseFuture};
 pub use self::http::{HttpService, NewHttpService, HttpMiddleware, LiftService, LiftMiddleware};
 pub use self::new_service::NewWebService;
 pub use self::resource::{Resource, IntoResource, Unit};
