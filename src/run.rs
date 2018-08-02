@@ -1,4 +1,4 @@
-use service::HttpService;
+use service::{HttpService, NewHttpService};
 use util::BufStream;
 
 use futures::Poll;
@@ -47,6 +47,7 @@ where
 
     fn poll_data(&mut self) -> Poll<Option<Self::Data>, Self::Error> {
         self.body.poll()
+            .map_err(|_| unimplemented!())
     }
 }
 
@@ -75,19 +76,23 @@ where
         let request = request.map(|body| LiftReqBody { body });
         let response = self.inner
             .call(request)
-            .map(|response| response.map(|body| LiftBody { body }));
+            .map(|response| response.map(|body| LiftBody { body }))
+            .map_err(|_| unimplemented!())
+            ;
 
         Box::new(response)
     }
 }
 
 /// Run a service
-pub fn run<T>(addr: &SocketAddr, service: T) -> io::Result<()>
+pub fn run<T>(addr: &SocketAddr, new_service: T) -> io::Result<()>
 where
-    T: HttpService<RequestBody = LiftReqBody> + Clone + Send + 'static,
+    T: NewHttpService<RequestBody = LiftReqBody> + Send + 'static,
+    T::Future: Send,
     <T::ResponseBody as BufStream>::Item: Send,
     T::ResponseBody: Send,
-    T::Future: Send,
+    T::Service: Send,
+    <T::Service as HttpService>::Future: Send,
 {
     let listener = TcpListener::bind(addr)?;
     let http = Arc::new(Http::new());
@@ -100,12 +105,16 @@ where
                 let h = http.clone();
 
                 tokio::spawn({
-                    let service = Lift::new(service.clone());
+                    new_service.new_service()
+                        .map_err(|e| unimplemented!())
+                        .and_then(move |service| {
+                            let service = Lift::new(service);
 
-                    h.serve_connection(socket, service)
-                        .map(|_| ())
-                        .map_err(|e| {
-                            println!("failed to serve connection; err={:?}", e);
+                            h.serve_connection(socket, service)
+                                .map(|_| ())
+                                .map_err(|e| {
+                                    println!("failed to serve connection; err={:?}", e);
+                                })
                         })
                 })
             })

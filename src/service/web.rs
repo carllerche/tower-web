@@ -1,17 +1,14 @@
 use routing::{RouteSet, RouteMatch};
 use service::Resource;
-use util::BufStream;
-
 use futures::{Future, Poll};
 use http;
 use tower_service::Service;
 
-use std::marker::PhantomData;
 use std::sync::Arc;
 
 /// Web service
 #[derive(Debug)]
-pub struct WebService<T, ReqBody>
+pub struct WebService<T>
 where
     T: Resource,
 {
@@ -21,53 +18,40 @@ where
     /// Route set. Processes request to determine how the resource will process
     /// it.
     routes: Arc<RouteSet<T::Destination>>,
-
-    /// The request body type.
-    _p: PhantomData<ReqBody>,
 }
 
-impl<T, ReqBody> Clone for WebService<T, ReqBody>
+impl<T> Clone for WebService<T>
 where
     T: Resource + Clone,
-    ReqBody: BufStream,
 {
-    fn clone(&self) -> WebService<T, ReqBody> {
+    fn clone(&self) -> WebService<T> {
         WebService {
             resource: self.resource.clone(),
             routes: self.routes.clone(),
-            _p: PhantomData,
         }
     }
 }
 
 // ===== impl WebService =====
 
-impl<T, ReqBody> WebService<T, ReqBody>
-where
-    T: Resource,
-    ReqBody: BufStream,
+impl<T> WebService<T>
+where T: Resource,
 {
-    pub(crate) fn new(resource: T, routes: RouteSet<T::Destination>) -> Self {
-        let routes = Arc::new(routes);
-
+    pub(crate) fn new(resource: T, routes: Arc<RouteSet<T::Destination>>) -> Self {
         WebService {
             resource,
             routes,
-            _p: PhantomData,
         }
     }
 }
 
-impl<T, ReqBody> Service for WebService<T, ReqBody>
-where
-    T: Resource<RequestBody = ReqBody>,
-    ReqBody: BufStream,
+impl<T> Service for WebService<T>
+where T: Resource,
 {
-    type Request = http::Request<ReqBody>;
+    type Request = http::Request<T::RequestBody>;
     type Response = <Self::Future as Future>::Item;
     type Error = <Self::Future as Future>::Error;
     type Future = T::Future;
-    // type Future = ResponseFuture<T, S>;
 
     fn poll_ready(&mut self) -> Poll<(), Self::Error> {
         // Always ready
