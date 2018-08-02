@@ -1,5 +1,8 @@
 #![allow(unused_macros)]
 
+extern crate futures;
+extern crate tower_service;
+
 pub use tower_web::service::HttpService;
 
 use tower_web::ServiceBuilder;
@@ -85,7 +88,7 @@ macro_rules! assert_body {
         use ::tower_web::util::BufStream;
         use ::futures::Future;
 
-        let body = $response.into_body().collect().wait().unwrap();
+        let body = $response.into_body().collect().wait().ok().unwrap();
         let body = String::from_utf8(body).unwrap();
 
         assert_eq!(body, $body)
@@ -95,14 +98,19 @@ macro_rules! assert_body {
 pub fn service<U>(resource: U) -> impl TestHttpService<RequestBody = String>
 where U: IntoResource<DefaultSerializer, String>,
 {
+    use self::futures::Future;
+    use self::tower_service::NewService;
+
     ServiceBuilder::new()
         .resource(resource)
-        .build()
+        .build_new_service()
+        .new_service()
+        .wait().unwrap()
 }
 
 pub trait TestHttpService: HttpService {
     fn call_unwrap(&mut self, request: http::Request<Self::RequestBody>) -> http::Response<Self::ResponseBody> {
-        self.call(request).wait().unwrap()
+        self.call(request).wait().ok().unwrap()
     }
 }
 
