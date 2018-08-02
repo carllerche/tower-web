@@ -1,5 +1,5 @@
-use service::{HttpService, NewHttpService};
 use util::BufStream;
+use util::http::{HttpService, NewHttpService};
 
 use futures::Poll;
 use http;

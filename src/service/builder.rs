@@ -1,8 +1,9 @@
 use middleware::{Identity};
 use response::DefaultSerializer;
 use routing::{Resource, IntoResource};
-use service::{WebService, HttpService, NewWebService, HttpMiddleware};
+use service::{WebService, NewWebService};
 use util::{BufStream, Chain};
+use util::http::{HttpService, HttpMiddleware};
 
 use std::io;
 use std::net::SocketAddr;

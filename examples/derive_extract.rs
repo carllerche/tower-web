@@ -20,7 +20,6 @@ extern crate tower_web;
 extern crate tokio;
 
 use tower_web::ServiceBuilder;
-use tokio::prelude::*;
 
 /// This type will be the web service implementation.
 #[derive(Clone, Debug)]

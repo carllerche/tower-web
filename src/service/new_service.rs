@@ -1,6 +1,7 @@
 use routing::{RouteSet, Resource};
-use service::{WebService, HttpMiddleware, HttpService, LiftService};
-use util::{Never};
+use service::WebService;
+use util::Never;
+use util::http::{HttpMiddleware, HttpService, LiftService};
 
 use futures::future::{self, FutureResult};
 use http;

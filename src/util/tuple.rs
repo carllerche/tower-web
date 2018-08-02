@@ -7,7 +7,7 @@ use extract::{self, ExtractFuture};
 use response::{Context, Response, Serializer};
 use routing::{self, Resource, IntoResource, RouteSet, RouteMatch};
 use util::{BufStream, Chain};
-use util::future::{HttpFuture, LiftFuture};
+use util::http::{HttpFuture, LiftFuture, SealedFuture};
 
 use bytes::Buf;
 use futures::{Future, Stream, Async, Poll};
@@ -99,6 +99,12 @@ where
             A(ref mut f) => Ok(try_ready!(f.poll()).map(A).into()),
         }
     }
+}
+
+impl<A> SealedFuture for Either1<A>
+where
+    A: HttpFuture,
+{
 }
 
 impl<A> Stream for Either1<A>
@@ -264,6 +270,13 @@ where
             B(ref mut f) => Ok(try_ready!(f.poll()).map(B).into()),
         }
     }
+}
+
+impl<A, B> SealedFuture for Either2<A, B>
+where
+    A: HttpFuture,
+    B: HttpFuture,
+{
 }
 
 impl<A, B> Stream for Either2<A, B>
@@ -450,6 +463,14 @@ where
             C(ref mut f) => Ok(try_ready!(f.poll()).map(C).into()),
         }
     }
+}
+
+impl<A, B, C> SealedFuture for Either3<A, B, C>
+where
+    A: HttpFuture,
+    B: HttpFuture,
+    C: HttpFuture,
+{
 }
 
 impl<A, B, C> Stream for Either3<A, B, C>

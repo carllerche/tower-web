@@ -3,7 +3,7 @@
 extern crate futures;
 extern crate tower_service;
 
-pub use tower_web::service::HttpService;
+pub use tower_web::util::http::HttpService;
 
 use tower_web::ServiceBuilder;
 use tower_web::response::DefaultSerializer;

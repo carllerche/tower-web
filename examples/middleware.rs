@@ -6,7 +6,6 @@ extern crate tokio;
 
 use tower_web::ServiceBuilder;
 use tower_web::middleware::cors::CorsBuilder;
-use tokio::prelude::*;
 
 #[derive(Clone, Debug)]
 pub struct HelloWorld;

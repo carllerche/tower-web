@@ -41,7 +41,7 @@ use extract::{self, ExtractFuture};
 use response::{Context, Response, Serializer};
 use routing::{self, Resource, IntoResource, RouteSet, RouteMatch};
 use util::{BufStream, Chain};
-use util::future::{HttpFuture, LiftFuture};
+use util::http::{HttpFuture, LiftFuture, SealedFuture};
 
 use bytes::Buf;
 use futures::{Future, Stream, Async, Poll};
@@ -205,7 +205,6 @@ impl Either {
 
         // ===== impl HttpFuture =====
 
-        // TODO: Does this need to be implemented?
         println!("impl<{}> HttpFuture for Either{}<{}>", gens, self.level, gens);
         println!("where");
 
@@ -227,6 +226,17 @@ impl Either {
 
         println!("        }}");
         println!("    }}");
+        println!("}}");
+        println!("");
+
+        println!("impl<{}> SealedFuture for Either{}<{}>", gens, self.level, gens);
+        println!("where");
+
+        for n in 0..self.level {
+            println!("    {}: HttpFuture,", VARS[n]);
+        }
+
+        println!("{{");
         println!("}}");
         println!("");
 
