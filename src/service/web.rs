@@ -1,5 +1,4 @@
-use routing::{RouteSet, RouteMatch};
-use service::Resource;
+use routing::{Resource, RouteSet, RouteMatch};
 use futures::{Future, Poll};
 use http;
 use tower_service::Service;

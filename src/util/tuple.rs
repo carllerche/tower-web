@@ -5,8 +5,7 @@
 
 use extract::{self, ExtractFuture};
 use response::{Context, Response, Serializer};
-use routing::{self, RouteSet, RouteMatch};
-use service::{Resource, IntoResource};
+use routing::{self, Resource, IntoResource, RouteSet, RouteMatch};
 use util::{BufStream, Chain};
 use util::future::{HttpFuture, LiftFuture};
 

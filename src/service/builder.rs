@@ -1,6 +1,7 @@
 use middleware::{self, Identity};
 use response::DefaultSerializer;
-use service::{Resource, IntoResource, WebService, HttpService, NewWebService, HttpMiddleware};
+use routing::{Resource, IntoResource};
+use service::{WebService, HttpService, NewWebService, HttpMiddleware};
 use util::{BufStream, Chain};
 
 use std::io;

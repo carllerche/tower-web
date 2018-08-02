@@ -7,7 +7,7 @@ pub use tower_web::service::HttpService;
 
 use tower_web::ServiceBuilder;
 use tower_web::response::DefaultSerializer;
-use tower_web::service::IntoResource;
+use tower_web::routing::IntoResource;
 
 pub use futures::Future;
 use http;

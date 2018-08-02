@@ -149,7 +149,7 @@ impl Resource {
                 }
             }
 
-            impl<S, B> __tw::service::IntoResource<S, B> for #ty
+            impl<S, B> __tw::routing::IntoResource<S, B> for #ty
             where S: __tw::response::Serializer,
                   B: __tw::util::BufStream,
             {
@@ -167,7 +167,7 @@ impl Resource {
                 }
             }
 
-            impl<S, B> __tw::service::Resource for GeneratedResource<S, B>
+            impl<S, B> __tw::routing::Resource for GeneratedResource<S, B>
             where S: __tw::response::Serializer,
                   B: __tw::util::BufStream,
             {
@@ -315,19 +315,19 @@ impl Resource {
         let ty = &self.self_ty;
 
         quote! {
-            impl<S, B> __tw::service::IntoResource<S, B> for #ty
+            impl<S, B> __tw::routing::IntoResource<S, B> for #ty
             where S: __tw::response::Serializer,
                   B: __tw::util::BufStream,
             {
                 type Destination = ();
-                type Resource = __tw::service::Unit<B>;
+                type Resource = __tw::routing::Unit<B>;
 
                 fn routes(&self) -> __tw::routing::RouteSet<Self::Destination> {
                     __tw::routing::RouteSet::new()
                 }
 
                 fn into_resource(self, serializer: S) -> Self::Resource {
-                    __tw::service::Unit::new()
+                    __tw::routing::Unit::new()
                 }
             }
         }

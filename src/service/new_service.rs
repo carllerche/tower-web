@@ -1,6 +1,6 @@
 use Error;
-use routing::RouteSet;
-use service::{Resource, WebService, HttpMiddleware, HttpService, LiftService};
+use routing::{RouteSet, Resource};
+use service::{WebService, HttpMiddleware, HttpService, LiftService};
 use util::{BufStream, Never};
 
 use futures::Future;
