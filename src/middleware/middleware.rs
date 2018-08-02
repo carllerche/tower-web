@@ -15,7 +15,7 @@ pub trait Middleware<S: Service> {
 
     fn wrap(&self, inner: S) -> Self::Service;
 
-    fn chain<T>(self, middleware: T) -> Chain<S, Self, T>
+    fn chain<T>(self, middleware: T) -> Chain<Self, T>
     where T: Middleware<Self::Service>,
           Self: Sized,
     {

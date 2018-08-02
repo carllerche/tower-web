@@ -6,6 +6,8 @@ use tower_service::{Service, NewService};
 use futures::{Future, Poll};
 use http::{Request, Response};
 
+use std::marker::PhantomData;
+
 /// An HTTP service
 ///
 /// This is not intended to be implemented directly. Instead, it is a trait
@@ -158,11 +160,10 @@ pub trait HttpMiddleware<S: HttpService>: sealed::Middleware<S> {
 
     fn wrap(&self, inner: S) -> Self::Service;
 
-    fn chain<T>(self, middleware: T) -> Chain<S, Self, T>
-    where T: HttpMiddleware<Self::Service>,
-          Self: Sized,
+    fn lift(self) -> LiftMiddleware<Self>
+    where Self: Sized,
     {
-        Chain::new(self, middleware)
+        LiftMiddleware { inner: self }
     }
 }
 
@@ -173,9 +174,6 @@ pub struct LiftMiddleware<T> {
 impl<T, S, B1, B2, B3, B4> HttpMiddleware<S> for T
 where T: Middleware<S, Request = Request<B1>,
                       Response = Response<B2>>,
-                      /*
-      S: HttpService,
-      */
       S: Service<Request = Request<B3>,
                 Response = Response<B4>>,
       B1: BufStream,

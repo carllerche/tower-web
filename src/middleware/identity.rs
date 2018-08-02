@@ -1,4 +1,4 @@
-use super::Middleware;
+use super::{Middleware, Chain};
 
 use tower_service::Service;
 
@@ -26,5 +26,13 @@ impl<S: Service> Middleware<S> for Identity {
 
     fn wrap(&self, inner: S) -> Self::Service {
         inner
+    }
+}
+
+impl<T> ::util::Chain<T> for Identity {
+    type Output = Chain<Self, T>;
+
+    fn chain(self, other: T) -> Self::Output {
+        Chain::new(self, other)
     }
 }
