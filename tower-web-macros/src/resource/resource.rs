@@ -181,7 +181,7 @@ impl Resource {
                 type Buf = <Self::Body as __tw::util::BufStream>::Item;
 
                 // The reesponse body type
-                type Body = <Self::Future as __tw::service::HttpResponseFuture>::Item;
+                type Body = <Self::Future as __tw::util::HttpFuture>::Body;
 
                 // Future representing processing the request.
                 type Future = ResponseFuture<S, B>;

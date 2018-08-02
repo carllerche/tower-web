@@ -6,8 +6,9 @@
 use extract::{self, ExtractFuture};
 use response::{Context, Response, Serializer};
 use routing::{self, RouteSet, RouteMatch};
-use service::{Resource, IntoResource, HttpResponseFuture};
+use service::{Resource, IntoResource};
 use util::{BufStream, Chain};
+use util::future::{HttpFuture, LiftFuture};
 
 use bytes::Buf;
 use futures::{Future, Stream, Async, Poll};
@@ -15,18 +16,7 @@ use http;
 
 // ===== Utility traits =====
 
-pub struct LiftHttpResponse<T> {
-    inner: T,
-}
 
-impl<T: HttpResponseFuture> Future for LiftHttpResponse<T> {
-    type Item = http::Response<T::Item>;
-    type Error = ::Error;
-
-    fn poll(&mut self) -> Poll<Self::Item, ::Error> {
-        self.inner.poll_http_response()
-    }
-}
 
 // ===== 0 =====
 
@@ -97,17 +87,17 @@ where
     }
 }
 
-impl<A> HttpResponseFuture for Either1<A>
+impl<A> HttpFuture for Either1<A>
 where
-    A: HttpResponseFuture,
+    A: HttpFuture,
 {
-    type Item = Either1<A::Item>;
+    type Body = Either1<A::Body>;
 
-    fn poll_http_response(&mut self) -> Poll<http::Response<Self::Item>, ::Error> {
+    fn poll(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
         use self::Either1::*;
 
         match *self {
-            A(ref mut f) => Ok(try_ready!(f.poll_http_response()).map(A).into()),
+            A(ref mut f) => Ok(try_ready!(f.poll()).map(A).into()),
         }
     }
 }
@@ -199,7 +189,7 @@ where
     type RequestBody = R0::RequestBody;
     type Buf = Either1<R0::Buf>;
     type Body = Either1<R0::Body>;
-    type Future = LiftHttpResponse<Either1<R0::Future>>;
+    type Future = LiftFuture<Either1<R0::Future>>;
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
@@ -215,7 +205,7 @@ where
             }
         };
 
-        LiftHttpResponse { inner }
+        inner.lift()
     }
 }
 // ===== 2 =====
@@ -260,19 +250,19 @@ where
     }
 }
 
-impl<A, B> HttpResponseFuture for Either2<A, B>
+impl<A, B> HttpFuture for Either2<A, B>
 where
-    A: HttpResponseFuture,
-    B: HttpResponseFuture,
+    A: HttpFuture,
+    B: HttpFuture,
 {
-    type Item = Either2<A::Item, B::Item>;
+    type Body = Either2<A::Body, B::Body>;
 
-    fn poll_http_response(&mut self) -> Poll<http::Response<Self::Item>, ::Error> {
+    fn poll(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
         use self::Either2::*;
 
         match *self {
-            A(ref mut f) => Ok(try_ready!(f.poll_http_response()).map(A).into()),
-            B(ref mut f) => Ok(try_ready!(f.poll_http_response()).map(B).into()),
+            A(ref mut f) => Ok(try_ready!(f.poll()).map(A).into()),
+            B(ref mut f) => Ok(try_ready!(f.poll()).map(B).into()),
         }
     }
 }
@@ -375,7 +365,7 @@ where
     type RequestBody = R0::RequestBody;
     type Buf = Either2<R0::Buf, R1::Buf>;
     type Body = Either2<R0::Body, R1::Body>;
-    type Future = LiftHttpResponse<Either2<R0::Future, R1::Future>>;
+    type Future = LiftFuture<Either2<R0::Future, R1::Future>>;
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
@@ -394,7 +384,7 @@ where
             }
         };
 
-        LiftHttpResponse { inner }
+        inner.lift()
     }
 }
 // ===== 3 =====
@@ -444,21 +434,21 @@ where
     }
 }
 
-impl<A, B, C> HttpResponseFuture for Either3<A, B, C>
+impl<A, B, C> HttpFuture for Either3<A, B, C>
 where
-    A: HttpResponseFuture,
-    B: HttpResponseFuture,
-    C: HttpResponseFuture,
+    A: HttpFuture,
+    B: HttpFuture,
+    C: HttpFuture,
 {
-    type Item = Either3<A::Item, B::Item, C::Item>;
+    type Body = Either3<A::Body, B::Body, C::Body>;
 
-    fn poll_http_response(&mut self) -> Poll<http::Response<Self::Item>, ::Error> {
+    fn poll(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
         use self::Either3::*;
 
         match *self {
-            A(ref mut f) => Ok(try_ready!(f.poll_http_response()).map(A).into()),
-            B(ref mut f) => Ok(try_ready!(f.poll_http_response()).map(B).into()),
-            C(ref mut f) => Ok(try_ready!(f.poll_http_response()).map(C).into()),
+            A(ref mut f) => Ok(try_ready!(f.poll()).map(A).into()),
+            B(ref mut f) => Ok(try_ready!(f.poll()).map(B).into()),
+            C(ref mut f) => Ok(try_ready!(f.poll()).map(C).into()),
         }
     }
 }
@@ -572,7 +562,7 @@ where
     type RequestBody = R0::RequestBody;
     type Buf = Either3<R0::Buf, R1::Buf, R2::Buf>;
     type Body = Either3<R0::Body, R1::Body, R2::Body>;
-    type Future = LiftHttpResponse<Either3<R0::Future, R1::Future, R2::Future>>;
+    type Future = LiftFuture<Either3<R0::Future, R1::Future, R2::Future>>;
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
@@ -594,7 +584,7 @@ where
             }
         };
 
-        LiftHttpResponse { inner }
+        inner.lift()
     }
 }
 
