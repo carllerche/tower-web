@@ -1,7 +1,7 @@
-use middleware::{Identity};
+use middleware::Identity;
 use response::DefaultSerializer;
-use routing::{Resource, IntoResource};
-use service::{WebService, NewWebService};
+use routing::{Resource, IntoResource, RoutedService};
+use service::NewWebService;
 use util::{BufStream, Chain};
 use util::http::{HttpService, HttpMiddleware};
 
@@ -56,23 +56,27 @@ impl<T, M> ServiceBuilder<T, M> {
     /// This instance is used to generate service values.
     pub fn build_new_service<RequestBody>(self) -> NewWebService<T::Resource, M>
     where T: IntoResource<DefaultSerializer, RequestBody>,
-          M: HttpMiddleware<WebService<T::Resource>>,
+          M: HttpMiddleware<RoutedService<T::Resource>>,
           RequestBody: BufStream,
     {
         // Build the routes
         let routes = self.resource.routes();
         let serializer = DefaultSerializer::new();
 
-        NewWebService::new(
+        // Create the routed service
+        let routed = RoutedService::new(
             self.resource.into_resource(serializer),
-            self.middleware,
-            routes)
+            routes);
+
+        NewWebService::new(
+            routed,
+            self.middleware)
     }
 
     /// Run the service
     pub fn run(self, addr: &SocketAddr) -> io::Result<()>
     where T: IntoResource<DefaultSerializer, ::run::LiftReqBody>,
-          M: HttpMiddleware<WebService<T::Resource>, RequestBody = ::run::LiftReqBody> + Send + 'static,
+          M: HttpMiddleware<RoutedService<T::Resource>, RequestBody = ::run::LiftReqBody> + Send + 'static,
           M::Service: Send,
           <M::Service as HttpService>::Future: Send,
           M::ResponseBody: Send,

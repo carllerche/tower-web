@@ -1,79 +1,63 @@
-use routing::{Resource, RouteSet, RouteMatch};
-use futures::{Future, Poll};
+use routing::{Resource, RoutedService};
+use util::http::{HttpMiddleware, HttpService};
+
+use futures::Poll;
 use http;
 use tower_service::Service;
 
+use std::fmt;
 use std::sync::Arc;
 
 /// Web service
-#[derive(Debug)]
-pub struct WebService<T>
+pub struct WebService<T, M>
 where
     T: Resource,
+    M: HttpMiddleware<RoutedService<T>>,
 {
-    /// Resource that handles the request
-    resource: T,
-
-    /// Route set. Processes request to determine how the resource will process
-    /// it.
-    routes: Arc<RouteSet<T::Destination>>,
+    /// The routed service wrapped with middleware
+    inner: M::Service,
 }
 
-impl<T> Clone for WebService<T>
+impl<T, M> WebService<T, M>
 where
-    T: Resource + Clone,
+    T: Resource,
+    M: HttpMiddleware<RoutedService<T>>,
 {
-    fn clone(&self) -> WebService<T> {
-        WebService {
-            resource: self.resource.clone(),
-            routes: self.routes.clone(),
-        }
+    pub(crate) fn new(inner: M::Service) -> WebService<T, M> {
+        WebService { inner }
     }
 }
 
-// ===== impl WebService =====
-
-impl<T> WebService<T>
-where T: Resource,
+impl<T, M> Service for WebService<T, M>
+where
+    T: Resource,
+    M: HttpMiddleware<RoutedService<T>>,
 {
-    pub(crate) fn new(resource: T, routes: Arc<RouteSet<T::Destination>>) -> Self {
-        WebService {
-            resource,
-            routes,
-        }
-    }
-}
-
-impl<T> Service for WebService<T>
-where T: Resource,
-{
-    type Request = http::Request<T::RequestBody>;
-    type Response = <Self::Future as Future>::Item;
-    type Error = <Self::Future as Future>::Error;
-    type Future = T::Future;
+    type Request = http::Request<M::RequestBody>;
+    type Response = http::Response<M::ResponseBody>;
+    type Error = M::Error;
+    type Future = <M::Service as HttpService>::Future;
 
     fn poll_ready(&mut self) -> Poll<(), Self::Error> {
-        // Always ready
-        Ok(().into())
+        self.inner.poll_ready()
     }
 
     fn call(&mut self, request: Self::Request) -> Self::Future {
-        // TODO: Use the body
-        let (head, body) = request.into_parts();
-        let request = http::Request::from_parts(head, ());
+        self.inner.call(request)
+    }
+}
 
-        match self.routes.test(&request) {
-            Some((destination, params)) => {
-                // Create the `RouteMatch` for the routing result
-                let route_match = RouteMatch::new(request, params);
-
-                // Dispatch the requeest
-                self.resource
-                    .dispatch(destination, route_match, body)
-            }
-            None => {
-                unimplemented!("No route matches {:?}", request);
-            }
-        }
+impl<T, M> fmt::Debug for WebService<T, M>
+where T: Resource + fmt::Debug,
+      M: HttpMiddleware<RoutedService<T>> + fmt::Debug,
+      M::Service: fmt::Debug,
+      M::RequestBody: fmt::Debug,
+      M::ResponseBody: fmt::Debug,
+      M::Error: fmt::Debug,
+{
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        fmt.debug_struct("WebService")
+            .field("inner", &self.inner)
+            .finish()
     }
 }
