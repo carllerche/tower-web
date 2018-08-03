@@ -6,7 +6,6 @@ use http;
 use tower_service::Service;
 
 use std::fmt;
-use std::sync::Arc;
 
 /// Web service
 pub struct WebService<T, M>
