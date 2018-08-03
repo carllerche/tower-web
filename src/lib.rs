@@ -50,7 +50,7 @@ extern crate tower_web_macros;
 pub use tower_web_macros::*;
 
 proc_macro_item_decl! {
-    /// Implement a Web Service.
+    #[doc(hidden)]
     derive_resource! => derive_resource_impl
 }
 

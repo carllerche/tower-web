@@ -1,4 +1,4 @@
-//! Types re-exported by the library for use in codegen
+#![doc(hidden)]
 
 mod callsite;
 pub use self::callsite::CallSite;
