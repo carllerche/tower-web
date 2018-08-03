@@ -1,7 +1,6 @@
 pub mod set;
 
 mod builder;
-mod condition;
 mod params;
 mod path;
 mod resource;

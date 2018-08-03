@@ -1,4 +1,3 @@
-use super::condition::Condition;
 use super::{Route, RouteSet};
 
 use http;
@@ -25,7 +24,7 @@ impl<T> Builder<T> {
         method: http::Method,
         path: &str,
     ) -> &mut Self {
-        let route = Route::new(destination, Condition::new(method, path));
+        let route = Route::new(destination, method, path);
 
         self.routes.push(route);
         self

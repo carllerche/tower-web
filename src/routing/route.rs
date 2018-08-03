@@ -1,7 +1,6 @@
-use super::Params;
-use super::condition::Condition;
+use super::{Params, Path};
 
-use http::Request;
+use http::{Method, Request};
 
 /// Matches an HTTP request with a service funtion.
 #[derive(Debug)]
@@ -9,16 +8,22 @@ pub struct Route<T> {
     /// Where to route the request
     destination: T,
 
-    /// When to match on this route
-    condition: Condition,
+    /// HTTP method used to match the route
+    method: Method,
+
+    /// Path used to match the route
+    path: Path,
 }
 
 impl<T> Route<T> {
     /// Create a new route
-    pub(crate) fn new(destination: T, condition: Condition) -> Self {
+    pub(crate) fn new(destination: T, method: Method, path: &str) -> Self {
+        let path = Path::new(path);
+
         Route {
             destination,
-            condition,
+            method,
+            path,
         }
     }
 
@@ -30,7 +35,8 @@ impl<T> Route<T> {
 
         Route {
             destination,
-            condition: self.condition,
+            method: self.method,
+            path: self.path,
         }
     }
 }
@@ -44,8 +50,14 @@ where
         &'a self,
         request: &Request<()>,
     ) -> Option<(T, Params)> {
-        self.condition.test(request).map(|params| {
-            (self.destination.clone(), params)
-        })
+
+        if *request.method() != self.method {
+            return None;
+        }
+
+        self.path.test(request.uri().path())
+            .map(|params| {
+                (self.destination.clone(), params)
+            })
     }
 }
