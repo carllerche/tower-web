@@ -1,5 +1,3 @@
-use codegen::CallSite;
-use extract::Context;
 use routing::Params;
 
 use http::Request;
@@ -21,10 +19,6 @@ impl RouteMatch {
             request,
             params,
         }
-    }
-
-    pub fn extract_context<'a>(&'a self, call_site: &'a CallSite) -> Context<'a> {
-        Context::new(call_site, self)
     }
 
     pub(crate) fn request(&self) -> &Request<()> {

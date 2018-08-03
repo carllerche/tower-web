@@ -1,7 +1,5 @@
 use super::{Route, RouteSet};
 
-use http;
-
 use std::mem;
 
 pub struct Builder<T> {
@@ -15,24 +13,14 @@ impl<T> Builder<T> {
         }
     }
 
-    /// Insert a new route into the route set.
-    ///
-    /// TODO: Clean up route definition
-    pub fn route(
-        &mut self,
-        destination: T,
-        method: http::Method,
-        path: &str,
-    ) -> &mut Self {
-        let route = Route::new(destination, method, path);
-
-        self.routes.push(route);
+    /// Insert a route value
+    pub fn insert(&mut self, route: Route<T>) -> &mut Self {
+        self.routes.insert(route);
         self
     }
 
-    /// Insert a route value
-    pub fn push(&mut self, route: Route<T>) -> &mut Self {
-        self.routes.push(route);
+    pub(crate) fn insert_all(&mut self, set: RouteSet<T>) -> &mut Self {
+        self.routes.insert_all(set);
         self
     }
 

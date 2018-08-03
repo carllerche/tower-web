@@ -1,11 +1,10 @@
-pub mod set;
-
 mod builder;
 mod params;
 mod path;
 mod resource;
 mod route;
 mod route_match;
+mod set;
 
 pub use self::builder::Builder;
 pub use self::resource::{Resource, IntoResource, Unit};

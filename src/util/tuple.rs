@@ -666,10 +666,7 @@ where
     {
         let mut routes = routing::Builder::new();
 
-        for route in self.0.routes() {
-            routes.push(route.map(Either1::A));
-        }
-
+        routes.insert_all(self.0.routes().map(Either1::A));
         routes.build()
     }
 
@@ -744,14 +741,8 @@ where
     {
         let mut routes = routing::Builder::new();
 
-        for route in self.0.routes() {
-            routes.push(route.map(Either2::A));
-        }
-
-        for route in self.1.routes() {
-            routes.push(route.map(Either2::B));
-        }
-
+        routes.insert_all(self.0.routes().map(Either2::A));
+        routes.insert_all(self.1.routes().map(Either2::B));
         routes.build()
     }
 

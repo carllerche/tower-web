@@ -49,19 +49,19 @@ impl<'a> TyTree<'a, Arg> {
                 let ty = &arg.ty;
                 let index = LitInt::new(arg.index as u64, IntSuffix::None, Span::call_site());
 
-                quote! {
+                quote! {{
+                    let context = __tw::extract::Context::new(
+                        &route_match,
+                        &callsites.#index.0);
+
                     if callsites.#index.1 {
-                        <#ty as __tw::extract::Extract<B>>::extract_body(&{
-                            let callsite = &callsites.#index.0;
-                            route_match.extract_context(callsite)
-                        }, body.take().unwrap())
+                        <#ty as __tw::extract::Extract<B>>::extract_body(
+                            &context,
+                            body.take().unwrap())
                     } else {
-                        <#ty as __tw::extract::Extract<B>>::extract(&{
-                            let callsite = &callsites.#index.0;
-                            route_match.extract_context(callsite)
-                        })
+                        <#ty as __tw::extract::Extract<B>>::extract(&context)
                     }
-                }
+                }}
             },
             |tokens| {
                 let join_ty = join_ty(tokens.len());

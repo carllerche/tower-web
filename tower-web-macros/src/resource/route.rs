@@ -54,7 +54,11 @@ impl Route {
         let path = self.rules.path_expr();
 
         quote! {
-            .route(#destination, #method, #path)
+            .insert({
+                __tw::routing::Route::new(#destination)
+                    .method(#method)
+                    .path(#path)
+            })
         }
     }
 

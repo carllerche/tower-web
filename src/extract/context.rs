@@ -14,7 +14,7 @@ pub struct Context<'a> {
 }
 
 impl<'a> Context<'a> {
-    pub(crate) fn new(callsite: &'a CallSite, route_match: &'a RouteMatch) -> Context<'a> {
+    pub fn new(route_match: &'a RouteMatch, callsite: &'a CallSite) -> Context<'a> {
         let request = route_match.request();
         let params = route_match.params();
 

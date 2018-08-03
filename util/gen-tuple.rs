@@ -581,10 +581,7 @@ impl Tuple {
         println!("");
 
         for n in 0..self.level {
-            println!("        for route in self.{}.routes() {{", n);
-            println!("            routes.push(route.map(Either{}::{}));", self.level, VARS[n]);
-            println!("        }}");
-            println!("");
+            println!("        routes.insert_all(self.{}.routes().map(Either{}::{}));", n, self.level, VARS[n]);
         }
 
         println!("        routes.build()");

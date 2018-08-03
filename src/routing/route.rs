@@ -17,14 +17,25 @@ pub struct Route<T> {
 
 impl<T> Route<T> {
     /// Create a new route
-    pub(crate) fn new(destination: T, method: Method, path: &str) -> Self {
-        let path = Path::new(path);
+    pub fn new(destination: T) -> Self {
+        let method = Method::default();
+        let path = Path::new("/");
 
         Route {
             destination,
             method,
             path,
         }
+    }
+
+    pub fn method(mut self, value: Method) -> Self {
+        self.method = value;
+        self
+    }
+
+    pub fn path(mut self, path: &str) -> Self {
+        self.path = Path::new(path);
+        self
     }
 
     pub(crate) fn map<F, U>(self, f: F) -> Route<U>
