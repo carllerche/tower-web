@@ -3,6 +3,7 @@ pub mod set;
 mod builder;
 mod condition;
 mod params;
+mod path;
 mod resource;
 mod route;
 mod route_match;
@@ -14,3 +15,4 @@ pub use self::route_match::RouteMatch;
 pub use self::set::RouteSet;
 
 pub(crate) use self::params::Params;
+pub(crate) use self::path::Path;
