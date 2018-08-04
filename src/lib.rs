@@ -4,6 +4,7 @@ extern crate bytes;
 extern crate futures;
 extern crate http;
 extern crate hyper;
+#[macro_use]
 extern crate log;
 extern crate serde;
 extern crate serde_json;

@@ -1,4 +1,5 @@
 pub mod cors;
+pub mod log;
 
 mod chain;
 mod identity;
