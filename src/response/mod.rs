@@ -2,6 +2,7 @@ mod content_type;
 mod context;
 mod default_serializer;
 mod file;
+mod json;
 mod map_err;
 mod response;
 mod serde;
