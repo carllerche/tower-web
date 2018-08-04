@@ -142,8 +142,19 @@ impl Response {
                         context: &__tw::response::Context<S>,
                     ) -> __tw::codegen::http::Response<Self::Body>
                     {
+                        struct Lift<'a>(&'a #ty);
+
+                        impl<'a> __tw::codegen::serde::Serialize for Lift<'a> {
+                            fn serialize<S>(&self, serializer: S) -> __tw::codegen::serde::export::Result<S::Ok, S::Error>
+                            where S: __tw::codegen::serde::Serializer
+                            {
+                                #shadow_ty::serialize(self.0, serializer)
+                            }
+                        }
+
                         // TODO: Improve and handle errors
-                        let body = __tw::response::MapErr::new(context.serialize(&self).unwrap());
+                        let body = __tw::response::MapErr::new(
+                            context.serialize(&Lift(&self)).unwrap());
 
                         let mut response = __tw::codegen::http::Response::builder()
                             // Customize response
@@ -166,15 +177,6 @@ impl Response {
                             });
 
                         response
-                    }
-                }
-
-                // TODO: Remove this implementation
-                impl __tw::codegen::serde::Serialize for #ty {
-                    fn serialize<S>(&self, serializer: S) -> __tw::codegen::serde::export::Result<S::Ok, S::Error>
-                    where S: __tw::codegen::serde::Serializer
-                    {
-                        #shadow_ty::serialize(self, serializer)
                     }
                 }
 
