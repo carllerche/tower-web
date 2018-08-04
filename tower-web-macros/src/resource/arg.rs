@@ -11,7 +11,7 @@ pub(crate) struct Arg {
     /// The index of the path binding the identifier matches.
     pub param: Option<usize>,
 
-    // The argument type
+    /// The argument type
     pub ty: syn::Type,
 }
 
