@@ -463,7 +463,7 @@ impl Resource {
         let init = self.routes.iter()
             .map(|route| {
                 if let Some(ref content_type) = route.rules.content_type {
-                    quote!(Some(serializer.lookup(#content_type).unwrap_or_else(|| panic!("unsupported format '{}'", #content_type))))
+                    quote!(Some(serializer.lookup(#content_type)))
                 } else {
                     quote!(None)
                 }
@@ -471,7 +471,7 @@ impl Resource {
 
         quote! {
             struct ContentTypes<S: __tw::response::Serializer> {
-                content_types: [Option<S::ContentType>; #num],
+                content_types: [Option<__tw::response::ContentType<S::Format>>; #num],
             }
 
             impl<S> ContentTypes<S>
@@ -543,8 +543,7 @@ impl Resource {
                 #left => {
                     let content_type = self.inner.content_types
                         .content_types[#idx]
-                        .as_ref()
-                        .expect("no content type specified");
+                        .as_ref();
 
                     let context = __tw::response::Context::new(
                         &self.inner.serializer,

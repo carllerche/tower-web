@@ -24,6 +24,9 @@ where
     where
         S: Serializer,
     {
+        let content_type = context.content_type_header()
+            .expect("no content type specified for response");
+
         // TODO: Improve and handle errors
         let body = MapErr::new(context.serialize(&self.0).unwrap());
 
@@ -37,7 +40,7 @@ where
             .headers_mut()
             .entry(header::CONTENT_TYPE)
             .unwrap()
-            .or_insert_with(|| context.content_type());
+            .or_insert_with(|| content_type.clone());
 
         response
     }

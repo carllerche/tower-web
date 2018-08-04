@@ -82,12 +82,7 @@ impl_web! {
         //
         // @get("/") matches GET HTTP requests to `/`.
         //
-        // @content_type("plain") sets the response content type to
-        // "text/plain". Soon, it will not be required to specify the content
-        // type. Instead tower-web will look at the HTTP Accept headeer.
-        //
         /// @get("/")
-        /// @content_type("plain")
         fn hello_world(&self) -> Result<&'static str, ()> {
             Ok("This is a basic response served by tower-web")
         }
@@ -96,7 +91,6 @@ impl_web! {
         // `HelloWorld` to generate the response.
         //
         /// @get("/motd")
-        /// @content_type("plain")
         fn motd(&self) -> Result<String, ()> {
             // You can also respond with an owned `String`.
             Ok(format!("MOTD: {}", self.motd))
@@ -106,7 +100,6 @@ impl_web! {
         // asynchronous processing of the request.
         //
         /// @get("/hello-future")
-        /// @content_type("plain")
         fn hello_future(&self) -> impl Future<Item = String, Error = ()> + Send {
             future::ok("Or return a future that resolves to the response".to_string())
         }
@@ -114,7 +107,6 @@ impl_web! {
         // Other HTTP verbs are supported as well.
         //
         /// @post("/print_std")
-        /// @content_type("plain")
         fn print_std(&self) -> Result<&'static str, ()> {
             println!("Hello from the web");
             Ok("done")

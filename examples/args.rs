@@ -54,7 +54,6 @@ impl_web! {
         // to determine how to populate them.
         //
         /// @get("/one/:param")
-        /// @content_type("plain")
         fn path_str(&self, param: String) -> Result<String, ()> {
             Ok(format!("We received: {} in the path", param))
         }
@@ -64,7 +63,6 @@ impl_web! {
         // function argument list.
         //
         /// @get("/two/:foo/:bar")
-        /// @content_type("plain")
         fn path_multi_str(&self, foo: String, bar: String) -> Result<String, ()> {
             Ok(format!("We received: {} and {} in the path", foo, bar))
         }
@@ -74,7 +72,6 @@ impl_web! {
         // request is returned as a response.
         //
         /// @get("/num/:num")
-        /// @content_type("plain")
         fn path_num(&self, num: u32) -> Result<String, ()> {
             Ok(format!("We received: {} in the path", num))
         }
@@ -90,7 +87,6 @@ impl_web! {
         // curl -vv http://localhost:8080/query-string
         //
         /// @get("/query-string")
-        /// @content_type("plain")
         fn hello_query_string(&self, query_string: String) -> Result<String, ()> {
             Ok(format!("We received the query {:?}", query_string))
         }

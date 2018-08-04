@@ -157,7 +157,13 @@ impl Response {
                             .headers_mut()
                             .entry(__tw::codegen::http::header::CONTENT_TYPE)
                             .unwrap()
-                            .or_insert_with(|| context.content_type());
+                            .or_insert_with(|| {
+                                context.content_type_header()
+                                    .map(|content_type| content_type.clone())
+                                    .unwrap_or_else(|| {
+                                        __tw::codegen::http::header::HeaderValue::from_static("application/octet-stream")
+                                    })
+                            });
 
                         response
                     }
