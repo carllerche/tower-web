@@ -5,7 +5,7 @@ use tower_service::Service;
 /// Decorates a `Service`, transforming either the request or the response.
 ///
 /// TODO: Should this trait re-export Service associated types?
-pub trait Middleware<S: Service> {
+pub trait Middleware<S> {
     type Request;
     type Response;
     type Error;
