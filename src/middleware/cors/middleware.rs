@@ -1,5 +1,6 @@
-use super::{CorsService, Config};
+use super::{Config, CorsService};
 use middleware::Middleware;
+use util::buf_stream::BufStream;
 
 use http;
 use tower_service::Service;
@@ -19,11 +20,12 @@ impl CorsMiddleware {
 }
 
 impl<S, RequestBody, ResponseBody> Middleware<S> for CorsMiddleware
-where S: Service<Request = http::Request<RequestBody>,
-                Response = http::Response<ResponseBody>>,
+where
+    S: Service<Request = http::Request<RequestBody>, Response = http::Response<ResponseBody>>,
+    ResponseBody: BufStream,
 {
     type Request = http::Request<RequestBody>;
-    type Response = http::Response<ResponseBody>;
+    type Response = http::Response<Option<ResponseBody>>;
     type Error = S::Error;
     type Service = CorsService<S>;
 
