@@ -1,8 +1,8 @@
-use super::{CorsService, Config};
+use super::{Config, CorsService};
 use middleware::Middleware;
 
 use http;
-use tower_service::Service;
+use util::http::HttpService;
 
 use std::sync::Arc;
 
@@ -18,13 +18,12 @@ impl CorsMiddleware {
     }
 }
 
-use util::http::HttpService;
-
 impl<S> Middleware<S> for CorsMiddleware
-where S: HttpService,
+where
+    S: HttpService,
 {
     type Request = http::Request<S::RequestBody>;
-    type Response = http::Response<S::ResponseBody>;
+    type Response = http::Response<Option<S::ResponseBody>>;
     type Error = S::Error;
     type Service = CorsService<S>;
 
