@@ -20,6 +20,12 @@ use proc_macro2::TokenStream;
 
 /// Implement a Web Service
 pub fn expand_derive_resource(input: TokenStream) -> TokenStream {
-    Parse::parse(input)
-        .generate()
+    let ret = Parse::parse(input)
+        .generate();
+
+    println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    println!("{}", ret.to_string());
+    println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+
+    ret
 }

@@ -16,16 +16,15 @@ struct Catch;
 impl_web! {
     impl Buggy {
         /// @get("/")
-        fn index(&self) -> impl Future<Item = String, Error = io::Error> + Send {
-            Ok("hello".to_string()).into_future()
+        fn index(&self) -> impl Future<Item = String, Error = ()> + Send {
+            Err(()).into_future()
         }
 
-        /*
         /// @catch(404)
         fn not_found(&self) -> impl Future<Item = String, Error = io::Error> + Send {
+            println!("ZOOOOMG");
             Ok("hello".to_string()).into_future()
         }
-        */
     }
 
     impl Catch {

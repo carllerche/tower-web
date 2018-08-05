@@ -1,7 +1,6 @@
 use resource::{Arg, Attributes, Signature, TyTree};
 
 use proc_macro2::{TokenStream, Span};
-use syn;
 
 /// Represents a resource route
 #[derive(Debug)]
@@ -22,20 +21,8 @@ impl Route {
         }
     }
 
-    pub fn ident(&self) -> &syn::Ident {
-        self.sig.ident()
-    }
-
     pub fn args(&self) -> &[Arg] {
         self.sig.args()
-    }
-
-    pub fn ret(&self) -> &syn::Type {
-        self.sig.ret()
-    }
-
-    pub fn is_box_ret(&self) -> bool {
-        self.sig.is_box_ret()
     }
 
     /// Route builder fn call to add the route definition.
@@ -60,29 +47,18 @@ impl Route {
     pub fn dispatch(&self) -> TokenStream {
         use syn::{LitInt, IntSuffix};
 
-        let ident = self.ident();
         let args = self.sig.args().iter().map(|arg| {
             let index = LitInt::new(arg.index as u64, IntSuffix::None, Span::call_site());
             quote! { __tw::extract::ExtractFuture::extract(args.#index) }
         });
 
-        let box_ret = if self.sig.is_box_ret() {
-            let ty = self.ret();
-
-            quote! { let ret: #ty = Box::new(ret); }
-        } else {
-            quote!()
-        };
+        let body = self.sig.dispatch(
+            quote!(self.inner.handler),
+            args);
 
         quote! {
             let args = args.into_inner();
-            let ret = __tw::response::MapErr::new(
-                __tw::codegen::futures::IntoFuture::into_future(self.inner.handler.#ident(#(#args),*)));
-
-            // If the return type must be boxed, the boxing happens here.
-            #box_ret
-
-            ret
+            #body
         }
     }
 
@@ -93,15 +69,6 @@ impl Route {
 
     /// The response future type
     pub fn future_ty(&self) -> TokenStream {
-        let ty = self.ret();
-
-        if self.is_box_ret() {
-            quote! { #ty }
-        } else {
-            quote! {
-                __tw::response::MapErr<<#ty as __tw::codegen::futures::IntoFuture>::Future>
-            }
-        }
+        self.sig.future_ty()
     }
-
 }

@@ -41,6 +41,7 @@ impl Resource {
     /// Generate the implementation
     pub fn gen(&self) -> TokenStream {
         assert_eq!(self.routes.len(), self.destinations.len());
+        assert!(self.catches.len() <= 1, "at most one catch handler per resource");
 
         let resource_impl = if self.routes.is_empty() {
             self.gen_empty_impl()
@@ -92,6 +93,10 @@ impl Resource {
 
         let handler_future_ty = self.handler_future_ty();
         let extract_future_ty = self.extract_future_ty();
+
+        let catch_future_ty = self.catch_future_ty();
+        let catch_fn = self.catch_fn();
+        let catch_into_response = self.catch_into_response();
 
         let match_extract = self.match_extract();
         let match_into_response = self.match_into_response();
@@ -216,6 +221,18 @@ impl Resource {
                 }
             }
 
+            impl<S> Inner<S>
+            where S: __tw::response::Serializer,
+            {
+                fn catch(&self,
+                         // request: &__tw::codegen::http::Request<()>,
+                         error: __tw::Error)
+                    -> #catch_future_ty
+                {
+                    #catch_fn
+                }
+            }
+
             pub struct ResponseFuture<S, B>
             where S: __tw::response::Serializer,
                   B: __tw::util::BufStream,
@@ -239,6 +256,7 @@ impl Resource {
             {
                 Extract(#extract_future_ty),
                 Response(#handler_future_ty),
+                Error(#catch_future_ty),
                 // PhantomData is needed for when the resource has no routes
                 // that use the body component.
                 Invalid(::std::marker::PhantomData<B>),
@@ -253,47 +271,93 @@ impl Resource {
 
                 fn poll(&mut self) -> __tw::codegen::futures::Poll<Self::Item, Self::Error> {
                     loop {
+                        let mut err = None;
+
                         match self.state {
                             State::Extract(ref mut extract_future) => {
                                 try_ready!(__tw::codegen::futures::Future::poll(extract_future));
                             }
                             State::Response(ref mut response) => {
-                                return Ok(__tw::codegen::futures::Async::Ready(match try_ready!(response.poll()) {
-                                    #match_into_response
+                                let response = match response.poll() {
+                                    Ok(__tw::codegen::futures::Async::Ready(response)) => {
+                                        return Ok(__tw::codegen::futures::Async::Ready(match response {
+                                            #match_into_response
+                                        }));
+                                    }
+                                    Ok(__tw::codegen::futures::Async::NotReady) => {
+                                        return Ok(__tw::codegen::futures::Async::NotReady);
+                                    }
+                                    Err(e) => {
+                                        err = Some(e);
+                                    }
+                                };
+                            }
+                            State::Error(ref mut response) => {
+                                return Ok(__tw::codegen::futures::Async::Ready({
+                                    let response = try_ready!(response.poll());
+                                    #catch_into_response
                                 }));
                             }
                             State::Invalid(_) => unreachable!(),
                         }
 
-                        let args = match ::std::mem::replace(&mut self.state, State::Invalid(::std::marker::PhantomData)) {
-                            State::Extract(fut) => fut,
-                            _ => unreachable!(),
-                        };
+                        if let Some(err) = err.take() {
+                            let response = self.inner.catch(err);
+                            self.state = State::Error(response);
+                        } else {
+                            let args = match ::std::mem::replace(&mut self.state, State::Invalid(::std::marker::PhantomData)) {
+                                State::Extract(fut) => fut,
+                                _ => unreachable!(),
+                            };
 
-                        self.state = State::Response(match args {
-                            #match_extract
-                        });
+                            self.state = State::Response(match args {
+                                #match_extract
+                            });
+                        }
                     }
                 }
             }
 
             /// Response body
-            pub struct ResponseBody(<<#handler_future_ty as __tw::codegen::futures::Future>::Item as __tw::response::Response>::Body);
+            pub struct ResponseBody(
+                Result<
+                    <<#handler_future_ty as __tw::codegen::futures::Future>::Item as __tw::response::Response>::Body,
+                    <<#catch_future_ty as __tw::codegen::futures::Future>::Item as __tw::response::Response>::Body,
+                >);
 
             /// Response buf
-            pub struct ResponseBuf(<<#handler_future_ty as __tw::codegen::futures::Future>::Item as __tw::response::Response>::Buf);
+            pub struct ResponseBuf(
+                Result<
+                    <<#handler_future_ty as __tw::codegen::futures::Future>::Item as __tw::response::Response>::Buf,
+                    <<#catch_future_ty as __tw::codegen::futures::Future>::Item as __tw::response::Response>::Buf,
+                >);
 
             impl __tw::util::BufStream for ResponseBody {
                 type Item = ResponseBuf;
                 type Error = __tw::Error;
 
                 fn poll(&mut self) -> __tw::codegen::futures::Poll<Option<Self::Item>, Self::Error> {
-                    let buf = try_ready!(self.0.poll());
-                    Ok(buf.map(ResponseBuf).into())
+                    match self.0 {
+                        Ok(ref mut b) => {
+                            let buf = try_ready!(b.poll());
+                            Ok(buf.map(|buf| {
+                                ResponseBuf(Ok(buf))
+                            }).into())
+                        }
+                        Err(ref mut b) => {
+                            let buf = try_ready!(b.poll());
+                            Ok(buf.map(|buf| {
+                                ResponseBuf(Err(buf))
+                            }).into())
+                        }
+                    }
                 }
 
                 fn size_hint(&self) -> __tw::util::buf_stream::SizeHint {
-                    self.0.size_hint()
+                    match self.0 {
+                        Ok(ref b) => b.size_hint(),
+                        Err(ref b) => b.size_hint(),
+                    }
                 }
             }
 
@@ -307,15 +371,24 @@ impl Resource {
             // TODO: Implement default fns
             impl __tw::codegen::bytes::Buf for ResponseBuf {
                 fn remaining(&self) -> usize {
-                    self.0.remaining()
+                    match self.0 {
+                        Ok(ref b) => b.remaining(),
+                        Err(ref b) => b.remaining(),
+                    }
                 }
 
                 fn bytes(&self) -> &[u8] {
-                    self.0.bytes()
+                    match self.0 {
+                        Ok(ref b) => b.bytes(),
+                        Err(ref b) => b.bytes(),
+                    }
                 }
 
                 fn advance(&mut self, cnt: usize) {
-                    self.0.advance(cnt)
+                    match self.0 {
+                        Ok(ref mut b) => b.advance(cnt),
+                        Err(ref mut b) => b.advance(cnt),
+                    }
                 }
             }
 
@@ -504,7 +577,29 @@ impl Resource {
                 _p: ::std::marker::PhantomData,
             }
         }
-}
+    }
+
+    fn catch_future_ty(&self) -> TokenStream {
+        match self.catches.get(0) {
+            Some(catch) => {
+                catch.future_ty()
+            }
+            None => {
+                unimplemented!("catch_future_ty");
+            }
+        }
+    }
+
+    fn catch_fn(&self) -> TokenStream {
+        match self.catches.get(0) {
+            Some(catch) => {
+                catch.dispatch()
+            }
+            None => {
+                unimplemented!("catch_fn");
+            }
+        }
+    }
 
     fn match_extract(&self) -> TokenStream {
         self.destination_syms(|route, destination| {
@@ -536,10 +631,23 @@ impl Resource {
                         content_type);
 
                     __tw::response::Response::into_http(response, &context)
-                        .map(|body| ResponseBody(#map))
+                        .map(|body| ResponseBody(Ok(#map)))
                 }
             }
         })
+    }
+
+    fn catch_into_response(&self) -> TokenStream {
+        quote! {
+            let content_type = None;
+
+            let context = __tw::response::Context::new(
+                &self.inner.serializer,
+                content_type);
+
+            __tw::response::Response::into_http(response, &context)
+                .map(|body| ResponseBody(Err(body)))
+        }
     }
 
     /// The resource's future type

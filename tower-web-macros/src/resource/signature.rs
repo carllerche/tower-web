@@ -1,6 +1,7 @@
 use resource::Arg;
 
 use syn;
+use proc_macro2::TokenStream;
 
 use std::fmt;
 
@@ -48,6 +49,43 @@ impl Signature {
 
     pub fn ret(&self) -> &syn::Type {
         &self.ret
+    }
+
+    /// The response future type
+    pub fn future_ty(&self) -> TokenStream {
+        let ty = self.ret();
+
+        if self.is_box_ret() {
+            quote! { #ty }
+        } else {
+            quote! {
+                __tw::response::MapErr<<#ty as __tw::codegen::futures::IntoFuture>::Future>
+            }
+        }
+    }
+
+    pub fn dispatch<I>(&self, handler: TokenStream, args: I) -> TokenStream
+    where I: Iterator<Item = TokenStream>,
+    {
+        let ident = self.ident();
+
+        let box_ret = if self.is_box_ret() {
+            let ty = self.ret();
+
+            quote! { let ret: #ty = Box::new(ret); }
+        } else {
+            quote!()
+        };
+
+        quote! {
+            let ret = __tw::response::MapErr::new(
+                __tw::codegen::futures::IntoFuture::into_future(#handler.#ident(#(#args),*)));
+
+            // If the return type must be boxed, the boxing happens here.
+            #box_ret
+
+            ret
+        }
     }
 }
 

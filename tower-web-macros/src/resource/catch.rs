@@ -1,5 +1,7 @@
 use resource::{Attributes, Signature};
 
+use proc_macro2::TokenStream;
+
 #[derive(Debug)]
 pub(crate) struct Catch {
     index: usize,
@@ -19,5 +21,20 @@ impl Catch {
             sig,
             attributes,
         }
+    }
+
+    /// The response future type
+    pub fn future_ty(&self) -> TokenStream {
+        self.sig.future_ty()
+    }
+
+    pub fn dispatch(&self) -> TokenStream {
+        let args = self.sig.args().iter().map(|_arg| {
+            panic!("unimplemented: catch handlers cannot take arguments");
+        });
+
+        self.sig.dispatch(
+            quote!(self.handler),
+            args)
     }
 }
