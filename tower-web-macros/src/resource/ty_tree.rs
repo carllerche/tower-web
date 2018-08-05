@@ -1,6 +1,6 @@
 //! Distribute a collection into a tree
 
-use resource::{Arg, Route};
+use resource::Arg;
 
 use syn;
 use proc_macro2::{Span, TokenStream};
@@ -79,16 +79,6 @@ impl<'a> TyTree<'a, Arg> {
                 let join_ty = join_ty(tokens.len());
                 quote! { #join_ty::new(#(#tokens),*) }
             })
-    }
-}
-
-impl<'a> TyTree<'a, Route> {
-    pub fn handler_future_ty(&self) -> TokenStream {
-        self.map_either(|route| route.future_ty())
-    }
-
-    pub fn handler_args_ty(&self) -> TokenStream {
-        self.map_either(|route| route.handler_args_ty())
     }
 }
 

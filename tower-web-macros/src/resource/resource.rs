@@ -545,12 +545,12 @@ impl Resource {
     /// The resource's future type
     fn handler_future_ty(&self) -> TokenStream {
         TyTree::new(&self.routes[..])
-            .handler_future_ty()
+            .map_either(|route| route.future_ty())
     }
 
     fn extract_future_ty(&self) -> TokenStream {
         TyTree::new(&self.routes[..])
-            .handler_args_ty()
+            .map_either(|route| route.handler_args_ty())
     }
 
     fn build_routes_fn(&self) -> TokenStream {
