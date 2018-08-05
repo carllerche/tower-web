@@ -1,8 +1,9 @@
 use util::BufStream;
 
 use bytes::Buf;
-use futures::{Poll, Stream};
+use futures::{Poll, Stream, stream};
 
+#[derive(Default)]
 pub struct StdStream<T>(T);
 
 impl<T> StdStream<T> {
@@ -23,3 +24,6 @@ where
         self.0.poll()
     }
 }
+
+pub type Empty<Item, Error> = StdStream<stream::Empty<Item, Error>>;
+pub fn empty<Item, Error>() -> Empty<Item, Error> { StdStream(stream::empty()) }

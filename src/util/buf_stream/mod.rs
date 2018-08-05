@@ -14,4 +14,4 @@ pub use self::chain::Chain;
 pub use self::collect::Collect;
 pub use self::from::FromBufStream;
 pub use self::size_hint::SizeHint;
-pub use self::std::StdStream;
+pub use self::std::{StdStream, Empty, empty};
