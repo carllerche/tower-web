@@ -1,16 +1,30 @@
-use resource::Route;
+use resource::{Route, Catch, TyTree};
 
 use quote::{TokenStreamExt, ToTokens};
 use proc_macro2::{Ident, Span, TokenStream};
 use syn;
 
-use std::cmp;
-
 #[derive(Debug)]
 pub(crate) struct Resource {
+    /// The resource index in the `impl_web` block
     index: usize,
+
+    /// The type implementing `Resource`
     pub self_ty: Box<syn::Type>,
+
+    /// The route handlers implemented by `Resource`
     pub routes: Vec<Route>,
+
+    /// The catch handlers implemented by `Resource`.
+    pub catches: Vec<Catch>,
+
+    /// Route destinations
+    destinations: Vec<Destination>,
+}
+
+#[derive(Debug, Clone)]
+struct Destination {
+    path: Vec<TokenStream>,
 }
 
 impl Resource {
@@ -19,11 +33,15 @@ impl Resource {
             index,
             self_ty,
             routes: vec![],
+            catches: vec![],
+            destinations: vec![],
         }
     }
 
     /// Generate the implementation
     pub fn gen(&self) -> TokenStream {
+        assert_eq!(self.routes.len(), self.destinations.len());
+
         let resource_impl = if self.routes.is_empty() {
             self.gen_empty_impl()
         } else {
@@ -345,47 +363,15 @@ impl Resource {
 
     /// The resource destination type.
     fn destination_ty(&self) -> TokenStream {
-        let mut ret = quote! { () };
-        let mut rem = self.routes.len();
-        let mut level = 0;
-
-        if rem == 0 {
-            return quote!(());
-        }
-
-        while rem > 0 {
-            let mut max = ::MAX_VARIANTS;
-
-            if level > 0 {
-                max -= 1;
-            }
-
-            let mut variants = cmp::min(rem, max);
-
-            rem -= variants;
-
-            if level > 0 {
-                variants += 1;
-            }
-
-            level += 1;
-
-            ret = match variants {
-                1 => quote! { __tw::util::tuple::Either1<#ret> },
-                2 => quote! { __tw::util::tuple::Either2<#ret, ()> },
-                3 => quote! { __tw::util::tuple::Either3<#ret, (), ()> },
-                n => panic!("unimplemented: {} variants Service::destination_ty", n),
-            };
-        }
-
-        ret
+        TyTree::new(&self.routes[..])
+            .map_either(|_| quote!(()))
     }
 
     fn callsites_def(&self) -> TokenStream {
         let fields = self.routes.iter().enumerate()
             .map(|(i, route)| {
                 let name = route_n(i);
-                let tys = (0..route.args.len())
+                let tys = (0..route.args().len())
                     .map(|_| quote!((__tw::codegen::CallSite, bool),));
 
                 quote! { #name: (#(#tys)*) }
@@ -394,7 +380,7 @@ impl Resource {
         let init = self.routes.iter().enumerate()
             .map(|(i, route)| {
                 let name = route_n(i);
-                let init = route.args.iter()
+                let init = route.args().iter()
                     .map(|arg| {
                         let new = arg.new_callsite();
                         let ty = &arg.ty;
@@ -416,7 +402,7 @@ impl Resource {
         let verify = self.routes.iter()
             .map(|route| {
                 let name = route_n(route.index);
-                let verify = route.args.iter()
+                let verify = route.args().iter()
                     .map(|arg| {
                         let index = arg.index;
 
@@ -462,7 +448,7 @@ impl Resource {
         let num = self.routes.len();
         let init = self.routes.iter()
             .map(|route| {
-                if let Some(ref content_type) = route.rules.content_type {
+                if let Some(ref content_type) = route.attributes.content_type {
                     quote!(Some(serializer.lookup(#content_type)))
                 } else {
                     quote!(None)
@@ -518,7 +504,7 @@ impl Resource {
                 _p: ::std::marker::PhantomData,
             }
         }
-    }
+}
 
     fn match_extract(&self) -> TokenStream {
         self.destination_syms(|route, destination| {
@@ -558,21 +544,13 @@ impl Resource {
 
     /// The resource's future type
     fn handler_future_ty(&self) -> TokenStream {
-        self.routes_ty(|route| {
-            let ty = &route.ret;
-
-            if route.box_ret {
-                quote! { #ty }
-            } else {
-                quote! {
-                    __tw::response::MapErr<<#ty as __tw::codegen::futures::IntoFuture>::Future>
-                }
-            }
-        })
+        TyTree::new(&self.routes[..])
+            .handler_future_ty()
     }
 
     fn extract_future_ty(&self) -> TokenStream {
-        self.routes_ty(|route| route.handler_args_ty())
+        TyTree::new(&self.routes[..])
+            .handler_args_ty()
     }
 
     fn build_routes_fn(&self) -> TokenStream {
@@ -582,54 +560,29 @@ impl Resource {
         })
     }
 
-    /// Generates an `Either` type with a variant per route.
-    fn routes_ty<F, R>(&self, mut f: F) -> TokenStream
-    where F: FnMut(&Route) -> R,
-          R: ::quote::ToTokens,
-    {
-        let mut routes = &self.routes[..];
+    // Kind of a hack
+    pub fn finalize(&mut self) {
+        self.destinations.clear();
 
-        assert!(!self.routes.is_empty());
+        self.destinations = TyTree::new(&self.routes[..])
+            .map_reduce(
+                |_| vec![Destination::new()],
+                |destinations| {
+                    let mut ret = vec![];
+                    let len = destinations.len();
 
-        let mut ret = quote! { () };
-        let mut level = 0;
+                    for (i, destinations) in destinations.iter().enumerate() {
+                        let variant = variant(i, len);
 
-        while !routes.is_empty() {
-            let mut max = ::MAX_VARIANTS;
+                        for destination in destinations {
+                            let mut destination = destination.clone();
+                            destination.path.push(variant.clone());
+                            ret.push(destination);
+                        }
+                    }
 
-            if level > 0 {
-                max -= 1;
-            }
-
-            let num = cmp::min(routes.len(), max);
-
-            let mut variant_tys = vec![];
-
-            if level > 0 {
-                variant_tys.push(ret);
-            }
-
-            // Get the types of each variant
-            variant_tys.extend({
-                routes[..num].iter()
-                    .map(&mut f)
-                    .map(|ret| ret.into_token_stream())
-            });
-
-            let either: syn::Type = syn::parse_str(&format!(
-                "__tw::util::tuple::Either{}",
-                variant_tys.len()
-            )).unwrap();
-
-            ret = quote! {
-                #either<#(#variant_tys),*>
-            };
-
-            routes = &routes[num..];
-            level += 1;
-        }
-
-        ret
+                    ret
+                });
     }
 
     /// The token used as the resource destination.
@@ -641,10 +594,7 @@ impl Resource {
         let mut ret = TokenStream::new();
 
         for (i, route) in self.routes.iter().enumerate() {
-            let destination = Destination {
-                index: i,
-                total: self.routes.len(),
-            };
+            let destination = &self.destinations[i];
 
             ret.append_all(f(route, &destination).into_token_stream());
         }
@@ -653,69 +603,35 @@ impl Resource {
     }
 }
 
-struct Destination {
-    index: usize,
-    total: usize,
-}
-
 impl Destination {
+    pub fn new() -> Destination {
+        let path = vec![];
+        Destination { path }
+    }
+
     fn build_default(&self) -> TokenStream {
         self.build(quote!(()))
     }
 
     fn build<T: ToTokens>(&self, content: T) -> TokenStream {
-        let mut content = Some(content.into_token_stream());
-        let mut index = self.index;
-        let mut total = self.total;
-        let mut ret = None;
-        let mut level = 0;
-        let mut max = ::MAX_VARIANTS;
+        let mut ret = content.into_token_stream();
 
-        assert!(total > 0);
-
-        while total > 0 {
-            if ret.is_none() {
-                if index < max {
-                    let mut i = index;
-                    let mut n = cmp::min(total, max);
-
-                    if level > 0 {
-                        i += 1;
-                        n += 1;
-                    }
-
-                    let content = content.take().unwrap();
-
-                    ret = Some(variant(i, n, content));
-                } else {
-                    index -= max;
-                }
-            } else {
-                let n = cmp::min(total, max);
-                let v = ret.take().unwrap();
-                ret = Some(variant(0, n + 1, v));
-            }
-
-            total = total.saturating_sub(max);
-            level += 1;
-
-            if max == ::MAX_VARIANTS {
-                max -= 1;
-            }
+        for step in &self.path {
+            ret = quote! { #step(#ret) };
         }
 
-        ret.unwrap()
+        ret
     }
 }
 
-fn variant(index: usize, max: usize, content: TokenStream) -> TokenStream {
+fn variant(index: usize, max: usize) -> TokenStream {
     let either: syn::Type =
         syn::parse_str(&format!("__tw::util::tuple::Either{}", max)).unwrap();
 
     match index {
-        0 => quote! { #either::A(#content) },
-        1 => quote! { #either::B(#content) },
-        2 => quote! { #either::C(#content) },
+        0 => quote! { #either::A },
+        1 => quote! { #either::B },
+        2 => quote! { #either::C },
         n => panic!("unimplemented; variant {}", n),
     }
 }

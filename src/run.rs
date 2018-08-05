@@ -1,3 +1,4 @@
+use error::ErrorKind;
 use util::BufStream;
 use util::http::{HttpService, NewHttpService};
 
@@ -56,7 +57,7 @@ impl BufStream for LiftReqBody {
     type Error = ::Error;
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, ::Error> {
-        self.body.poll().map_err(|_| ::ErrorKind::internal().into())
+        self.body.poll().map_err(|_| ErrorKind::internal().into())
     }
 }
 

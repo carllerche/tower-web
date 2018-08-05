@@ -1,6 +1,9 @@
+use http::StatusCode;
 use syn;
 use proc_macro2::TokenStream;
 use quote::ToTokens;
+
+use std::collections::HashSet;
 
 #[derive(Debug)]
 pub(crate) struct Attributes {
@@ -17,6 +20,9 @@ pub(crate) struct Attributes {
 
     /// Produced content-type
     pub content_type: Option<String>,
+
+    /// Catch
+    catch: Option<Catch>,
 }
 
 #[derive(Debug)]
@@ -28,6 +34,12 @@ enum Method {
     Delete,
 }
 
+#[derive(Debug)]
+enum Catch {
+    All,
+    Status(HashSet<StatusCode>),
+}
+
 impl Attributes {
     pub fn new() -> Attributes {
         Attributes {
@@ -36,11 +48,22 @@ impl Attributes {
             path_lit: None,
             path_params: vec![],
             content_type: None,
+            catch: None,
         }
     }
 
     pub fn is_empty(&self) -> bool {
-        self.method.is_none()
+        !self.is_route() && !self.is_catch()
+    }
+
+    /// Returns true if the method is a route handler
+    pub fn is_route(&self) -> bool {
+        self.method.is_some()
+    }
+
+    /// Returns true if the method is a catch handler
+    pub fn is_catch(&self) -> bool {
+        self.catch.is_some()
     }
 
     fn set_method(&mut self, value: Method) {
@@ -57,7 +80,7 @@ impl Attributes {
     }
 
     /// Returns `true` if the attribute is processed
-    pub fn process_attr(&mut self, attr: &syn::Attribute) -> bool {
+    pub fn process(&mut self, attr: &syn::Attribute) -> bool {
         use syn::{Lit, Meta};
 
         let meta = match attr.interpret_meta() {
@@ -79,6 +102,10 @@ impl Attributes {
                 };
 
                 self.process_doc_rule(&raw);
+
+                if self.method.is_some() && self.catch.is_some() {
+                    panic!("catch handlers can not be routable");
+                }
 
                 true
             }
@@ -134,6 +161,8 @@ impl Attributes {
                     self.process_path(&list);
                 } else if list.ident == "content_type" {
                     self.process_content_type(&list);
+                } else if list.ident == "catch" {
+                    self.process_catch(&list);
                 } else {
                     println!("LIST; {:?}", list);
                     unimplemented!("unimplemeneted: invalid route rule");
@@ -184,6 +213,39 @@ impl Attributes {
                 self.content_type = Some(lit.value());
             }
             _ => unimplemented!("unimplemented: invalid route rule"),
+        }
+    }
+
+    fn process_catch(&mut self, list: &syn::MetaList) {
+        use syn::Lit::Int;
+        use syn::NestedMeta::Literal;
+
+        if list.nested.len() == 0 {
+            self.catch = Some(Catch::All);
+        } else {
+            match self.catch {
+                // The action already catches all errors, nothing more to do
+                Some(Catch::All) => return,
+                _ => {}
+            }
+
+            for attr in &list.nested {
+                match attr {
+                    Literal(Int(lit)) => {
+                        // TODO: Make this better
+                        let code = lit.value() as u16;
+                        let status = StatusCode::from_u16(code).unwrap();
+
+                        match self.catch.get_or_insert(Catch::Status(HashSet::new())) {
+                            Catch::All => unreachable!(),
+                            Catch::Status(ref mut statuses) => {
+                                statuses.insert(status);
+                            }
+                        }
+                    }
+                    _ => unimplemented!("unimplemented: invalid catch rule"),
+                }
+            }
         }
     }
 }

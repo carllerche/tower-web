@@ -1,3 +1,4 @@
+use error::ErrorKind;
 use util::BufStream;
 
 use futures::{Future, Poll};
@@ -35,7 +36,7 @@ impl<T: Future> Future for MapErr<T> {
         use self::State::*;
 
         match self.inner {
-            Inner(ref mut f) => f.poll().map_err(|_| ::ErrorKind::internal().into()),
+            Inner(ref mut f) => f.poll().map_err(|_| ErrorKind::internal().into()),
             Immediate(ref mut e) => Err(e.take().unwrap()),
         }
     }
@@ -49,7 +50,7 @@ impl<T: BufStream> BufStream for MapErr<T> {
         use self::State::*;
 
         match self.inner {
-            Inner(ref mut f) => f.poll().map_err(|_| ::ErrorKind::internal().into()),
+            Inner(ref mut f) => f.poll().map_err(|_| ErrorKind::internal().into()),
             Immediate(ref mut e) => Err(e.take().unwrap()),
         }
     }

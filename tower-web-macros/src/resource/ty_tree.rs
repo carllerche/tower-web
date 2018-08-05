@@ -1,13 +1,13 @@
 //! Distribute a collection into a tree
 
-use resource::Arg;
+use resource::{Arg, Route};
 
 use syn;
 use proc_macro2::{Span, TokenStream};
 
 use std::cmp;
 
-pub struct TyTree<'a, T: 'a> {
+pub(crate) struct TyTree<'a, T: 'a> {
     data: &'a [T],
 }
 
@@ -16,15 +16,27 @@ impl<'a, T> TyTree<'a, T> {
         TyTree { data }
     }
 
-    fn map_reduce<F1, F2>(&self, map: F1, mut reduce: F2) -> TokenStream
-    where F1: FnMut(&T) -> TokenStream,
-          F2: FnMut(&[TokenStream]) -> TokenStream,
+    pub fn map_reduce<F1, F2, R>(&self, map: F1, mut reduce: F2) -> R
+    where F1: FnMut(&T) -> R,
+          F2: FnMut(&[R]) -> R,
+          R: Clone,
     {
         let mapped: Vec<_> = self.data.iter()
             .map(map)
             .collect();
 
         self::reduce(&mapped[..], &mut reduce)
+    }
+
+    pub fn map_either<F>(&self, map: F) -> TokenStream
+    where F: FnMut(&T) -> TokenStream,
+    {
+        self.map_reduce(
+            map,
+            |tokens| {
+                let either_ty = either_ty(tokens.len());
+                quote! { #either_ty<#(#tokens),*> }
+            })
     }
 }
 
@@ -70,25 +82,56 @@ impl<'a> TyTree<'a, Arg> {
     }
 }
 
+impl<'a> TyTree<'a, Route> {
+    pub fn handler_future_ty(&self) -> TokenStream {
+        self.map_either(|route| route.future_ty())
+    }
+
+    pub fn handler_args_ty(&self) -> TokenStream {
+        self.map_either(|route| route.handler_args_ty())
+    }
+}
+
 fn join_ty(len: usize) -> syn::Type {
     syn::parse_str(&format!("__tw::util::tuple::Join{}", len)).unwrap()
 }
 
-fn reduce<F>(mut src: &[TokenStream], f: &mut F) -> TokenStream
-where F: FnMut(&[TokenStream]) -> TokenStream,
+fn either_ty(len: usize) -> syn::Type {
+    syn::parse_str(&format!("__tw::util::tuple::Either{}", len)).unwrap()
+}
+
+// TODO: Remove clone?
+fn reduce<F, R>(mut src: &[R], f: &mut F) -> R
+where F: FnMut(&[R]) -> R,
+      R: Clone,
 {
     let per_slot = cmp::max(1, src.len() / ::MAX_VARIANTS);
+    let mut rem = 0;
 
-    if per_slot == 1 {
-        f(src)
-    } else {
-        let mut reduced = vec![];
+    if src.len() > ::MAX_VARIANTS {
+        rem = src.len() % ::MAX_VARIANTS;
+    }
 
-        while !src.is_empty() {
-            reduced.push(reduce(&src[..per_slot], f));
-            src = &src[per_slot..];
+    let mut reduced = vec![];
+
+    while !src.is_empty() {
+        let mut n = per_slot;
+
+        if rem > 0 {
+            n += 1;
+            rem -= 1;
         }
 
-        f(&reduced[..])
+        assert!(n > 0);
+
+        if n == 1 {
+            reduced.push(src[0].clone());
+        } else {
+            reduced.push(reduce(&src[..n], f));
+        }
+
+        src = &src[n..];
     }
+
+    f(&reduced[..])
 }

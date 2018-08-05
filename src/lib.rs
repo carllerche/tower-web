@@ -16,6 +16,7 @@ extern crate tokio_io;
 extern crate tower_service;
 
 pub mod codegen;
+pub mod error;
 pub mod extract;
 pub mod middleware;
 pub mod response;
@@ -23,10 +24,9 @@ pub mod routing;
 pub mod service;
 pub mod util;
 
-mod error;
 mod run;
 
-pub use error::{Error, ErrorKind};
+pub use error::Error;
 pub use service::ServiceBuilder;
 
 // ===== serde_derive re-export =====

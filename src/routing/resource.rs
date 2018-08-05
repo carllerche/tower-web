@@ -10,6 +10,8 @@ use http;
 use std::marker::PhantomData;
 
 /// A resource
+///
+/// TODO: This is really "just" a service
 pub trait Resource: Clone {
     /// Identifies a route.
     type Destination: Clone + Send + Sync + 'static;
