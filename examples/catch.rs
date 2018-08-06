@@ -20,7 +20,7 @@ impl_web! {
             Err(()).into_future()
         }
 
-        /// @catch(404)
+        /// @catch
         fn not_found(&self) -> impl Future<Item = String, Error = io::Error> + Send {
             println!("ZOOOOMG");
             Ok("hello".to_string()).into_future()

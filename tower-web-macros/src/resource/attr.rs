@@ -140,7 +140,7 @@ impl Attributes {
 
         match attr.interpret_meta() {
             Some(Meta::List(list)) => {
-                assert!(list.nested.len() == 1, "unimplemeneted: invalid route rule");
+                assert!(list.nested.len() == 1, "unimplemented: invalid route rule; list.nested.len() == 1");
 
                 // TODO: Should the identifier be lower cased?
 
@@ -165,11 +165,19 @@ impl Attributes {
                     self.process_catch(&list);
                 } else {
                     println!("LIST; {:?}", list);
-                    unimplemented!("unimplemeneted: invalid route rule");
+                    unimplemented!("unimplemented: invalid route rule");
                 }
             }
-            Some(_) => unimplemented!("unimplemeneted: invalid route rule"),
-            None => unimplemented!("unimplemeneted: invalid route rule"),
+            Some(Meta::Word(word)) => {
+                if word == "catch" {
+                    self.process_catch_all();
+                } else {
+                    println!("WORD; {:?}", word);
+                    unimplemented!("unimplemented: invalid route rule");
+                }
+            }
+            Some(meta) => unimplemented!("unimplemented: invalid route rule; META = {:?}", meta),
+            None => unimplemented!("unimplemented: invalid route rule; Invalid meta"),
         }
     }
 
@@ -216,37 +224,13 @@ impl Attributes {
         }
     }
 
-    fn process_catch(&mut self, list: &syn::MetaList) {
-        use syn::Lit::Int;
-        use syn::NestedMeta::Literal;
+    fn process_catch_all(&mut self) {
+        assert!(self.catch.is_none());
+        self.catch = Some(Catch::All);
+    }
 
-        if list.nested.len() == 0 {
-            self.catch = Some(Catch::All);
-        } else {
-            match self.catch {
-                // The action already catches all errors, nothing more to do
-                Some(Catch::All) => return,
-                _ => {}
-            }
-
-            for attr in &list.nested {
-                match attr {
-                    Literal(Int(lit)) => {
-                        // TODO: Make this better
-                        let code = lit.value() as u16;
-                        let status = StatusCode::from_u16(code).unwrap();
-
-                        match self.catch.get_or_insert(Catch::Status(HashSet::new())) {
-                            Catch::All => unreachable!(),
-                            Catch::Status(ref mut statuses) => {
-                                statuses.insert(status);
-                            }
-                        }
-                    }
-                    _ => unimplemented!("unimplemented: invalid catch rule"),
-                }
-            }
-        }
+    fn process_catch(&mut self, _list: &syn::MetaList) {
+        unimplemented!("`@catch` must not have any additional attributes");
     }
 }
 

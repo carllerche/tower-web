@@ -580,24 +580,22 @@ impl Resource {
     }
 
     fn catch_future_ty(&self) -> TokenStream {
-        match self.catches.get(0) {
-            Some(catch) => {
-                catch.future_ty()
-            }
-            None => {
-                unimplemented!("catch_future_ty");
+        if let Some(catch) = self.catches.get(0) {
+            catch.future_ty()
+        } else {
+            quote! {
+                __tw::codegen::futures::future::FutureResult<
+                    ::std::string::String,
+                    __tw::Error>
             }
         }
     }
 
     fn catch_fn(&self) -> TokenStream {
-        match self.catches.get(0) {
-            Some(catch) => {
-                catch.dispatch()
-            }
-            None => {
-                unimplemented!("catch_fn");
-            }
+        if let Some(catch) = self.catches.get(0) {
+            catch.dispatch()
+        } else {
+            quote!(__tw::codegen::futures::future::err(error))
         }
     }
 
