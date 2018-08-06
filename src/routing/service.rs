@@ -69,11 +69,11 @@ where T: Resource,
         match self.routes.test(&request) {
             Some((destination, params)) => {
                 // Create the `RouteMatch` for the routing result
-                let route_match = RouteMatch::new(request, params);
+                let route_match = RouteMatch::new(&request, params);
 
                 // Dispatch the requeest
                 self.resource
-                    .dispatch(destination, route_match, body)
+                    .dispatch(destination, &route_match, body)
             }
             None => {
                 unimplemented!("No route matches {:?}", request);

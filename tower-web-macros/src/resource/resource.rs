@@ -94,6 +94,7 @@ impl Resource {
         let handler_future_ty = self.handler_future_ty();
         let extract_future_ty = self.extract_future_ty();
 
+        let catch_impl = self.catch_impl();
         let catch_future_ty = self.catch_future_ty();
         let catch_fn = self.catch_fn();
         let catch_into_response = self.catch_into_response();
@@ -212,7 +213,7 @@ impl Resource {
                 fn dispatch(
                     &mut self,
                     destination: Self::Destination,
-                    route_match: __tw::routing::RouteMatch,
+                    route_match: &__tw::routing::RouteMatch,
                     body: Self::RequestBody,
                 ) -> Self::Future
                 {
@@ -220,6 +221,8 @@ impl Resource {
                     #dispatch_fn
                 }
             }
+
+            #catch_impl
 
             impl<S> Inner<S>
             where S: __tw::response::Serializer,
@@ -271,6 +274,7 @@ impl Resource {
 
                 fn poll(&mut self) -> __tw::codegen::futures::Poll<Self::Item, Self::Error> {
                     loop {
+                        // TODO: Clean this up!
                         let mut err = None;
 
                         match self.state {
@@ -579,6 +583,10 @@ impl Resource {
         }
     }
 
+    fn catch_impl(&self) -> TokenStream {
+        quote!()
+    }
+
     fn catch_future_ty(&self) -> TokenStream {
         if let Some(catch) = self.catches.get(0) {
             catch.future_ty()
@@ -706,6 +714,10 @@ impl Resource {
         }
 
         ret
+    }
+
+    fn is_catch(&self) -> bool {
+        !self.catches.is_empty()
     }
 }
 

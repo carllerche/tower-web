@@ -17,3 +17,9 @@ pub trait Catch {
     /// Handles an error
     fn catch(&mut self, request: &Request<()>, error: Error) -> Self::Future;
 }
+
+pub trait IntoCatch {
+    type Catch: Catch;
+
+    fn into_catch(self) -> Self::Catch;
+}

@@ -198,7 +198,7 @@ where
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
-                route_match: RouteMatch,
+                route_match: &RouteMatch,
                 body: Self::RequestBody)
         -> Self::Future
     {
@@ -381,7 +381,7 @@ where
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
-                route_match: RouteMatch,
+                route_match: &RouteMatch,
                 body: Self::RequestBody)
         -> Self::Future
     {
@@ -586,7 +586,7 @@ where
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
-                route_match: RouteMatch,
+                route_match: &RouteMatch,
                 body: Self::RequestBody)
         -> Self::Future
     {

@@ -32,7 +32,7 @@ pub trait Resource: Clone {
     fn dispatch(
         &mut self,
         destination: Self::Destination,
-        route_match: RouteMatch,
+        route_match: &RouteMatch,
         body: Self::RequestBody,
     ) -> Self::Future;
 }
@@ -76,7 +76,7 @@ where B: BufStream,
     type Body = MapErr<String>;
     type Future = FutureResult<http::Response<Self::Body>, ::Error>;
 
-    fn dispatch(&mut self, _: (), _: RouteMatch, _: Self::RequestBody) -> Self::Future {
+    fn dispatch(&mut self, _: (), _: &RouteMatch, _: Self::RequestBody) -> Self::Future {
         unreachable!();
     }
 }

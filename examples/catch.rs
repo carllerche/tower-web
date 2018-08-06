@@ -11,7 +11,9 @@ use std::io;
 #[derive(Clone, Debug)]
 struct Buggy;
 
+/*
 struct Catch;
+*/
 
 impl_web! {
     impl Buggy {
@@ -27,8 +29,10 @@ impl_web! {
         }
     }
 
+    /*
     impl Catch {
     }
+    */
 }
 
 pub fn main() {
