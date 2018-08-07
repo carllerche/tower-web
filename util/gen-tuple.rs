@@ -3,7 +3,6 @@ const VARS: &[&str] = &[
     "A",
     "B",
     "C",
-    /*
     "D",
     "E",
     "F",
@@ -13,13 +12,14 @@ const VARS: &[&str] = &[
     "J",
     "K",
     "L",
+    /*
     "M",
     "N",
     "O",
     "P",
     "Q",
     "R",
-    "S",
+    // "S",
     "T",
     "U",
     "V",
@@ -448,7 +448,7 @@ struct Tuple {
 
 impl Tuple {
     fn gen_all() {
-        for i in 0..2 {
+        for i in 0..VARS.len() {
             let tuple = Tuple::new(1 + i);
             tuple.gen();
         }
