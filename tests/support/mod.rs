@@ -58,6 +58,12 @@ macro_rules! assert_bad_request {
     }
 }
 
+macro_rules! assert_not_found {
+    ($response:expr) => {
+        assert_eq!($response.status(), ::http::StatusCode::NOT_FOUND)
+    }
+}
+
 macro_rules! assert_created {
     ($response:expr) => {
         assert_eq!($response.status(), ::http::StatusCode::CREATED)
@@ -67,6 +73,12 @@ macro_rules! assert_created {
 macro_rules! assert_accepted {
     ($response:expr) => {
         assert_eq!($response.status(), ::http::StatusCode::ACCEPTED)
+    }
+}
+
+macro_rules! assert_internal_error {
+    ($response:expr) => {
+        assert_eq!($response.status(), ::http::StatusCode::INTERNAL_SERVER_ERROR)
     }
 }
 

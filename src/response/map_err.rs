@@ -3,6 +3,7 @@ use util::BufStream;
 
 use futures::{Future, Poll};
 
+// TODO: Move this into `error` mod
 #[derive(Debug)]
 pub struct MapErr<T> {
     inner: State<T>,
