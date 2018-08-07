@@ -1,5 +1,5 @@
 use error::Error;
-use response::{MapErr, Serializer};
+use response::Serializer;
 use util::BufStream;
 
 use futures::{future, Future, IntoFuture};
@@ -10,7 +10,7 @@ use std::sync::Arc;
 /// Handles an error
 pub trait Catch: Clone {
 
-    type Body: BufStream<Error = Error>;
+    type Body: BufStream;
 
     type Future: Future<Item = http::Response<Self::Body>, Error = Error>;
 
@@ -53,7 +53,7 @@ where S: Serializer,
 }
 
 impl Catch for DefaultCatch {
-    type Body = MapErr<&'static str>;
+    type Body = &'static str;
     type Future = future::FutureResult<http::Response<Self::Body>, Error>;
 
     fn catch(&mut self, _request: &http::Request<()>, error: Error) -> Self::Future {
@@ -70,7 +70,7 @@ impl Catch for DefaultCatch {
         let response = http::response::Builder::new()
             .status(status)
             .header("content-type", "text/plain")
-            .body(MapErr::new(msg))
+            .body(msg)
             .unwrap();
 
         future::ok(response)

@@ -135,7 +135,7 @@ impl Response {
 
                 impl __tw::response::Response for #ty {
                     type Buf = <Self::Body as __tw::util::BufStream>::Item;
-                    type Body = __tw::response::MapErr<__tw::codegen::bytes::Bytes>;
+                    type Body = __tw::error::Map<__tw::codegen::bytes::Bytes>;
 
                     fn into_http<S: __tw::response::Serializer>(
                         self,
@@ -153,7 +153,7 @@ impl Response {
                         }
 
                         // TODO: Improve and handle errors
-                        let body = __tw::response::MapErr::new(
+                        let body = __tw::error::Map::new(
                             context.serialize(&Lift(&self)).unwrap());
 
                         let mut response = __tw::codegen::http::Response::builder()

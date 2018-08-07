@@ -1,3 +1,23 @@
+//! Tower Web is fast, web framework that aims to remove boilerplate.
+//!
+//! The goal is to decouple all HTTP concepts from the application logic. You
+//! implement your application using "plain old Rust types" and Tower Web uses a
+//! macro to generate the necessary glue to serve the application as an HTTP
+//! service.
+//!
+//! The bulk of Tower Web lies in the [`impl_web`] macro. Tower web also
+//! provides `#[derive(Extract)]` (for extracting data out of the HTTP request)
+//! and `#[derive(Response)]` (for converting a struct to an HTTP response).
+//!
+//! ## `impl_web`
+//!
+//! ## `derive(Extract)`
+//!
+//! ## `derive(Response)`
+//!
+//! ## Testing
+//!
+//! [`impl_web`]: macro.impl_web.html
 extern crate atoi;
 extern crate bytes;
 #[macro_use]

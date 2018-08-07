@@ -1,4 +1,4 @@
-use error::{Error, ErrorKind, Catch};
+use error::{self, Error, ErrorKind, Catch};
 use routing::{Resource, RouteSet, RouteMatch};
 use util::http::HttpFuture;
 use util::tuple::Either2;
@@ -124,7 +124,7 @@ impl<T, U> Future for RoutedResponse<T, U>
 where T: HttpFuture,
       U: Catch,
 {
-    type Item = http::Response<Either2<T::Body, U::Body>>;
+    type Item = http::Response<Either2<T::Body, error::Map<U::Body>>>;
     type Error = Error;
 
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
@@ -148,7 +148,7 @@ where T: HttpFuture,
                 }
                 Catching(ref mut fut) => {
                     let resp = try_ready!(HttpFuture::poll(fut))
-                        .map(B);
+                        .map(|body| B(error::Map::new(body)));
 
                     return Ok(Ready(resp));
                 }

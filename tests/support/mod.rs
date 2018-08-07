@@ -1,4 +1,4 @@
-#![allow(unused_macros)]
+#![allow(unused_macros, dead_code)]
 
 pub extern crate futures;
 extern crate tower_service;

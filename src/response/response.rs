@@ -1,4 +1,5 @@
-use response::{Context, Serializer, MapErr};
+use error;
+use response::{Context, Serializer};
 use util::BufStream;
 
 use bytes::Buf;
@@ -22,9 +23,9 @@ impl<T> Response for http::Response<T>
 where T: BufStream,
 {
     type Buf = T::Item;
-    type Body = MapErr<T>;
+    type Body = error::Map<T>;
 
     fn into_http<S: Serializer>(self, _: &Context<S>) -> http::Response<Self::Body> {
-        self.map(MapErr::new)
+        self.map(error::Map::new)
     }
 }

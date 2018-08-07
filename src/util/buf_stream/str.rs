@@ -1,3 +1,4 @@
+use error::Never;
 use super::BufStream;
 
 use futures::Poll;
@@ -7,7 +8,7 @@ use std::mem;
 
 impl BufStream for String {
     type Item = io::Cursor<Vec<u8>>;
-    type Error = ();
+    type Error = Never;
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
         if self.is_empty() {
@@ -23,7 +24,7 @@ impl BufStream for String {
 
 impl BufStream for &'static str {
     type Item = io::Cursor<&'static [u8]>;
-    type Error = ();
+    type Error = Never;
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
         if self.is_empty() {

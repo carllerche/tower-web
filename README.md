@@ -65,6 +65,9 @@ the rest.
 The `impl_web` macro looks at the definition and generates the glue code,
 allowing the method to respond to HTTP requests.
 
+In order to work on Rust stable **today**, Tower Web uses doc comments as
+attributes. Once Macro 1.2 lands, this will be switched to real attributes.
+
 ## Getting Started
 
 The best way to get started is to read the [examples] and [API docs][dox].

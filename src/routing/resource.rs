@@ -1,4 +1,5 @@
-use response::{Serializer, MapErr};
+use error;
+use response::Serializer;
 use routing::{RouteMatch, RouteSet};
 use util::BufStream;
 
@@ -73,7 +74,7 @@ where B: BufStream,
     type Destination = ();
     type RequestBody = B;
     type Buf = <Self::Body as BufStream>::Item;
-    type Body = MapErr<String>;
+    type Body = error::Map<String>;
     type Future = FutureResult<http::Response<Self::Body>, ::Error>;
 
     fn dispatch(&mut self, _: (), _: &RouteMatch, _: Self::RequestBody) -> Self::Future {

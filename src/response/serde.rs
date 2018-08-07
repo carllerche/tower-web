@@ -1,4 +1,5 @@
-use response::{Response, MapErr, Serializer, Context};
+use error;
+use response::{Response, Serializer, Context};
 use util::BufStream;
 
 use bytes::Bytes;
@@ -18,7 +19,7 @@ where
     T: serde::Serialize,
 {
     type Buf = <Self::Body as BufStream>::Item;
-    type Body = MapErr<Bytes>;
+    type Body = error::Map<Bytes>;
 
     fn into_http<S>(self, context: &Context<S>) -> http::Response<Self::Body>
     where
@@ -28,7 +29,7 @@ where
             .expect("no content type specified for response");
 
         // TODO: Improve and handle errors
-        let body = MapErr::new(context.serialize(&self.0).unwrap());
+        let body = error::Map::new(context.serialize(&self.0).unwrap());
 
         let mut response = http::Response::builder()
             // Customize response

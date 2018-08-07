@@ -59,7 +59,7 @@ impl Signature {
             quote! { #ty }
         } else {
             quote! {
-                __tw::response::MapErr<<#ty as __tw::codegen::futures::IntoFuture>::Future>
+                __tw::error::Map<<#ty as __tw::codegen::futures::IntoFuture>::Future>
             }
         }
     }
@@ -78,7 +78,7 @@ impl Signature {
         };
 
         quote! {
-            let ret = __tw::response::MapErr::new(
+            let ret = __tw::error::Map::new(
                 __tw::codegen::futures::IntoFuture::into_future(#handler.#ident(#(#args),*)));
 
             // If the return type must be boxed, the boxing happens here.

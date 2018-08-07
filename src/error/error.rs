@@ -1,16 +1,14 @@
 use self::KindPriv::*;
 
-use bytes::Bytes;
-use http;
-
 use std::error;
 use std::fmt;
 
+/// Errors that can happen inside Tower Web.
 pub struct Error {
     kind: ErrorKind,
-    response: Option<Box<http::Response<Bytes>>>,
 }
 
+/// A list specifying the general categories of Tower Web errors.
 pub struct ErrorKind {
     kind: KindPriv,
 }
@@ -25,23 +23,9 @@ enum KindPriv {
 // ===== impl Error =====
 
 impl Error {
-    pub fn new(kind: ErrorKind, response: http::Response<Bytes>) -> Error {
-        Error {
-            kind,
-            response: Some(Box::new(response)),
-        }
-    }
-
+    /// Returns the corresponding `ErrorKind` for this error.
     pub fn kind(&self) -> &ErrorKind {
         &self.kind
-    }
-
-    pub fn into_response(self) -> http::Response<Bytes> {
-        if let Some(response) = self.response {
-            return *response;
-        }
-
-        self.kind.into_response()
     }
 }
 
@@ -59,7 +43,6 @@ impl From<ErrorKind> for Error {
     fn from(kind: ErrorKind) -> Error {
         Error {
             kind,
-            response: None,
         }
     }
 }
@@ -109,18 +92,6 @@ impl ErrorKind {
 
     pub fn is_internal(&self) -> bool {
         self.kind == Internal
-    }
-
-    fn into_response(self) -> http::Response<Bytes> {
-        http::response::Builder::new()
-            .status(match self.kind {
-                BadRequest => 400,
-                NotFound => 404,
-                Internal => 500,
-            })
-            .header("content-type", "text/plain")
-            .body("something went wrong".into())
-            .unwrap()
     }
 }
 

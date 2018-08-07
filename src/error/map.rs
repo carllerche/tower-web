@@ -3,9 +3,8 @@ use util::BufStream;
 
 use futures::{Future, Poll};
 
-// TODO: Move this into `error` mod
 #[derive(Debug)]
-pub struct MapErr<T> {
+pub struct Map<T> {
     inner: State<T>,
 }
 
@@ -15,21 +14,21 @@ enum State<T> {
     Immediate(Option<::Error>),
 }
 
-impl<T> MapErr<T> {
-    pub fn new(inner: T) -> MapErr<T> {
-        MapErr {
+impl<T> Map<T> {
+    pub fn new(inner: T) -> Map<T> {
+        Map {
             inner: State::Inner(inner),
         }
     }
 
-    pub fn immediate(error: ::Error) -> MapErr<T> {
-        MapErr {
+    pub fn immediate(error: ::Error) -> Map<T> {
+        Map {
             inner: State::Immediate(Some(error)),
         }
     }
 }
 
-impl<T: Future> Future for MapErr<T> {
+impl<T: Future> Future for Map<T> {
     type Item = T::Item;
     type Error = ::Error;
 
@@ -43,7 +42,7 @@ impl<T: Future> Future for MapErr<T> {
     }
 }
 
-impl<T: BufStream> BufStream for MapErr<T> {
+impl<T: BufStream> BufStream for Map<T> {
     type Item = T::Item;
     type Error = ::Error;
 

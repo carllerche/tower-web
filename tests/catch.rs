@@ -87,7 +87,7 @@ fn custom_global_catch() {
             let response = http::response::Builder::new()
                 .status(404)
                 .header("content-type", "text/plain")
-                .body(::tower_web::response::MapErr::new("where you at?"))
+                .body("where you at?")
                 .unwrap();
 
             Ok(response)
