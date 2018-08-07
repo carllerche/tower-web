@@ -715,10 +715,6 @@ impl Resource {
 
         ret
     }
-
-    fn is_catch(&self) -> bool {
-        !self.catches.is_empty()
-    }
 }
 
 impl Destination {

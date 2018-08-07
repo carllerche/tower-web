@@ -1,9 +1,6 @@
-use http::StatusCode;
 use syn;
 use proc_macro2::TokenStream;
 use quote::ToTokens;
-
-use std::collections::HashSet;
 
 #[derive(Debug)]
 pub(crate) struct Attributes {
@@ -37,7 +34,6 @@ enum Method {
 #[derive(Debug)]
 enum Catch {
     All,
-    Status(HashSet<StatusCode>),
 }
 
 impl Attributes {
