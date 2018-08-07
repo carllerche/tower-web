@@ -19,3 +19,12 @@ order:
 
 * [`derive_extract`](derive_extract.rs) - Custom type handler arguments are
   populated using the HTTP request.
+
+* [`json`](json.rs) - Receiving and responding with JSON. This example also
+  shows how to customize the HTTP response status and headers.
+
+* [`static_file`](static_file.rs) - Respond with static files from disk. This
+  examplee also shows glob path parameteres.
+
+* [`middleware`](middleware.rs) - Decorate the application with middleware.
+  Doing so adds additional functionality. This example adds request logging.

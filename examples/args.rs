@@ -83,12 +83,44 @@ impl_web! {
         //
         // The following two requests will succeed:
         //
-        // curl -vv http://localhost:8080/query-string?foo
-        // curl -vv http://localhost:8080/query-string
+        //      curl -vv http://localhost:8080/query-string?foo
+        //      curl -vv http://localhost:8080/query-string
         //
         /// @get("/query-string")
         fn hello_query_string(&self, query_string: String) -> Result<String, ()> {
             Ok(format!("We received the query {:?}", query_string))
+        }
+
+        // ===== Request body argument =====
+
+        // The HTTP request body is accessed by including an argument named
+        // `body`.
+        /// @post("/request-body")
+        fn request_body(&self, body: Vec<u8>) -> Result<String, ()> {
+            Ok(format!("We received {} bytes", body.len()))
+        }
+
+        // ===== Header arguments =====
+
+        // HTTP header arguments are accessed by including an argument with the
+        // same name as the header name.
+        //
+        // `Option` is used here to indicate that the header is optional This
+        // works with any argument, path param, query string, header, body,
+        // etc...
+        //
+        // The following request will fail with a 400 (bad request) status code:
+        //
+        //      curl -vv http://localhost:8080/headers
+        //
+        // The two following requests will succeed:
+        //
+        //      curl -vv -H 'x-required: One' http://localhost:8080/headers
+        //      curl -vv -H 'x-required: One' -H 'x-optional: two' http://localhost:8080/headers
+        //
+        /// @get("/headers")
+        fn headers(&self, x_required: String, x_optional: Option<String>) -> Result<String, ()> {
+            Ok(format!("We received: x-required = {}; x-optional = {:?}", x_required, x_optional))
         }
     }
 }

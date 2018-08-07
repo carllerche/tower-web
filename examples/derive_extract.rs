@@ -9,11 +9,11 @@
 ///
 /// Run the example:
 ///
-///     cargo run --example hello_world
+///     cargo run --example derive_extract
 ///
 /// Then send a request:
 ///
-///     curl -v http://localhost:8080/
+///     curl -v http://localhost:8080/query-string?foo=123
 
 #[macro_use]
 extern crate tower_web;

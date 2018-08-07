@@ -1,10 +1,19 @@
 /// Add middleware to service
 ///
+/// ## Overview
+///
+/// Middleware decorates a service, adding additional functionality. It is a
+/// concept common to most web frameworks.
+///
+/// Tower Web uses the Tower stack for middleware (hence the name). This example
+/// decorates the application with the LogMiddleware. This middleware logs
+/// information for each request.
+///
 /// ## Usage
 ///
 /// Run the example:
 ///
-///     RUST_LOG="hello_world=info" cargo run --example hello_world
+///     RUST_LOG="hello_world=info" cargo run --example middleware
 ///
 /// Then send a request:
 ///
