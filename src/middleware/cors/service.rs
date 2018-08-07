@@ -20,12 +20,14 @@ impl<S> CorsService<S> {
     }
 }
 
-impl<S, RequestBody, ResponseBody> Service for CorsService<S>
-where S: Service<Request = http::Request<RequestBody>,
-                Response = http::Response<ResponseBody>>,
+use util::http::HttpService;
+use http::{Request, Response};
+
+impl<S> Service for CorsService<S>
+where S: HttpService,
 {
-    type Request = S::Request;
-    type Response = S::Response;
+    type Request = Request<S::RequestBody>;
+    type Response = Response<S::ResponseBody>;
     type Error = S::Error;
     type Future = S::Future;
 
