@@ -1,4 +1,4 @@
-use resource::{Arg, Attributes, Route, Resource};
+use resource::{Arg, Attributes, Catch, Signature, Route, Resource};
 
 use proc_macro2::TokenStream;
 use syn;
@@ -11,8 +11,6 @@ pub struct Parse {
 /// Builds up the state while traversing the AST.
 struct ImplWeb {
     resources: Vec<Resource>,
-    curr_resource: usize,
-    curr_route: usize,
 }
 
 impl Parse {
@@ -25,6 +23,10 @@ impl Parse {
 
         // Transfer the definition
         syn::fold::fold_file(&mut v, ast);
+
+        for resource in &mut v.resources {
+            resource.finalize();
+        }
 
         Parse {
             resources: v.resources,
@@ -47,32 +49,12 @@ impl ImplWeb {
     fn new() -> ImplWeb {
         ImplWeb {
             resources: vec![],
-            curr_resource: 0,
-            curr_route: 0,
         }
     }
 
-    fn push_resource(&mut self, self_ty: Box<syn::Type>) {
-        self.curr_resource = self.resources.len();
-        self.resources.push(Resource::new(self.curr_resource, self_ty));
-    }
-
     fn resource(&mut self) -> &mut Resource {
-        &mut self.resources[self.curr_resource]
-    }
-
-    fn push_route(
-        &mut self,
-        ident: syn::Ident,
-        ret: syn::Type,
-        attrs: Attributes,
-        args: Vec<Arg>,
-    ) {
-        let index = self.resource().routes.len();
-        self.curr_route = index;
-        self.resource()
-            .routes
-            .push(Route::new(index, ident, ret, attrs, args));
+        self.resources.last_mut()
+            .expect("no resources defined")
     }
 }
 
@@ -83,7 +65,8 @@ impl syn::fold::Fold for ImplWeb {
             "trait impls must not be in impl_web! block"
         );
 
-        self.push_resource(item.self_ty.clone());
+        let index = self.resources.len();
+        self.resources.push(Resource::new(index, item.self_ty.clone()));
 
         syn::fold::fold_item_impl(self, item)
     }
@@ -91,11 +74,11 @@ impl syn::fold::Fold for ImplWeb {
     fn fold_impl_item_method(&mut self, mut item: syn::ImplItemMethod) -> syn::ImplItemMethod {
         use syn::ReturnType;
 
-        let mut rules = Attributes::new();
+        let mut attributes = Attributes::new();
 
-        item.attrs.retain(|attr| !rules.process_attr(attr));
+        item.attrs.retain(|attr| !attributes.process(attr));
 
-        if rules.is_empty() {
+        if attributes.is_empty() {
             // Not a web route, do no further processing.
             return item;
         }
@@ -124,7 +107,8 @@ impl syn::fold::Fold for ImplWeb {
                             let ident = ident.ident.to_string();
 
                             // Check if the identifier matches any parameters
-                            let param = rules.path_params.iter().position(|param| param == &ident);
+                            let param = attributes.path_params.iter()
+                                .position(|param| param == &ident);
 
                             args.push(Arg::new(index, ident, param, arg.ty.clone()));
                         }
@@ -140,7 +124,19 @@ impl syn::fold::Fold for ImplWeb {
             }
         }
 
-        self.push_route(ident, ret, rules, args);
+        if attributes.is_route() {
+            let index = self.resource().routes.len();
+            let sig = Signature::new(ident, ret, args);
+            let route = Route::new(index, sig, attributes);
+
+            self.resource().routes.push(route);
+        } else {
+            let index = self.resource().catches.len();
+            let sig = Signature::new(ident, ret, args);
+            let catch = Catch::new(index, sig, attributes);
+
+            self.resource().catches.push(catch);
+        }
 
         item
     }

@@ -420,7 +420,7 @@ impl Either {
         println!("");
         println!("    fn dispatch(&mut self,");
         println!("                destination: Self::Destination,");
-        println!("                route_match: RouteMatch,");
+        println!("                route_match: &RouteMatch,");
         println!("                body: Self::RequestBody)");
         println!("        -> Self::Future");
         println!("    {{");

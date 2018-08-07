@@ -4,17 +4,17 @@ use http::Request;
 
 // TODO: Does this live here?
 #[derive(Debug)]
-pub struct RouteMatch {
+pub struct RouteMatch<'a> {
     /// The matched HTTP request head
-    request: Request<()>,
+    request: &'a Request<()>,
 
     /// Extracted route parameters
     params: Params,
 }
 
-impl RouteMatch {
+impl<'a> RouteMatch<'a> {
     /// Create a new `RouteMatch`
-    pub(crate) fn new(request: Request<()>, params: Params) -> Self {
+    pub(crate) fn new(request: &'a Request<()>, params: Params) -> Self {
         RouteMatch {
             request,
             params,
@@ -22,7 +22,7 @@ impl RouteMatch {
     }
 
     pub(crate) fn request(&self) -> &Request<()> {
-        &self.request
+        self.request
     }
 
     pub(crate) fn params(&self) -> &Params {

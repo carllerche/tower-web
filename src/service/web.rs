@@ -1,3 +1,4 @@
+use error::Catch;
 use routing::{Resource, RoutedService};
 use util::http::{HttpMiddleware, HttpService};
 
@@ -8,29 +9,32 @@ use tower_service::Service;
 use std::fmt;
 
 /// Web service
-pub struct WebService<T, M>
+pub struct WebService<T, U, M>
 where
     T: Resource,
-    M: HttpMiddleware<RoutedService<T>>,
+    U: Catch,
+    M: HttpMiddleware<RoutedService<T, U>>,
 {
     /// The routed service wrapped with middleware
     inner: M::Service,
 }
 
-impl<T, M> WebService<T, M>
+impl<T, U, M> WebService<T, U, M>
 where
     T: Resource,
-    M: HttpMiddleware<RoutedService<T>>,
+    U: Catch,
+    M: HttpMiddleware<RoutedService<T, U>>,
 {
-    pub(crate) fn new(inner: M::Service) -> WebService<T, M> {
+    pub(crate) fn new(inner: M::Service) -> WebService<T, U, M> {
         WebService { inner }
     }
 }
 
-impl<T, M> Service for WebService<T, M>
+impl<T, U, M> Service for WebService<T, U, M>
 where
     T: Resource,
-    M: HttpMiddleware<RoutedService<T>>,
+    U: Catch,
+    M: HttpMiddleware<RoutedService<T, U>>,
 {
     type Request = http::Request<M::RequestBody>;
     type Response = http::Response<M::ResponseBody>;
@@ -46,9 +50,10 @@ where
     }
 }
 
-impl<T, M> fmt::Debug for WebService<T, M>
+impl<T, U, M> fmt::Debug for WebService<T, U, M>
 where T: Resource + fmt::Debug,
-      M: HttpMiddleware<RoutedService<T>> + fmt::Debug,
+      U: Catch + fmt::Debug,
+      M: HttpMiddleware<RoutedService<T, U>> + fmt::Debug,
       M::Service: fmt::Debug,
       M::RequestBody: fmt::Debug,
       M::ResponseBody: fmt::Debug,

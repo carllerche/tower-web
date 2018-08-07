@@ -1,5 +1,7 @@
 use self::Kind::*;
 
+use error::ErrorKind;
+
 #[derive(Debug)]
 pub struct Error {
     kind: Kind,
@@ -40,14 +42,14 @@ impl Error {
     }
 
     pub(crate) fn internal_error() -> Error {
-        Error::web(::ErrorKind::internal().into())
+        Error::web(ErrorKind::internal().into())
     }
 }
 
 impl From<Error> for ::Error {
     fn from(err: Error) -> ::Error {
         match err.kind {
-            Missing | Invalid(_) => ::ErrorKind::bad_request().into(),
+            Missing | Invalid(_) => ErrorKind::bad_request().into(),
             Web(err) => err,
         }
     }

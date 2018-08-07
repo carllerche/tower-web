@@ -1,6 +1,6 @@
 #![allow(unused_macros)]
 
-extern crate futures;
+pub extern crate futures;
 extern crate tower_service;
 
 pub use tower_web::util::http::HttpService;
@@ -9,7 +9,7 @@ use tower_web::ServiceBuilder;
 use tower_web::response::DefaultSerializer;
 use tower_web::routing::IntoResource;
 
-pub use futures::Future;
+pub use self::futures::Future;
 use http;
 
 macro_rules! get {
@@ -58,6 +58,12 @@ macro_rules! assert_bad_request {
     }
 }
 
+macro_rules! assert_not_found {
+    ($response:expr) => {
+        assert_eq!($response.status(), ::http::StatusCode::NOT_FOUND)
+    }
+}
+
 macro_rules! assert_created {
     ($response:expr) => {
         assert_eq!($response.status(), ::http::StatusCode::CREATED)
@@ -67,6 +73,12 @@ macro_rules! assert_created {
 macro_rules! assert_accepted {
     ($response:expr) => {
         assert_eq!($response.status(), ::http::StatusCode::ACCEPTED)
+    }
+}
+
+macro_rules! assert_internal_error {
+    ($response:expr) => {
+        assert_eq!($response.status(), ::http::StatusCode::INTERNAL_SERVER_ERROR)
     }
 }
 
@@ -86,7 +98,7 @@ macro_rules! assert_header {
 macro_rules! assert_body {
     ($response:expr, $body:expr) => {{
         use ::tower_web::util::BufStream;
-        use ::futures::Future;
+        use ::support::futures::Future;
 
         let body = $response.into_body().collect().wait().ok().unwrap();
         let body = String::from_utf8(body).unwrap();
