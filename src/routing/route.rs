@@ -1,4 +1,4 @@
-use super::{Params, Path};
+use super::{Captures, Path};
 
 use http::{Method, Request};
 
@@ -60,15 +60,15 @@ where
     pub(crate) fn test<'a>(
         &'a self,
         request: &Request<()>,
-    ) -> Option<(T, Params)> {
+    ) -> Option<(T, Captures)> {
 
         if *request.method() != self.method {
             return None;
         }
 
         self.path.test(request.uri().path())
-            .map(|params| {
-                (self.destination.clone(), params)
+            .map(|captures| {
+                (self.destination.clone(), captures)
             })
     }
 }

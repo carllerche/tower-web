@@ -28,7 +28,7 @@ where T: ExtractFuture,
 
     fn poll(&mut self) -> Poll<(), Error> {
         match self.inner.poll() {
-            Err(ref e) if e.is_missing_param() => {
+            Err(ref e) if e.is_missing_argument() => {
                 self.none = true;
                 Ok(Async::Ready(()))
             }

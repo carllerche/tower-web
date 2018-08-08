@@ -82,7 +82,7 @@ impl Catch for DefaultCatch {
 impl<F, R, Body, S> IntoCatch<S> for F
 where F: Fn(&http::Request<()>, Error) -> R,
       R: IntoFuture<Item = http::Response<Body>, Error = Error>,
-      Body: BufStream<Error = Error>,
+      Body: BufStream,
 {
     type Catch = FnCatch<F>;
 
@@ -94,7 +94,7 @@ where F: Fn(&http::Request<()>, Error) -> R,
 impl<F, R, Body> Catch for FnCatch<F>
 where F: Fn(&http::Request<()>, Error) -> R,
       R: IntoFuture<Item = http::Response<Body>, Error = Error>,
-      Body: BufStream<Error = Error>,
+      Body: BufStream,
 {
     type Body = Body;
     type Future = R::Future;

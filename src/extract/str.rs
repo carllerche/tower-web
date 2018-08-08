@@ -7,11 +7,10 @@ impl<B: BufStream> Extract<B> for String {
     fn extract(ctx: &Context) -> Self::Future {
         use codegen::Source::*;
 
-        // Get the parameter index from the callsite info
         match ctx.callsite().source() {
-            Param(idx) => {
+            Capture(idx) => {
                 let path = ctx.request().uri().path();
-                let value = ctx.params().get(*idx, path)
+                let value = ctx.captures().get(*idx, path)
                     .to_string();
 
                 Immediate::ok(value)
@@ -20,13 +19,13 @@ impl<B: BufStream> Extract<B> for String {
                 let value = match ctx.request().headers().get(header_name) {
                     Some(value) => value,
                     None => {
-                        return Immediate::err(Error::missing_param());
+                        return Immediate::err(Error::missing_argument());
                     }
                 };
 
                 match value.to_str() {
                     Ok(s) => Immediate::ok(s.to_string()),
-                    Err(_) => Immediate::err(Error::invalid_param(&"invalid UTF-8 string")),
+                    Err(_) => Immediate::err(Error::invalid_argument(&"invalid UTF-8 string")),
                 }
             }
             QueryString => {

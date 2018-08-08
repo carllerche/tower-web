@@ -12,27 +12,26 @@ impl<B: BufStream> Extract<B> for u32 {
     fn extract(ctx: &Context) -> Self::Future {
         use codegen::Source::*;
 
-        // Get the parameter index from the callsite info
         match ctx.callsite().source() {
-            Param(idx) => {
+            Capture(idx) => {
                 let path = ctx.request().uri().path();
-                let param = ctx.params().get(*idx, path);
+                let capture = ctx.captures().get(*idx, path);
 
-                u32::from_str(param).map_err(|err| {
-                    Error::invalid_param(&err.description())
+                u32::from_str(capture).map_err(|err| {
+                    Error::invalid_argument(&err.description())
                 }).into()
             }
             Header(header_name) => {
                 let value = match ctx.request().headers().get(header_name) {
                     Some(value) => value,
                     None => {
-                        return Immediate::err(Error::missing_param());
+                        return Immediate::err(Error::missing_argument());
                     }
                 };
 
                 match atoi(value.as_bytes()) {
                     Some(s) => Immediate::ok(s),
-                    None => Immediate::err(Error::invalid_param(&"invalid integer")),
+                    None => Immediate::err(Error::invalid_argument(&"invalid integer")),
                 }
             }
             QueryString => {

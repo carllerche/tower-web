@@ -106,11 +106,11 @@ impl syn::fold::Fold for ImplWeb {
                             // Convert the identifier to a string
                             let ident = ident.ident.to_string();
 
-                            // Check if the identifier matches any parameters
-                            let param = attributes.path_params.iter()
-                                .position(|param| param == &ident);
+                            // Check if the identifier matches any captures
+                            let capture = attributes.path_captures.iter()
+                                .position(|capture| capture == &ident);
 
-                            args.push(Arg::new(index, ident, param, arg.ty.clone()));
+                            args.push(Arg::new(index, ident, capture, arg.ty.clone()));
                         }
                         _ => {
                             // In this case, we should proceed without

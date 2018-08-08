@@ -12,8 +12,8 @@ pub(crate) struct Attributes {
     /// String literal version of the path
     pub path_lit: Option<syn::LitStr>,
 
-    /// Path parameters
-    pub path_params: Vec<String>,
+    /// Path captures
+    pub path_captures: Vec<String>,
 
     /// Produced content-type
     pub content_type: Option<String>,
@@ -42,7 +42,7 @@ impl Attributes {
             method: None,
             path: None,
             path_lit: None,
-            path_params: vec![],
+            path_captures: vec![],
             content_type: None,
             catch: None,
         }
@@ -188,10 +188,10 @@ impl Attributes {
                 // Convert the path literal to a String
                 let path = lit.value();
 
-                // Figure out param indices
+                // Figure out capture indices
                 //
-                // TODO: Validate param format
-                self.path_params = path.split("/")
+                // TODO: Validate capture format
+                self.path_captures = path.split("/")
                     .filter(|segment| {
                         let c = segment.chars().next();
                         c == Some(':') || c == Some('*')

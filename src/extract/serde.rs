@@ -37,9 +37,8 @@ where T: DeserializeOwned,
     pub fn new_extract(ctx: &Context) -> Self {
         use codegen::Source::*;
 
-        // Get the parameter index from the callsite info
         match ctx.callsite().source() {
-            Param(_) => {
+            Capture(_) => {
                 unimplemented!();
             }
             Header(_) => {
@@ -56,9 +55,9 @@ where T: DeserializeOwned,
                         use std::error::Error as E;
 
                         if query.is_empty() {
-                            Some(Error::missing_param())
+                            Some(Error::missing_argument())
                         } else {
-                            Some(Error::invalid_param(&err.description()))
+                            Some(Error::invalid_argument(&err.description()))
                         }
                     });
 
@@ -79,9 +78,8 @@ where T: DeserializeOwned,
     pub fn new_extract_body(ctx: &Context, body: B) -> Self {
         use codegen::Source::*;
 
-        // Get the parameter index from the callsite info
         match ctx.callsite().source() {
-            Param(_) => {
+            Capture(_) => {
                 unimplemented!();
             }
             Header(_) => {

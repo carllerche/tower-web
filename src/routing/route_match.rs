@@ -1,4 +1,4 @@
-use routing::Params;
+use routing::Captures;
 
 use http::Request;
 
@@ -8,16 +8,16 @@ pub struct RouteMatch<'a> {
     /// The matched HTTP request head
     request: &'a Request<()>,
 
-    /// Extracted route parameters
-    params: Params,
+    /// Route captures
+    captures: Captures,
 }
 
 impl<'a> RouteMatch<'a> {
     /// Create a new `RouteMatch`
-    pub(crate) fn new(request: &'a Request<()>, params: Params) -> Self {
+    pub(crate) fn new(request: &'a Request<()>, captures: Captures) -> Self {
         RouteMatch {
             request,
-            params,
+            captures,
         }
     }
 
@@ -25,7 +25,7 @@ impl<'a> RouteMatch<'a> {
         self.request
     }
 
-    pub(crate) fn params(&self) -> &Params {
-        &self.params
+    pub(crate) fn captures(&self) -> &Captures {
+        &self.captures
     }
 }

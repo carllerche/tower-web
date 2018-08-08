@@ -15,22 +15,22 @@ enum Kind {
 }
 
 impl Error {
-    pub fn missing_param() -> Error {
+    pub fn missing_argument() -> Error {
         Error { kind: Missing }
     }
 
-    pub fn is_missing_param(&self) -> bool {
+    pub fn is_missing_argument(&self) -> bool {
         match self.kind {
             Missing => true,
             _ => false,
         }
     }
 
-    pub fn invalid_param<T: ToString>(reason: &T) -> Error {
+    pub fn invalid_argument<T: ToString>(reason: &T) -> Error {
         Error { kind: Invalid(reason.to_string()) }
     }
 
-    pub fn is_invalid_param(&self) -> bool {
+    pub fn is_invalid_argument(&self) -> bool {
         match self.kind {
             Invalid(_) => true,
             _ => false,

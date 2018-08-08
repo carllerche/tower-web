@@ -1,4 +1,4 @@
-use super::{Route, Params};
+use super::{Route, Captures};
 
 use http::Request;
 
@@ -41,7 +41,7 @@ where
     T: Clone,
 {
     /// Match a request against a route set
-    pub(crate) fn test(&self, request: &Request<()>) -> Option<(T, Params)> {
+    pub(crate) fn test(&self, request: &Request<()>) -> Option<(T, Captures)> {
         self.routes
             .iter()
             .flat_map(|route| route.test(request))

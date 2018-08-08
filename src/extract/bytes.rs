@@ -20,11 +20,10 @@ impl<B: BufStream> Extract<B> for Vec<u8> {
     fn extract(ctx: &Context) -> Self::Future {
         use codegen::Source::*;
 
-        // Get the parameter index from the callsite info
         match ctx.callsite().source() {
-            Param(idx) => {
+            Capture(idx) => {
                 let path = ctx.request().uri().path();
-                let value = ctx.params().get(*idx, path)
+                let value = ctx.captures().get(*idx, path)
                     .into();
 
                 let state = State::Complete(Ok(value));
@@ -34,7 +33,7 @@ impl<B: BufStream> Extract<B> for Vec<u8> {
                 let value = match ctx.request().headers().get(header_name) {
                     Some(value) => value,
                     None => {
-                        return ExtractBytes::err(Error::missing_param());
+                        return ExtractBytes::err(Error::missing_argument());
                     }
                 };
 

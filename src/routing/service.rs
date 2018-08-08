@@ -90,9 +90,9 @@ where T: Resource,
         let request = http::Request::from_parts(head, ());
 
         let state = match self.routes.test(&request) {
-            Some((destination, params)) => {
+            Some((destination, captures)) => {
                 // Create the `RouteMatch` for the routing result
-                let route_match = RouteMatch::new(&request, params);
+                let route_match = RouteMatch::new(&request, captures);
 
                 // Dispatch the requeest
                 let pending = self.resource

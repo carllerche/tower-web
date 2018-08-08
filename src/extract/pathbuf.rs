@@ -9,14 +9,13 @@ impl<B: BufStream> Extract<B> for PathBuf {
     fn extract(ctx: &Context) -> Self::Future {
         use codegen::Source::*;
 
-        // Get the parameter index from the callsite info
         match ctx.callsite().source() {
-            Param(idx) => {
+            Capture(idx) => {
                 let path = ctx.request().uri().path();
-                let value = ctx.params().get(*idx, path).into();
+                let value = ctx.captures().get(*idx, path).into();
                 ExtractPathBuf(value)
             }
-            _ => unimplemented!("A PathBuf can only be extracted from a parameter for now"),
+            _ => unimplemented!("A PathBuf can only be extracted from a path capture for now"),
         }
     }
 }
@@ -28,7 +27,7 @@ impl ExtractPathBuf {
     fn check_for_path_traversal(&self) -> Result<(), Error> {
         use self::path::Component::*;
 
-        let path_traversal_error = || Error::invalid_param(&"Path traversal detected");
+        let path_traversal_error = || Error::invalid_argument(&"Path traversal detected");
 
         let mut depth: u32 = 0;
         for c in Path::new(&self.0).components() {
@@ -87,7 +86,7 @@ mod test {
     fn disallows_path_traversal() {
         let mut extractor = ExtractPathBuf("..".into());
         let poll_err = extractor.poll().unwrap_err();
-        assert!(poll_err.is_invalid_param());
+        assert!(poll_err.is_invalid_argument());
 
         let mut extractor = ExtractPathBuf("a/..".into());
         let poll_state = extractor.poll().expect("extractor failed");
@@ -96,11 +95,11 @@ mod test {
 
         let mut extractor = ExtractPathBuf("../a".into());
         let poll_err = extractor.poll().unwrap_err();
-        assert!(poll_err.is_invalid_param());
+        assert!(poll_err.is_invalid_argument());
 
         let mut extractor = ExtractPathBuf("../a/b".into());
         let poll_err = extractor.poll().unwrap_err();
-        assert!(poll_err.is_invalid_param());
+        assert!(poll_err.is_invalid_argument());
 
         let mut extractor = ExtractPathBuf("a/../b".into());
         let poll_state = extractor.poll().expect("extractor failed");

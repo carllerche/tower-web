@@ -1,5 +1,5 @@
 mod builder;
-mod params;
+mod captures;
 mod path;
 mod resource;
 mod route;
@@ -14,5 +14,5 @@ pub use self::route_match::RouteMatch;
 pub use self::service::RoutedService;
 pub use self::set::RouteSet;
 
-pub(crate) use self::params::Params;
+pub(crate) use self::captures::Captures;
 pub(crate) use self::path::Path;
