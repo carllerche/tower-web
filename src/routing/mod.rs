@@ -1,3 +1,8 @@
+//! Map HTTP requests to Resource methods.
+//!
+//! Currently, this module is intended to be used by the `impl_web!` macro and
+//! not the end user.
+
 mod builder;
 mod captures;
 mod path;

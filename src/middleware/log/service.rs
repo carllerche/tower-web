@@ -4,7 +4,7 @@ use tower_service::Service;
 
 use std::time::Instant;
 
-/// Decorates `S` by logging all received requests
+/// Decorates a service by logging all received requests
 pub struct LogService<S> {
     inner: S,
     target: &'static str,

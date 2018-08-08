@@ -5,11 +5,26 @@ use util::BufStream;
 use bytes::Buf;
 use http;
 
-/// Types can be returned as responses to HTTP requests.
+/// Types that can be returned from resources as responses to HTTP requests.
+///
+/// Implementations of `Response` are responsible for encoding the value using
+/// the appropriate content type. The content type may be specific to the type
+/// in question, for example `serde_json::Value` implies a content type of
+/// `application/json`.
+///
+/// Alternatively, the provided `context` may be used to encode the response in
+/// most suitable content-type based on the request context. The content-type is
+/// picked using the following factors:
+///
+/// * The HTTP request's `Accept` header value (not yet implemented).
+/// * Any content type specified by the resource using annotations.
+/// * Serialization formats that the application made available to the resource.
+///
+/// Implementations of `Response` are able to asynchronously stream the response
+/// body if needed. This is done by setting the HTTP response body to a
+/// `BufStream` type that supports streaming.
 pub trait Response {
-    /// Data chunk type
-    ///
-    /// This type is always `Body::Buf`.
+    /// Data chunk type.
     type Buf: Buf;
 
     /// The HTTP response body type.

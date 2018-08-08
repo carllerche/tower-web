@@ -20,7 +20,7 @@
 //! `tower` and `tower-http`.
 //!
 //! [`Middleware`]: trait.Middleware.html
-//! [log]: log/
+//! [log]: log/index.html
 
 pub mod log;
 

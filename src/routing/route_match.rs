@@ -2,7 +2,11 @@ use routing::Captures;
 
 use http::Request;
 
-// TODO: Does this live here?
+/// Data captured from an HTTP request when it matches a route.
+///
+/// Primarily, this stores the path captures.
+///
+/// This type is not intended to be used directly.
 #[derive(Debug)]
 pub struct RouteMatch<'a> {
     /// The matched HTTP request head

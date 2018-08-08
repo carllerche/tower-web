@@ -3,6 +3,9 @@ use super::{Route, Captures};
 use http::Request;
 
 /// A set of routes
+///
+/// Matches an HTTP request with a route, which in turn maps to a resource
+/// method.
 #[derive(Debug)]
 pub struct RouteSet<T> {
     routes: Vec<Route<T>>,
@@ -11,6 +14,7 @@ pub struct RouteSet<T> {
 // ===== impl RouteSet =====
 
 impl<T> RouteSet<T> {
+    /// Create a new, empty, `RouteSet`.
     pub fn new() -> RouteSet<T> {
         RouteSet { routes: vec![] }
     }

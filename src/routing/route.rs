@@ -2,7 +2,7 @@ use super::{Captures, Path};
 
 use http::{Method, Request};
 
-/// Matches an HTTP request with a service funtion.
+/// Matches an HTTP request with a resource method.
 #[derive(Debug)]
 pub struct Route<T> {
     /// Where to route the request
@@ -28,11 +28,13 @@ impl<T> Route<T> {
         }
     }
 
+    /// Set the HTTP request method matched by this route.
     pub fn method(mut self, value: Method) -> Self {
         self.method = value;
         self
     }
 
+    /// Set the HTTP request path matched by this route.
     pub fn path(mut self, path: &str) -> Self {
         self.path = Path::new(path);
         self

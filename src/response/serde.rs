@@ -6,9 +6,13 @@ use bytes::Bytes;
 use http::{self, header};
 use serde;
 
+/// Use a Serde value as an HTTP response
+///
+/// Takes a `T: serde::Serialize` and implements `Response` for it.
 pub struct SerdeResponse<T>(T);
 
 impl<T> SerdeResponse<T> {
+    /// Create a new `SerdeResponse` using the given value.
     pub fn new(value: T) -> SerdeResponse<T> {
         SerdeResponse(value)
     }
