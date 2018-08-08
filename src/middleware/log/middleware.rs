@@ -4,12 +4,14 @@ use middleware::Middleware;
 use http;
 use tower_service::Service;
 
+/// Decorate a service by logging all received requests.
 #[derive(Debug)]
 pub struct LogMiddleware {
     target: &'static str,
 }
 
 impl LogMiddleware {
+    /// Create a new `LogMiddleware` instance configured to use `target`.
     pub fn new(target: &'static str) -> LogMiddleware {
         LogMiddleware { target }
     }

@@ -1,3 +1,5 @@
+//! Middleware that creates a log entry for each HTTP request.
+
 mod middleware;
 mod service;
 

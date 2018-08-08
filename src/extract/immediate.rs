@@ -2,21 +2,33 @@ use extract::{ExtractFuture, Error};
 
 use futures::{Poll};
 
+/// Implements `ExtractFuture` such that the result is immediately available.
+///
+/// This type is useful when implementing `Extract` for types that do not
+/// require any asynchronous processing. For example, extracting an HTTP header
+/// value from an HTTP request can complete immediately as all the information
+/// is present.
 pub struct Immediate<T> {
     inner: Result<T, Option<Error>>,
 }
 
 impl<T> Immediate<T> {
-    pub fn new(result: Result<T, Error>) -> Immediate<T> {
+    fn new(result: Result<T, Error>) -> Immediate<T> {
         Immediate {
             inner: result.map_err(Some),
         }
     }
 
+    /// Create a new `Immediate` instance that is in the success state.
+    ///
+    /// When polling the returned `Immediate` instance, it will yield `value`.
     pub fn ok(value: T) -> Immediate<T> {
         Immediate::new(Ok(value))
     }
 
+    /// Create a new `Immediate` instance that is in the error state.
+    ///
+    /// When polling the returned `Immediate` instance, it will yield `error`.
     pub fn err(error: Error) -> Immediate<T> {
         Immediate::new(Err(error))
     }

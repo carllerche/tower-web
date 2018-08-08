@@ -8,12 +8,13 @@ use tower_service::Service;
 /// service without modifying it.
 #[derive(Debug, Default, Clone)]
 pub struct Identity {
+    _p: (),
 }
 
 impl Identity {
     /// Create a new `Identity` value
     pub fn new() -> Identity {
-        Identity { }
+        Identity { _p: () }
     }
 }
 

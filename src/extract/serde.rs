@@ -1,3 +1,5 @@
+//! Types used to extract Serde values from an HTTP request.
+
 use codegen::CallSite;
 use extract::{Context, Error, ExtractFuture};
 use util::buf_stream::{self, BufStream};
@@ -10,7 +12,7 @@ use serde_urlencoded;
  * # TODO: Move this module to `codegen`?
  */
 
-/// Extract a value using `serde`
+/// Extract a value using Serde
 pub struct SerdeFuture<T, B> {
     state: State<T, B>,
 }
@@ -20,6 +22,7 @@ enum State<T, B> {
     Body(buf_stream::Collect<B, Vec<u8>>),
 }
 
+#[doc(hidden)]
 pub fn requires_body(callsite: &CallSite) -> bool {
     use codegen::Source::Body;
 

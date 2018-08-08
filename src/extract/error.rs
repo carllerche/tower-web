@@ -2,6 +2,7 @@ use self::Kind::*;
 
 use error::ErrorKind;
 
+/// Errors that can happen while extracting data from an HTTP request.
 #[derive(Debug)]
 pub struct Error {
     kind: Kind,
@@ -15,10 +16,13 @@ enum Kind {
 }
 
 impl Error {
+    /// The data is missing from the HTTP request.
     pub fn missing_argument() -> Error {
         Error { kind: Missing }
     }
 
+    /// Returns `true` when the error represents missing data from the HTTP
+    /// request.
     pub fn is_missing_argument(&self) -> bool {
         match self.kind {
             Missing => true,
@@ -26,10 +30,13 @@ impl Error {
         }
     }
 
+    /// The data is in an invalid format and cannot be extracted.
     pub fn invalid_argument<T: ToString>(reason: &T) -> Error {
         Error { kind: Invalid(reason.to_string()) }
     }
 
+    /// Returns `true` when the data is in an invalid format and cannot be
+    /// extracted.
     pub fn is_invalid_argument(&self) -> bool {
         match self.kind {
             Invalid(_) => true,
@@ -37,7 +44,7 @@ impl Error {
         }
     }
 
-    pub fn web(err: ::Error) -> Error {
+    fn web(err: ::Error) -> Error {
         Error { kind: Web(err) }
     }
 

@@ -1,3 +1,5 @@
+//! Types used to extract `Option` values from an HTTP request.
+
 use extract::{Extract, ExtractFuture, Error, Context};
 use util::BufStream;
 

@@ -11,10 +11,6 @@ use std::io;
 #[derive(Clone, Debug)]
 struct Buggy;
 
-/*
-struct Catch;
-*/
-
 impl_web! {
     impl Buggy {
         /// @get("/")
@@ -23,16 +19,10 @@ impl_web! {
         }
 
         /// @catch
-        fn not_found(&self) -> impl Future<Item = String, Error = io::Error> + Send {
-            println!("ZOOOOMG");
+        fn catch_error(&self) -> impl Future<Item = String, Error = io::Error> + Send {
             Ok("hello".to_string()).into_future()
         }
     }
-
-    /*
-    impl Catch {
-    }
-    */
 }
 
 pub fn main() {

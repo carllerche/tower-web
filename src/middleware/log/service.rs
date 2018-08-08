@@ -4,11 +4,13 @@ use tower_service::Service;
 
 use std::time::Instant;
 
+/// Decorates `S` by logging all received requests
 pub struct LogService<S> {
     inner: S,
     target: &'static str,
 }
 
+/// Log the received request once the response has been processed.
 pub struct ResponseFuture<T> {
     inner: T,
     method: http::Method,
