@@ -362,14 +362,75 @@
 //!
 //! When responding with `CustomResponse`, the HTTP status code will be set to
 //! the value of the `custom_status` field and the `X-Foo` header will be set to
-//! thee value of the `x_foo` field.
+//! the value of the `x_foo` field.
+//!
+//! ## Starting a server
+//!
+//! Once `Resource` implementations are generated, the types may be passed to
+//! [`ServiceBuilder::resource`] in order to define the web service.
+//!
+//! ```rust
+//! # #[macro_use] extern crate tower_web;
+//! # use tower_web::ServiceBuilder;
+//! # struct Resource1;
+//! # struct Resource2;
+//! # impl_web! {
+//! #     impl Resource1 {}
+//! #     impl Resource2 {}
+//! # }
+//!
+//! let addr = "127.0.0.1:8080".parse().expect("Invalid address");
+//! println!("Listening on http://{}", addr);
+//!
+//! # if false {
+//! // A service builder is used to configure our service.
+//! ServiceBuilder::new()
+//!     // We add the resources that are part of the service.
+//!     .resource(Resource1)
+//!     .resource(Resource2)
+//!     // We run the service
+//!     .run(&addr)
+//!     .unwrap();
+//! # }
+//! ```
 //!
 //! ## Testing
+//!
+//! Because web services build with Tower Web are "plain old Rust types"
+//! (PORT?), testing a method is done the exact same way you would test any
+//! other rust code.
+//!
+//! ```rust
+//! # #[macro_use] extern crate tower_web;
+//! struct MyApp;
+//!
+//! impl_web! {
+//!     impl MyApp {
+//!         /// @get("/:hello")
+//!         fn index(&self, hello: String) -> Result<&'static str, ()> {
+//!             if hello == "hello" {
+//!                 Ok("correct")
+//!             } else {
+//!                 Ok("nope")
+//!             }
+//!         }
+//!     }
+//! }
+//!
+//! #[test]
+//! fn test_my_app() {
+//!     let app = MyApp;
+//!
+//!     assert_eq!(app.index("hello".to_string()), Ok("correct"));
+//!     assert_eq!(app.index("not-hello".to_string()), Ok("nope"));
+//! }
+//! ```
 //!
 //! [`impl_web`]: macro.impl_web.html
 //! [`proc-macro-hack`]: #
 //! [limitations]: #
 //! [`ServiceBuilder`]: struct.ServiceBuilder.html
+//! [`ServiceBuilder::resource`]: struct.ServiceBuilder.html#method.resource
 //! [Serde]: http://serde.rs/
 extern crate atoi;
 extern crate bytes;
@@ -428,6 +489,26 @@ proc_macro_item_decl! {
     derive_resource! => derive_resource_impl
 }
 
+/// Generate a `Resource` implemeentation based on the methods defined in the
+/// macro block.
+///
+/// See [library level documentation](index.html) for more details.
+///
+/// # Examples
+/// ```rust
+/// # #[macro_use] extern crate tower_web;
+/// struct MyApp;
+///
+/// impl_web! {
+///     impl MyApp {
+///         /// @get("/")
+///         fn index(&self) -> Result<String, ()> {
+///             // implementation
+/// #           unimplemented!()
+///         }
+///     }
+/// }
+/// ```
 #[macro_export]
 macro_rules! impl_web {
     ($($t:tt)*) => {
