@@ -2,6 +2,8 @@
 
 A web framework for Rust with a focus on removing boilerplate.
 
+[![Join the chat at https://gitter.im/tower-rs/tower](https://badges.gitter.im/tower-rs/tower.svg)](https://gitter.im/tower-rs/tower?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Tower Web is:
 
 * **Fast**: Fully asynchronous, built on [Tokio] and [Hyper].
