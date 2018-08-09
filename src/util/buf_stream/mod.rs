@@ -1,3 +1,15 @@
+///! Asynchronous stream of bytes.
+///
+/// This module contains the `BufStream` trait and a number of combinators for
+/// this trait. The trait is similar to `Stream` in the `futures` library, but
+/// instead of yielding arbitrary values, it only yields types that implement
+/// `Buf` (i.e, byte collections).
+///
+/// Having a dedicated trait for this case enables greater functionality and
+/// ease of use.
+///
+/// This module will eventually be moved into Tokio.
+
 mod buf_stream;
 mod bytes;
 pub mod chain;

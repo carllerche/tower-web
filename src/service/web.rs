@@ -8,7 +8,11 @@ use tower_service::Service;
 
 use std::fmt;
 
-/// Web service
+/// The service defined by `ServiceBuilder`.
+///
+/// `WebService` contains the resources, routes, middleware, catch handlers, ...
+/// that were defined by the builder. It implements `tower_service::Service`,
+/// which exposes an HTTP request / response API.
 pub struct WebService<T, U, M>
 where
     T: Resource,

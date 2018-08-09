@@ -1,6 +1,10 @@
-// TODO: u64?
-
 /// A `BufStream` size hint
+///
+/// The default implementation returns:
+///
+/// * 0 for `available`
+/// * 0 for `lower`
+/// * `None` for `upper`.
 #[derive(Debug, Default, Clone)]
 pub struct SizeHint {
     available: usize,
@@ -14,6 +18,7 @@ pub struct Builder {
 }
 
 impl Builder {
+    /// Create a new `Builder` configured with default values.
     pub fn new() -> Builder {
         Builder {
             hint: SizeHint {
@@ -75,14 +80,22 @@ impl Builder {
 }
 
 impl SizeHint {
+    /// Returns the **lower bound** of the amount of data that can be read from
+    /// the `BufStream` without `NotReady` being returned.
+    ///
+    /// It is possible that more data is currently available.
     pub fn available(&self) -> usize {
         self.available
     }
 
+    /// Returns the lower bound of data that the `BufStream` will yield before
+    /// completing.
     pub fn lower(&self) -> usize {
         self.lower
     }
 
+    /// Returns the upper bound of data the `BufStream` will yield before
+    /// completing, or `None` if the value is unknown.
     pub fn upper(&self) -> Option<usize> {
         self.upper
     }

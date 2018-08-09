@@ -99,6 +99,10 @@ impl_web! {
         // Here a future is used to generate the response. This allows for
         // asynchronous processing of the request.
         //
+        // Note that `impl Future` is bound by `Send`. Currently, hyper
+        // requires everything to be `Send`. So, in order to run our service, we
+        // also have to guarantee that everything is Send.
+        //
         /// @get("/hello-future")
         fn hello_future(&self) -> impl Future<Item = String, Error = ()> + Send {
             future::ok("Or return a future that resolves to the response".to_string())

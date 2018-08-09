@@ -1,3 +1,5 @@
+//! Utility types and traits.
+
 pub mod buf_stream;
 pub mod http;
 

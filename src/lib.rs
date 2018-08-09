@@ -197,6 +197,10 @@
 //! }
 //! ```
 //!
+//! Note that `impl Future` is bound by `Send`. Hyper currently requires `Send`
+//! on all types. So, in order for our service to run with Hyper, we also need
+//! to ensure that everything is bound by `Send`.
+//!
 //! See the examples directory for more examples on responding to requests.
 //!
 //! [`Response`]: response/trait.Response.html
