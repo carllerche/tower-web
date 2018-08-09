@@ -1,6 +1,5 @@
 #![recursion_limit = "512"]
 
-extern crate either;
 extern crate http;
 #[macro_use]
 extern crate proc_macro_hack;
