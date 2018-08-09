@@ -8,6 +8,7 @@ use futures::{Poll};
 /// require any asynchronous processing. For example, extracting an HTTP header
 /// value from an HTTP request can complete immediately as all the information
 /// is present.
+#[derive(Debug)]
 pub struct Immediate<T> {
     inner: Result<T, Option<Error>>,
 }

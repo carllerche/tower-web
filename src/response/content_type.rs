@@ -8,6 +8,7 @@ use http::header::HeaderValue;
 ///
 /// [`Serializer::lookup`]: trait.Serializer.html#method.lookup
 /// [`Context::new`]: struct.Context.html
+#[derive(Debug)]
 pub struct ContentType<T> {
     /// The HTTP header representing the content-type
     header: HeaderValue,

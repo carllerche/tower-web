@@ -20,6 +20,8 @@ impl<B: BufStream> Extract<B> for PathBuf {
     }
 }
 
+/// Extracts a `PathBuf` value from an HTTP request.
+#[derive(Debug)]
 pub struct ExtractPathBuf(String);
 
 impl ExtractPathBuf {

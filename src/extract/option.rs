@@ -5,6 +5,8 @@ use util::BufStream;
 
 use futures::{Async, Poll};
 
+/// Extract an `Option` value from an HTTP request.
+#[derive(Debug)]
 pub struct ExtractOptionFuture<T> {
     inner: T,
     none: bool,

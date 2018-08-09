@@ -85,10 +85,16 @@ pub trait Extract<B: BufStream>: 'static + Sized {
 /// succeed. This is done by performing any asynchronous processing when `poll`
 /// is called and usually stashing the extracted value internally until
 /// `extract` is called.
+///
+/// `extract` must not be called until `poll` returns `Ok(Ready(()))`.
 pub trait ExtractFuture {
+    /// The argument extracted from the request.
     type Item;
 
+    /// Returns `Ok(Ready(()))` when `extract()` can be called. If `NotReady` is
+    /// returned, the current task is registered for wakeup.
     fn poll(&mut self) -> Poll<(), Error>;
 
+    /// Consume `self` and return the value extracted from the HTTP request.
     fn extract(self) -> Self::Item;
 }

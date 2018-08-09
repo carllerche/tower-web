@@ -3,29 +3,39 @@ use util::buf_stream::BufStream;
 use util::http::HttpService;
 
 use http::{Request, Response};
-use tower_service::Service;
 
-/// An HTTP middleware
-pub trait HttpMiddleware<S: HttpService>: sealed::Sealed<S> {
+/// HTTP middleware trait
+///
+/// A trait "alias" for `Middleware` where the yielded service is an
+/// `HttpService`.
+///
+/// Using `HttpMiddleware` in where bounds is easier than trying to use `Middleware`
+/// directly.
+pub trait HttpMiddleware<S>: sealed::Sealed<S> {
+    /// THe HTTP request body handled by the wrapped service.
     type RequestBody: BufStream;
+
+    /// The HTTP response body returned by the wrapped service.
     type ResponseBody: BufStream;
+
+    /// The wrapped service's error type.
     type Error;
+
+    /// The wrapped service.
     type Service: HttpService<RequestBody = Self::RequestBody,
                              ResponseBody = Self::ResponseBody,
                                     Error = Self::Error>;
 
+    /// Wrap the given service with the middleware, returning a new servicee
+    /// that has been decorated with the middleware.
     fn wrap(&self, inner: S) -> Self::Service;
 }
 
-impl<T, S, B1, B2, B3, B4> HttpMiddleware<S> for T
+impl<T, S, B1, B2> HttpMiddleware<S> for T
 where T: Middleware<S, Request = Request<B1>,
                       Response = Response<B2>>,
-      S: Service<Request = Request<B3>,
-                Response = Response<B4>>,
       B1: BufStream,
       B2: BufStream,
-      B3: BufStream,
-      B4: BufStream,
 {
     type RequestBody = B1;
     type ResponseBody = B2;
@@ -37,15 +47,11 @@ where T: Middleware<S, Request = Request<B1>,
     }
 }
 
-impl<T, S, B1, B2, B3, B4> sealed::Sealed<S> for T
-where T: Middleware<S, Request = Request<B3>,
-                      Response = Response<B4>>,
-      S: Service<Request = Request<B1>,
-                Response = Response<B2>>,
+impl<T, S, B1, B2> sealed::Sealed<S> for T
+where T: Middleware<S, Request = Request<B1>,
+                      Response = Response<B2>>,
       B1: BufStream,
       B2: BufStream,
-      B3: BufStream,
-      B4: BufStream,
 {}
 
 mod sealed {

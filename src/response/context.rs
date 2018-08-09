@@ -5,6 +5,7 @@ use http::header::HeaderValue;
 use serde::Serialize;
 
 /// Context available when serializing the response.
+#[derive(Debug)]
 pub struct Context<'a, S: Serializer + 'a> {
     serializer: &'a S,
     default_content_type: Option<&'a ContentType<S::Format>>,

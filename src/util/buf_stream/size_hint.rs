@@ -1,3 +1,5 @@
+//! `SizeHint` type and builder
+
 /// A `BufStream` size hint
 ///
 /// The default implementation returns:
@@ -13,6 +15,7 @@ pub struct SizeHint {
 }
 
 /// Build a `SizeHint`
+#[derive(Debug)]
 pub struct Builder {
     hint: SizeHint,
 }

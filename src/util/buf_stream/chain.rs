@@ -3,6 +3,10 @@ use util::tuple::Either2 as Either;
 
 use futures::Poll;
 
+/// A buf stream that sequences two buf streams together.
+///
+/// `Chain` values are produced by the `chain` function on `BufStream`.
+#[derive(Debug)]
 pub struct Chain<T, U> {
     left: Option<T>,
     right: U,

@@ -5,6 +5,7 @@ use tower_service::Service;
 /// Two middlewares chained together.
 ///
 /// This type is produced by `Middleware::chain`.
+#[derive(Debug)]
 pub struct Chain<Inner, Outer>
 {
     inner: Inner,

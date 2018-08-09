@@ -84,10 +84,10 @@ pub trait Middleware<S> {
     /// The wrapped service response type
     type Response;
 
-    /// The wrapped servicee error type
+    /// The wrapped service's error type
     type Error;
 
-    /// Thee wrapped service
+    /// The wrapped service
     type Service: Service<Request = Self::Request,
                          Response = Self::Response,
                             Error = Self::Error>;

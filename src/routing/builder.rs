@@ -3,6 +3,7 @@ use super::{Route, RouteSet};
 use std::mem;
 
 /// Build a set of routes
+#[derive(Debug)]
 pub struct Builder<T> {
     routes: RouteSet<T>,
 }

@@ -31,6 +31,7 @@ const APPLICATION_JSON: &str = "application/json";
 impl ::util::Sealed for DefaultSerializer {}
 
 impl DefaultSerializer {
+    /// Return a new `DefaultSerializer` value.
     pub fn new() -> DefaultSerializer {
         DefaultSerializer {
             plain: HeaderValue::from_static(TEXT_PLAIN),

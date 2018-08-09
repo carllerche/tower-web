@@ -76,13 +76,14 @@ where S: Serializer,
     /// Returns the resource's set of routes.
     fn routes(&self) -> RouteSet<Self::Destination>;
 
-    /// Convert the value into a resource
+    /// Convert `self` into a `Resource` value.
     fn into_resource(self, serializer: S) -> Self::Resource;
 }
 
 /// A resource with no methods.
 ///
 /// Attempting to route to this resource will result in a 404 response.
+#[derive(Debug)]
 pub struct Unit<B> {
     _p: PhantomData<B>,
 }

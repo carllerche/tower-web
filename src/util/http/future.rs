@@ -2,11 +2,21 @@ use futures::{Future, Poll};
 use http;
 
 /// HTTP response future trait
+///
+/// A trait "alias" for `Future` where the yielded item is an `http::Response`.
+///
+/// Using `HttpFuture` in where bounds is easier than trying to use `Future`
+/// directly.
 pub trait HttpFuture: sealed::Sealed {
+    /// The HTTP response body
     type Body;
 
+    /// Attempt to resolve the future to a final value, registering the current
+    /// task for wakeup if the value is not yet available.
     fn poll(&mut self) -> Poll<http::Response<Self::Body>, ::Error>;
 
+    /// Wraps `self` with `LiftFuture`. This provides an implementation of
+    /// `Future` for `Self`.
     fn lift(self) -> LiftFuture<Self>
     where Self: Sized,
     {
@@ -14,6 +24,8 @@ pub trait HttpFuture: sealed::Sealed {
     }
 }
 
+/// Contains an `HttpFuture` providing an implementation of `Future`.
+#[derive(Debug)]
 pub struct LiftFuture<T> {
     inner: T,
 }

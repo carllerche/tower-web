@@ -13,10 +13,12 @@ use serde_urlencoded;
  */
 
 /// Extract a value using Serde
+#[derive(Debug)]
 pub struct SerdeFuture<T, B> {
     state: State<T, B>,
 }
 
+#[derive(Debug)]
 enum State<T, B> {
     Complete(Result<T, Option<Error>>),
     Body(buf_stream::Collect<B, Vec<u8>>),

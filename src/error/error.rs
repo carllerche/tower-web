@@ -70,26 +70,33 @@ impl fmt::Display for Error {
 // ===== impl ErrorKind =====
 
 impl ErrorKind {
+    /// Returns a new `ErrorKind` value representing a 400 -- bad request error.
     pub fn bad_request() -> ErrorKind {
         ErrorKind { kind: BadRequest }
     }
 
+    /// Returns `true` if `self` represents a 400 -- bad request error
     pub fn is_bad_request(&self) -> bool {
         self.kind == BadRequest
     }
 
+    /// Returns a new `ErrorKind` value representing a 404 -- not found error
     pub fn not_found() -> ErrorKind {
         ErrorKind { kind: NotFound }
     }
 
+    /// Returns `true` if `self` represents a 404 -- not found error
     pub fn is_not_found(&self) -> bool {
         self.kind == NotFound
     }
 
+    /// Returns a new `ErrorKind` value representing 500 -- internal server
+    /// error.
     pub fn internal() -> ErrorKind {
         ErrorKind { kind: Internal }
     }
 
+    /// Returns `true` if `self` represents a 500 -- internal server error.
     pub fn is_internal(&self) -> bool {
         self.kind == Internal
     }

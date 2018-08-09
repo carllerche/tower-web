@@ -53,6 +53,7 @@ use http;
 
 // ===== 0 =====
 
+#[derive(Debug)]
 pub struct Join0 {
     _p: (),
 }
@@ -516,6 +517,7 @@ impl Tuple {
             .collect::<Vec<_>>()
             .join(", ");
 
+        println!("#[derive(Debug)]");
         println!("pub struct Join{}<{}> {{", self.level, gens);
         println!("    futures: ({},),", gens);
         println!("    pending: ({},),", bools);

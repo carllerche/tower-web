@@ -5,10 +5,12 @@ use util::buf_stream::{self, BufStream};
 use futures::{Future, Poll};
 
 /// Extract a value using `serde`
+#[derive(Debug)]
 pub struct ExtractBytes<T, B> {
     state: State<T, B>,
 }
 
+#[derive(Debug)]
 enum State<T, B> {
     Complete(Result<T, Option<Error>>),
     Body(buf_stream::Collect<B, Vec<u8>>),

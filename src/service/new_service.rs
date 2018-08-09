@@ -8,6 +8,8 @@ use futures::future::{self, FutureResult};
 use http;
 use tower_service::NewService;
 
+use std::fmt;
+
 /// Creates new `WebService` values.
 ///
 /// Instances of this type are created by `ServiceBuilder`. A `NewWebService`
@@ -55,5 +57,20 @@ where
         let service = self.middleware.wrap(self.service.clone());
 
         future::ok(WebService::new(service))
+    }
+}
+
+impl<T, U, M> fmt::Debug for NewWebService<T, U, M>
+where
+    T: Resource + fmt::Debug,
+    T::Destination: fmt::Debug,
+    U: fmt::Debug,
+    M: fmt::Debug,
+{
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        fmt.debug_struct("NewService")
+            .field("service", &self.service)
+            .field("middleware", &self.middleware)
+            .finish()
     }
 }

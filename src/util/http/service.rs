@@ -7,8 +7,8 @@ use tower_service::Service;
 /// An HTTP service
 ///
 /// This is not intended to be implemented directly. Instead, it is a trait
-/// alias of sorts. Implements the `tower_service::Service` trait using
-/// `http::Request` and `http::Response` types.
+/// alias of sorts, aliasing `tower_service::Service` trait with `http::Request`
+/// and `http::Response` types.
 pub trait HttpService: sealed::Service {
     /// Request payload.
     type RequestBody: BufStream;
@@ -28,6 +28,8 @@ pub trait HttpService: sealed::Service {
     /// Process the request and return the response asynchronously.
     fn call(&mut self, request: Request<Self::RequestBody>) -> Self::Future;
 
+    /// Wraps `self` with `LiftService`. This provides an implementation of
+    /// `Service` for `Self`.
     fn lift(self) -> LiftService<Self>
     where Self: Sized,
     {
@@ -35,6 +37,8 @@ pub trait HttpService: sealed::Service {
     }
 }
 
+/// Contains an `HttpService` providing an implementation of `Service`.
+#[derive(Debug)]
 pub struct LiftService<T> {
     inner: T,
 }
@@ -60,14 +64,17 @@ where
 }
 
 impl<T> LiftService<T> {
+    /// Return a reference to the underlying `HttpServce`.
     pub fn get_ref(&self) -> &T {
         &self.inner
     }
 
+    /// Return a mutable reference to the underlying `HttpServce`.
     pub fn get_mut(&mut self) -> &mut T {
         &mut self.inner
     }
 
+    /// Consumes `self`, returning the underlying `HttpServce`.
     pub fn into_inner(self) -> T {
         self.inner
     }

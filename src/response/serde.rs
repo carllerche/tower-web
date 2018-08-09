@@ -9,6 +9,7 @@ use serde;
 /// Use a Serde value as an HTTP response
 ///
 /// Takes a `T: serde::Serialize` and implements `Response` for it.
+#[derive(Debug)]
 pub struct SerdeResponse<T>(T);
 
 impl<T> SerdeResponse<T> {

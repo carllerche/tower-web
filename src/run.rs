@@ -24,6 +24,7 @@ struct LiftBody<T: HttpService> {
     body: T::ResponseBody,
 }
 
+#[derive(Debug)]
 pub struct LiftReqBody {
     body: Body,
 }

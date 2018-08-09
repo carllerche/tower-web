@@ -6,6 +6,7 @@ use http::Request;
 /// Context available when extracting data from the HTTP request.
 ///
 /// Primarily, `Context` includes a reference to the HTTP request in question.
+#[derive(Debug)]
 pub struct Context<'a> {
     /// Reference too the callsite
     callsite: &'a CallSite,

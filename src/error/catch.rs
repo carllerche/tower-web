@@ -41,8 +41,10 @@ pub trait Catch: Clone {
 /// The `Serializer` configured for the service is provided. This allows the
 /// `Catch` instance to be able to serialize responses.
 pub trait IntoCatch<S> {
+    /// The `Catch` value being converted to
     type Catch: Catch;
 
+    /// Convert `self` into a `Catch` value.
     fn into_catch(self) -> Self::Catch;
 }
 

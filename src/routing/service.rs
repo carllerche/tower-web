@@ -7,10 +7,10 @@ use futures::{Future, Poll};
 use http;
 use tower_service::Service;
 
+use std::fmt;
 use std::sync::Arc;
 
 /// Web service
-#[derive(Debug)]
 pub struct RoutedService<T, U>
 where
     T: Resource,
@@ -26,6 +26,8 @@ where
     routes: Arc<RouteSet<T::Destination>>,
 }
 
+/// Response future returned by `RoutedService`
+#[derive(Debug)]
 pub struct RoutedResponse<T, U>
 where U: Catch,
 {
@@ -34,6 +36,7 @@ where U: Catch,
     state: State<T, U::Future>,
 }
 
+#[derive(Debug)]
 enum State<T, U> {
     Pending(T),
     Catching(U),
@@ -50,6 +53,21 @@ where
             catch: self.catch.clone(),
             routes: self.routes.clone(),
         }
+    }
+}
+
+impl<T, U> fmt::Debug for RoutedService<T, U>
+where
+    T: Resource + fmt::Debug,
+    T::Destination: fmt::Debug,
+    U: fmt::Debug,
+{
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        fmt.debug_struct("RoutedService")
+            .field("resource", &self.resource)
+            .field("catch", &self.catch)
+            .field("routes", &self.routes)
+            .finish()
     }
 }
 

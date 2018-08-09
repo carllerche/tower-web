@@ -19,6 +19,7 @@ use http;
 
 // ===== 0 =====
 
+#[derive(Debug)]
 pub struct Join0 {
     _p: (),
 }
@@ -3478,6 +3479,7 @@ impl<R0, U> Chain<U> for (R0,) {
     }
 }
 
+#[derive(Debug)]
 pub struct Join1<T0> {
     futures: (T0,),
     pending: (bool,),
@@ -3546,6 +3548,7 @@ impl<R0, R1, U> Chain<U> for (R0, R1,) {
     }
 }
 
+#[derive(Debug)]
 pub struct Join2<T0, T1> {
     futures: (T0, T1,),
     pending: (bool, bool,),
@@ -3623,6 +3626,7 @@ impl<R0, R1, R2, U> Chain<U> for (R0, R1, R2,) {
     }
 }
 
+#[derive(Debug)]
 pub struct Join3<T0, T1, T2> {
     futures: (T0, T1, T2,),
     pending: (bool, bool, bool,),
@@ -3709,6 +3713,7 @@ impl<R0, R1, R2, R3, U> Chain<U> for (R0, R1, R2, R3,) {
     }
 }
 
+#[derive(Debug)]
 pub struct Join4<T0, T1, T2, T3> {
     futures: (T0, T1, T2, T3,),
     pending: (bool, bool, bool, bool,),
@@ -3804,6 +3809,7 @@ impl<R0, R1, R2, R3, R4, U> Chain<U> for (R0, R1, R2, R3, R4,) {
     }
 }
 
+#[derive(Debug)]
 pub struct Join5<T0, T1, T2, T3, T4> {
     futures: (T0, T1, T2, T3, T4,),
     pending: (bool, bool, bool, bool, bool,),
@@ -3908,6 +3914,7 @@ impl<R0, R1, R2, R3, R4, R5, U> Chain<U> for (R0, R1, R2, R3, R4, R5,) {
     }
 }
 
+#[derive(Debug)]
 pub struct Join6<T0, T1, T2, T3, T4, T5> {
     futures: (T0, T1, T2, T3, T4, T5,),
     pending: (bool, bool, bool, bool, bool, bool,),
@@ -4021,6 +4028,7 @@ impl<R0, R1, R2, R3, R4, R5, R6, U> Chain<U> for (R0, R1, R2, R3, R4, R5, R6,) {
     }
 }
 
+#[derive(Debug)]
 pub struct Join7<T0, T1, T2, T3, T4, T5, T6> {
     futures: (T0, T1, T2, T3, T4, T5, T6,),
     pending: (bool, bool, bool, bool, bool, bool, bool,),
@@ -4143,6 +4151,7 @@ impl<R0, R1, R2, R3, R4, R5, R6, R7, U> Chain<U> for (R0, R1, R2, R3, R4, R5, R6
     }
 }
 
+#[derive(Debug)]
 pub struct Join8<T0, T1, T2, T3, T4, T5, T6, T7> {
     futures: (T0, T1, T2, T3, T4, T5, T6, T7,),
     pending: (bool, bool, bool, bool, bool, bool, bool, bool,),
@@ -4274,6 +4283,7 @@ impl<R0, R1, R2, R3, R4, R5, R6, R7, R8, U> Chain<U> for (R0, R1, R2, R3, R4, R5
     }
 }
 
+#[derive(Debug)]
 pub struct Join9<T0, T1, T2, T3, T4, T5, T6, T7, T8> {
     futures: (T0, T1, T2, T3, T4, T5, T6, T7, T8,),
     pending: (bool, bool, bool, bool, bool, bool, bool, bool, bool,),
@@ -4414,6 +4424,7 @@ impl<R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, U> Chain<U> for (R0, R1, R2, R3, R4
     }
 }
 
+#[derive(Debug)]
 pub struct Join10<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> {
     futures: (T0, T1, T2, T3, T4, T5, T6, T7, T8, T9,),
     pending: (bool, bool, bool, bool, bool, bool, bool, bool, bool, bool,),
@@ -4563,6 +4574,7 @@ impl<R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, U> Chain<U> for (R0, R1, R2, R
     }
 }
 
+#[derive(Debug)]
 pub struct Join11<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> {
     futures: (T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10,),
     pending: (bool, bool, bool, bool, bool, bool, bool, bool, bool, bool, bool,),
@@ -4721,6 +4733,7 @@ impl<R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, U> Chain<U> for (R0, R1, 
     }
 }
 
+#[derive(Debug)]
 pub struct Join12<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> {
     futures: (T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11,),
     pending: (bool, bool, bool, bool, bool, bool, bool, bool, bool, bool, bool, bool,),

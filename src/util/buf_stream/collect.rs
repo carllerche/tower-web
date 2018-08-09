@@ -2,6 +2,10 @@ use super::{BufStream, FromBufStream};
 
 use futures::{Future, Poll};
 
+/// Consumes a buf stream, collecting the data into a single byte container.
+///
+/// `Collect` values are produced by `BufStream::collect`.
+#[derive(Debug)]
 pub struct Collect<T, U: FromBufStream> {
     stream: T,
     builder: Option<U::Builder>,
