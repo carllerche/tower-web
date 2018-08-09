@@ -2,6 +2,14 @@
 name = "tower-web-macros"
 version = "0.1.0"
 authors = ["Carl Lerche <me@carllerche.com>"]
+readme = "README.md"
+license = "MIT"
+repository = "https://github.com/carllerche/tower-web"
+homepage = "https://github.com/carllerche/tower-web"
+documentation = "https://docs.rs/tokio-web/0.1.0"
+description = """
+Macros for tower-web
+"""
 
 [lib]
 proc-macro = true
