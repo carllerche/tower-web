@@ -2,7 +2,12 @@
 
 A web framework for Rust with a focus on removing boilerplate.
 
-[![Join the chat at https://gitter.im/tower-rs/tower](https://badges.gitter.im/tower-rs/tower.svg)](https://gitter.im/tower-rs/tower?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://travis-ci.org/carllerche/tower-web.svg?branch=master)](https://travis-ci.org/carllerche/tower-web)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Crates.io](https://img.shields.io/crates/v/tower-web.svg?maxAge=2592000)](https://crates.io/crates/tower-web)
+[![Gitter](https://badges.gitter.im/tower-rs/tower.svg)](https://gitter.im/tower-rs/tower)
+
+[API Documentation][dox]
 
 Tower Web is:
 
@@ -13,6 +18,7 @@ Tower Web is:
 
 [Tokio]: https://github.com/tokio-rs/tokio
 [Hyper]: http://github.com/hyperium/hyper
+[dox]: http://rust-doc.s3-website-us-east-1.amazonaws.com/tower-web/v0.1.2/tower_web/
 
 ## Hello World
 
