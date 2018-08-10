@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://docs.rs/tower-web/0.1.1")]
+#![doc(html_root_url = "https://docs.rs/tower-web/0.1.2")]
 #![deny(missing_debug_implementations)]
 #![cfg_attr(test, deny(warnings))]
 
