@@ -1,5 +1,3 @@
-#![recursion_limit = "128"]
-
 /// Web service with handler arguments
 ///
 /// ## Overview

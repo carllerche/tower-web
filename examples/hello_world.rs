@@ -1,5 +1,3 @@
-#![recursion_limit = "128"]
-
 /// Hello world service.
 ///
 /// A simple service that demonstrates how to get started with `tower-web`.

@@ -1,5 +1,3 @@
-#![recursion_limit = "128"]
-
 /// Web service that responds using static files from disk.
 ///
 /// ## Overview

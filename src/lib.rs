@@ -530,7 +530,7 @@ macro_rules! impl_web {
 macro_rules! impl_web_clean_top_level {
     // Next token is a set of curly braces. Pass to `impl_web_clean_nested!`.
     (($($done:tt)*) { $($nested:tt)* } $($rest:tt)*) => {
-        impl_web_clean_nested!(($($done)*) () { $($nested)* } $($rest)*);
+        impl_web_clean_nested!(($($done)*) () { $($nested)* } { $($nested)* } $($rest)*);
     };
 
     // Next token is not a set of curly braces. Keep it.
@@ -549,35 +549,57 @@ macro_rules! impl_web_clean_top_level {
 #[macro_export]
 macro_rules! impl_web_clean_nested {
     // Match an attribute that we recognize and discard it.
-    (($($outer:tt)*) ($($done:tt)*) { #[get $($attr:tt)*] $($nested:tt)* } $($rest:tt)*) => {
-        impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } $($rest)*);
+    (($($outer:tt)*) ($($done:tt)*) { #[get $($attr:tt)*] $($nested:tt)* } $dup:tt $($rest:tt)*) => {
+        impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } { $($nested)* } $($rest)*);
     };
-    (($($outer:tt)*) ($($done:tt)*) { #[post $($attr:tt)*] $($nested:tt)* } $($rest:tt)*) => {
-        impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } $($rest)*);
+    (($($outer:tt)*) ($($done:tt)*) { #[post $($attr:tt)*] $($nested:tt)* } $dup:tt $($rest:tt)*) => {
+        impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } { $($nested)* } $($rest)*);
     };
-    (($($outer:tt)*) ($($done:tt)*) { #[put $($attr:tt)*] $($nested:tt)* } $($rest:tt)*) => {
-        impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } $($rest)*);
+    (($($outer:tt)*) ($($done:tt)*) { #[put $($attr:tt)*] $($nested:tt)* } $dup:tt $($rest:tt)*) => {
+        impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } { $($nested)* } $($rest)*);
     };
-    (($($outer:tt)*) ($($done:tt)*) { #[patch $($attr:tt)*] $($nested:tt)* } $($rest:tt)*) => {
-        impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } $($rest)*);
+    (($($outer:tt)*) ($($done:tt)*) { #[patch $($attr:tt)*] $($nested:tt)* } $dup:tt $($rest:tt)*) => {
+        impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } { $($nested)* } $($rest)*);
     };
-    (($($outer:tt)*) ($($done:tt)*) { #[delete $($attr:tt)*] $($nested:tt)* } $($rest:tt)*) => {
-        impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } $($rest)*);
+    (($($outer:tt)*) ($($done:tt)*) { #[delete $($attr:tt)*] $($nested:tt)* } $dup:tt $($rest:tt)*) => {
+        impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } { $($nested)* } $($rest)*);
     };
-    (($($outer:tt)*) ($($done:tt)*) { #[content_type $($attr:tt)*] $($nested:tt)* } $($rest:tt)*) => {
-        impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } $($rest)*);
+    (($($outer:tt)*) ($($done:tt)*) { #[content_type $($attr:tt)*] $($nested:tt)* } $dup:tt $($rest:tt)*) => {
+        impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } { $($nested)* } $($rest)*);
     };
-    (($($outer:tt)*) ($($done:tt)*) { #[catch $($attr:tt)*] $($nested:tt)* } $($rest:tt)*) => {
-        impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } $($rest)*);
-    };
-
-    // Next token is not part of a tower-web attribute. Keep it.
-    (($($outer:tt)*) ($($done:tt)*) { $t:tt $($nested:tt)* } $($rest:tt)*) => {
-        impl_web_clean_nested!(($($outer)*) ($($done)* $t) { $($nested)* } $($rest)*);
+    (($($outer:tt)*) ($($done:tt)*) { #[catch $($attr:tt)*] $($nested:tt)* } $dup:tt $($rest:tt)*) => {
+        impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } { $($nested)* } $($rest)*);
     };
 
-    // No more tokens to process. Return back to `impl_web_clean_top_level!`.
-    (($($outer:tt)*) ($($done:tt)*) {} $($rest:tt)*) => {
-        impl_web_clean_top_level!(($($outer)* { $($done)* }) $($rest)*);
+    // Seek forward to the next `#` token. This reduces the depth of our macro
+    // recursion to avoid requiring a higher recursion limit for simple
+    // invocations.
+    (($($outer:tt)*) ($($done:tt)*) { $A:tt # $($nested:tt)* } { $a:tt $pound:tt $($dup:tt)* } $($rest:tt)*) => {
+        impl_web_clean_nested!(($($outer)*) ($($done)* $A) { $pound $($nested)* } { $($nested)* } $($rest)*);
+    };
+    (($($outer:tt)*) ($($done:tt)*) { $A:tt $B:tt # $($nested:tt)* } { $a:tt $b:tt $pound:tt $($dup:tt)* } $($rest:tt)*) => {
+        impl_web_clean_nested!(($($outer)*) ($($done)* $A $B) { $pound $($nested)* } { $($nested)* } $($rest)*);
+    };
+    (($($outer:tt)*) ($($done:tt)*) { $A:tt $B:tt $C:tt # $($nested:tt)* } { $a:tt $b:tt $c:tt $pound:tt $($dup:tt)* } $($rest:tt)*) => {
+        impl_web_clean_nested!(($($outer)*) ($($done)* $A $B $C) { $pound $($nested)* } { $($nested)* } $($rest)*);
+    };
+    (($($outer:tt)*) ($($done:tt)*) { $A:tt $B:tt $C:tt $D:tt # $($nested:tt)* } { $a:tt $b:tt $c:tt $d:tt $pound:tt $($dup:tt)* } $($rest:tt)*) => {
+        impl_web_clean_nested!(($($outer)*) ($($done)* $A $B $C $D) { $pound $($nested)* } { $($nested)* } $($rest)*);
+    };
+    (($($outer:tt)*) ($($done:tt)*) { $A:tt $B:tt $C:tt $D:tt $E:tt # $($nested:tt)* } { $a:tt $b:tt $c:tt $d:tt $e:tt $pound:tt $($dup:tt)* } $($rest:tt)*) => {
+        impl_web_clean_nested!(($($outer)*) ($($done)* $A $B $C $D $E) { $pound $($nested)* } { $($nested)* } $($rest)*);
+    };
+    (($($outer:tt)*) ($($done:tt)*) { $A:tt $B:tt $C:tt $D:tt $E:tt $F:tt # $($nested:tt)* } { $a:tt $b:tt $c:tt $d:tt $e:tt $f:tt $pound:tt $($dup:tt)* } $($rest:tt)*) => {
+        impl_web_clean_nested!(($($outer)*) ($($done)* $A $B $C $D $E $F) { $pound $($nested)* } { $($nested)* } $($rest)*);
+    };
+
+    // Next several tokens are not part of a tower-web attribute. Keep them.
+    (($($outer:tt)*) ($($done:tt)*) { $A:tt $B:tt $C:tt $D:tt $E:tt $F:tt $G:tt $($nested:tt)* } $dup:tt $($rest:tt)*) => {
+        impl_web_clean_nested!(($($outer)*) ($($done)* $A $B $C $D $E $F $G) { $($nested)* } { $($nested)* } $($rest)*);
+    };
+
+    // Reached the end of nested tokens. Return back to `impl_web_clean_top_level!`.
+    (($($outer:tt)*) ($($done:tt)*) { $($nested:tt)* } $dup:tt $($rest:tt)*) => {
+        impl_web_clean_top_level!(($($outer)* { $($done)* $($nested)* }) $($rest)*);
     };
 }

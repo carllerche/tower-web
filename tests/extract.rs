@@ -1,5 +1,3 @@
-#![recursion_limit = "128"]
-
 extern crate futures;
 extern crate http;
 #[macro_use]
