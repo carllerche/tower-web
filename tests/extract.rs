@@ -1,3 +1,5 @@
+#![recursion_limit = "128"]
+
 extern crate futures;
 extern crate http;
 #[macro_use]
@@ -30,22 +32,22 @@ pub struct Inner {
 
 impl_web! {
     impl TestExtract {
-        /// @get("/extract_query")
-        /// @content_type("plain")
+        #[get("/extract_query")]
+        #[content_type("plain")]
         fn extract_query(&self, query_string: Foo) -> Result<&'static str, ()> {
             assert_eq!(query_string.foo, "bar");
             Ok("extract_query")
         }
 
-        /// @get("/extract_query_wrap")
-        /// @content_type("plain")
+        #[get("/extract_query_wrap")]
+        #[content_type("plain")]
         fn extract_query_wrap(&self, query_string: FooWrap) -> Result<&'static str, ()> {
             assert_eq!(query_string.0.foo, "bar");
             Ok("extract_query_wrap")
         }
 
-        /// @get("/extract_query_missing_ok")
-        /// @content_type("plain")
+        #[get("/extract_query_missing_ok")]
+        #[content_type("plain")]
         fn extract_query_missing_ok(&self, query_string: Foo2) -> Result<&'static str, ()> {
             if let Some(ref foo) = query_string.foo {
                 assert_eq!(foo, "bar");
@@ -55,15 +57,15 @@ impl_web! {
             }
         }
 
-        /// @post("/extract_body")
-        /// @content_type("plain")
+        #[post("/extract_body")]
+        #[content_type("plain")]
         fn extract_body(&self, body: Foo) -> Result<&'static str, ()> {
             assert_eq!(body.foo, "body bar");
             Ok("extract_body")
         }
 
-        /// @post("/extract_body_wrap")
-        /// @content_type("plain")
+        #[post("/extract_body_wrap")]
+        #[content_type("plain")]
         fn extract_body_wrap(&self, body: FooWrap) -> Result<&'static str, ()> {
             assert_eq!(body.0.foo, "body bar");
             Ok("extract_body_wrap")

@@ -32,7 +32,7 @@ pub struct HelloWorld;
 
 impl_web! {
     impl HelloWorld {
-        /// @get("/")
+        #[get("/")]
         fn hello_world(&self) -> Result<&'static str, ()> {
             Ok("hello world")
         }

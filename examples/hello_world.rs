@@ -1,3 +1,5 @@
+#![recursion_limit = "128"]
+
 /// Hello world service.
 ///
 /// A simple service that demonstrates how to get started with `tower-web`.
@@ -80,9 +82,9 @@ impl_web! {
         // If the function returns `Err`, it will be mapped to an HTTP 500
         // response.
         //
-        // @get("/") matches GET HTTP requests to `/`.
+        // #[get("/")] matches GET HTTP requests to `/`.
         //
-        /// @get("/")
+        #[get("/")]
         fn hello_world(&self) -> Result<&'static str, ()> {
             Ok("This is a basic response served by tower-web")
         }
@@ -90,7 +92,7 @@ impl_web! {
         // This route match GET `/motd` requests. It uses a field on
         // `HelloWorld` to generate the response.
         //
-        /// @get("/motd")
+        #[get("/motd")]
         fn motd(&self) -> Result<String, ()> {
             // You can also respond with an owned `String`.
             Ok(format!("MOTD: {}", self.motd))
@@ -103,14 +105,14 @@ impl_web! {
         // requires everything to be `Send`. So, in order to run our service, we
         // also have to guarantee that everything is Send.
         //
-        /// @get("/hello-future")
+        #[get("/hello-future")]
         fn hello_future(&self) -> impl Future<Item = String, Error = ()> + Send {
             future::ok("Or return a future that resolves to the response".to_string())
         }
 
         // Other HTTP verbs are supported as well.
         //
-        /// @post("/print_std")
+        #[post("/print_std")]
         fn print_std(&self) -> Result<&'static str, ()> {
             println!("Hello from the web");
             Ok("done")

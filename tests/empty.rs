@@ -59,7 +59,7 @@ mod one_route {
 
     impl_web! {
         impl OneRoute {
-            /// @get("/")
+            #[get("/")]
             fn foo(&self) -> Result<String, ()> {
                 Ok("foo".to_string())
             }

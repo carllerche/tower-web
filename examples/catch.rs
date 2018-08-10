@@ -13,12 +13,12 @@ struct Buggy;
 
 impl_web! {
     impl Buggy {
-        /// @get("/")
+        #[get("/")]
         fn index(&self) -> impl Future<Item = String, Error = ()> + Send {
             Err(()).into_future()
         }
 
-        /// @catch
+        #[catch]
         fn catch_error(&self) -> impl Future<Item = String, Error = io::Error> + Send {
             Ok("hello".to_string()).into_future()
         }

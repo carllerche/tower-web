@@ -31,7 +31,7 @@
 //!
 //! impl_web! {
 //!     impl MyApp {
-//!         /// @get("/")
+//!         #[get("/")]
 //!         fn index(&self) -> Result<String, ()> {
 //!             // implementation
 //! #           unimplemented!()
@@ -39,10 +39,6 @@
 //!     }
 //! }
 //! ```
-//!
-//! The `/// @get("/")` is meaningful. This is how `impl_web!` works today on
-//! Rust stable. Once attribute macros land on stable, Tower Web will switch to
-//! that.
 //!
 //! `impl_web!` looks for methods that have a [routing] attribute. These methods
 //! will be exposed from the web service. All other methods will be ignored.
@@ -54,9 +50,9 @@
 //! Routing attributes start with an HTTP verb and contain a path that is
 //! matched. For example:
 //!
-//! * `@get("/")`
-//! * `@post("/foo")`
-//! * `@put("/zomg/hello/world")`
+//! * `#[get("/")]`
+//! * `#[post("/foo")]`
+//! * `#[put("/zomg/hello/world")]`
 //!
 //! #### Captures
 //!
@@ -69,7 +65,7 @@
 //!
 //! impl_web! {
 //!     impl MyApp {
-//!         /// @get("/hello/:msg")
+//!         #[get("/hello/:msg")]
 //!         fn index(&self, msg: String) -> Result<String, ()> {
 //!             Ok(format!("Got: {}", msg))
 //!         }
@@ -103,12 +99,12 @@
 //!
 //! impl_web! {
 //!     impl MyApp {
-//!         /// @get("/path/:capture")
+//!         #[get("/path/:capture")]
 //!         fn index(&self, capture: String, query_string: String) -> Result<String, ()> {
 //!             Ok(format!("capture={}; query_string={}", capture, query_string))
 //!         }
 //!
-//!         /// @post("/upload")
+//!         #[post("/upload")]
 //!         fn upload(&self, content_type: String, body: Vec<u8>) -> Result<String, ()> {
 //!             // implementation
 //! #           unimplemented!()
@@ -129,7 +125,7 @@
 //!
 //! impl_web! {
 //!     impl MyApp {
-//!         /// @get("/users/:id")
+//!         #[get("/users/:id")]
 //!         fn get_user(&self, id: u32) -> Result<String, ()> {
 //!             // implementation
 //! #           unimplemented!()
@@ -152,7 +148,7 @@
 //!
 //! impl_web! {
 //!     impl MyApp {
-//!         /// @get("/")
+//!         #[get("/")]
 //!         fn get(&self, x_required: String, x_optional: Option<String>) -> Result<String, ()> {
 //!             // implementation
 //! #           unimplemented!()
@@ -186,13 +182,13 @@
 //!
 //! impl_web! {
 //!     impl MyApp {
-//!         /// @get("/foo")
+//!         #[get("/foo")]
 //!         fn foo(&self) -> MyResponseFuture {
 //!             // implementation
 //! #           unimplemented!()
 //!         }
 //!
-//!         /// @get("/bar")
+//!         #[get("/bar")]
 //!         fn bar(&self) -> impl Future<Item = String> + Send {
 //!             // implementation
 //! #           futures::future::ok::<_, ()>("".to_string())
@@ -256,7 +252,7 @@
 //!
 //! impl_web! {
 //!     impl MyApp {
-//!         /// @get("/")
+//!         #[get("/")]
 //!         fn index(&self, query_string: MyData) -> Result<String, ()> {
 //!             // implementation
 //! #           unimplemented!();
@@ -293,7 +289,7 @@
 //!
 //! impl_web! {
 //!     impl MyApp {
-//!         /// @post("/data")
+//!         #[post("/data")]
 //!         fn index(&self, body: MyData) -> Result<String, ()> {
 //!             // implementation
 //! #           unimplemented!();
@@ -340,7 +336,7 @@
 //!
 //! impl_web! {
 //!     impl MyApp {
-//!         /// @post("/data")
+//!         #[post("/data")]
 //!         fn create(&self) -> Result<MyData, ()> {
 //!             // implementation
 //! #           unimplemented!();
@@ -414,7 +410,7 @@
 //!
 //! impl_web! {
 //!     impl MyApp {
-//!         /// @get("/:hello")
+//!         #[get("/:hello")]
 //!         fn index(&self, hello: String) -> Result<&'static str, ()> {
 //!             if hello == "hello" {
 //!                 Ok("correct")
@@ -497,6 +493,8 @@ proc_macro_item_decl! {
     derive_resource! => derive_resource_impl
 }
 
+// ===== end proc_macro_hack junk =====
+
 /// Generate a `Resource` implemeentation based on the methods defined in the
 /// macro block.
 ///
@@ -509,7 +507,7 @@ proc_macro_item_decl! {
 ///
 /// impl_web! {
 ///     impl MyApp {
-///         /// @get("/")
+///         #[get("/")]
 ///         fn index(&self) -> Result<String, ()> {
 ///             // implementation
 /// #           unimplemented!()
@@ -520,9 +518,66 @@ proc_macro_item_decl! {
 #[macro_export]
 macro_rules! impl_web {
     ($($t:tt)*) => {
-        $($t)*
-        derive_resource! { $($t)* }
+        impl_web_clean_top_level!(() $($t)*);
+        derive_resource!($($t)*);
     }
 }
 
-// ===== end proc_macro_hack junk =====
+// Tt-muncher to invoke `impl_web_clean_nested!` on the content of every set of
+// curly braces in the input.
+#[doc(hidden)]
+#[macro_export]
+macro_rules! impl_web_clean_top_level {
+    // Next token is a set of curly braces. Pass to `impl_web_clean_nested!`.
+    (($($done:tt)*) { $($nested:tt)* } $($rest:tt)*) => {
+        impl_web_clean_nested!(($($done)*) () { $($nested)* } $($rest)*);
+    };
+
+    // Next token is not a set of curly braces. Keep it.
+    (($($done:tt)*) $t:tt $($rest:tt)*) => {
+        impl_web_clean_top_level!(($($done)* $t) $($rest)*);
+    };
+
+    // No more tokens to process. Expand to the cleaned tokens.
+    (($($done:tt)*)) => {
+        $($done)*
+    };
+}
+
+// Tt-muncher to strip tower-web attributes from the input.
+#[doc(hidden)]
+#[macro_export]
+macro_rules! impl_web_clean_nested {
+    // Match an attribute that we recognize and discard it.
+    (($($outer:tt)*) ($($done:tt)*) { #[get $($attr:tt)*] $($nested:tt)* } $($rest:tt)*) => {
+        impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } $($rest)*);
+    };
+    (($($outer:tt)*) ($($done:tt)*) { #[post $($attr:tt)*] $($nested:tt)* } $($rest:tt)*) => {
+        impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } $($rest)*);
+    };
+    (($($outer:tt)*) ($($done:tt)*) { #[put $($attr:tt)*] $($nested:tt)* } $($rest:tt)*) => {
+        impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } $($rest)*);
+    };
+    (($($outer:tt)*) ($($done:tt)*) { #[patch $($attr:tt)*] $($nested:tt)* } $($rest:tt)*) => {
+        impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } $($rest)*);
+    };
+    (($($outer:tt)*) ($($done:tt)*) { #[delete $($attr:tt)*] $($nested:tt)* } $($rest:tt)*) => {
+        impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } $($rest)*);
+    };
+    (($($outer:tt)*) ($($done:tt)*) { #[content_type $($attr:tt)*] $($nested:tt)* } $($rest:tt)*) => {
+        impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } $($rest)*);
+    };
+    (($($outer:tt)*) ($($done:tt)*) { #[catch $($attr:tt)*] $($nested:tt)* } $($rest:tt)*) => {
+        impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } $($rest)*);
+    };
+
+    // Next token is not part of a tower-web attribute. Keep it.
+    (($($outer:tt)*) ($($done:tt)*) { $t:tt $($nested:tt)* } $($rest:tt)*) => {
+        impl_web_clean_nested!(($($outer)*) ($($done)* $t) { $($nested)* } $($rest)*);
+    };
+
+    // No more tokens to process. Return back to `impl_web_clean_top_level!`.
+    (($($outer:tt)*) ($($done:tt)*) {} $($rest:tt)*) => {
+        impl_web_clean_top_level!(($($outer)* { $($done)* }) $($rest)*);
+    };
+}

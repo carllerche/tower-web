@@ -12,8 +12,8 @@ struct TestResource;
 
 impl_web! {
     impl TestResource {
-        /// @get("/impl_future")
-        /// @content_type("plain")
+        #[get("/impl_future")]
+        #[content_type("plain")]
         fn impl_future(&self) -> impl Future<Item = &'static str, Error = ()> {
             use futures::IntoFuture;
             Ok("impl_future").into_future()
