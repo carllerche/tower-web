@@ -77,7 +77,7 @@ where
     fn call(&mut self, request: http::Request<Self::ReqBody>) -> Self::Future {
         let request = request.map(|body| LiftReqBody { body });
         let response = self.inner
-            .call(request)
+            .call_http(request)
             .map(|response| response.map(|body| LiftBody { body }))
             .map_err(|_| unimplemented!())
             ;
@@ -107,7 +107,7 @@ where
                 let h = http.clone();
 
                 tokio::spawn({
-                    new_service.new_service()
+                    new_service.new_http_service()
                         .map_err(|_| unimplemented!())
                         .and_then(move |service| {
                             let service = Lift::new(service);

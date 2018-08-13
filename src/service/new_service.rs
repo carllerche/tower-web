@@ -54,7 +54,7 @@ where
     type Future = FutureResult<Self::Service, Self::InitError>;
 
     fn new_service(&self) -> Self::Future {
-        let service = self.middleware.wrap(self.service.clone());
+        let service = self.middleware.wrap_http(self.service.clone());
 
         future::ok(WebService::new(service))
     }

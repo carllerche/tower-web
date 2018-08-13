@@ -122,7 +122,7 @@ where U: IntoResource<DefaultSerializer, String>,
 
 pub trait TestHttpService: HttpService {
     fn call_unwrap(&mut self, request: http::Request<Self::RequestBody>) -> http::Response<Self::ResponseBody> {
-        self.call(request).wait().ok().unwrap()
+        self.call_http(request).wait().ok().unwrap()
     }
 }
 

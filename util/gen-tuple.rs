@@ -216,13 +216,13 @@ impl Either {
         println!("{{");
         println!("    type Body = Either{}<{}>;", self.level, body_gens);
         println!("");
-        println!("    fn poll(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {{");
+        println!("    fn poll_http(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {{");
         println!("        use self::Either{}::*;", self.level);
         println!("");
         println!("        match *self {{");
 
         for n in 0..self.level {
-            println!("            {}(ref mut f) => Ok(try_ready!(f.poll()).map({}).into()),", VARS[n], VARS[n]);
+            println!("            {}(ref mut f) => Ok(try_ready!(f.poll_http()).map({}).into()),", VARS[n], VARS[n]);
         }
 
         println!("        }}");

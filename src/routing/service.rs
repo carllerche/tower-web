@@ -153,7 +153,7 @@ where T: HttpFuture,
         loop {
             let catching = match self.state {
                 Pending(ref mut fut) => {
-                    let error = match fut.poll() {
+                    let error = match fut.poll_http() {
                         Ok(Ready(v)) => {
                             let v = v.map(A);
                             return Ok(Ready(v))
@@ -165,7 +165,7 @@ where T: HttpFuture,
                     self.catch.catch(&self.request, error)
                 }
                 Catching(ref mut fut) => {
-                    let resp = try_ready!(HttpFuture::poll(fut))
+                    let resp = try_ready!(HttpFuture::poll_http(fut))
                         .map(|body| B(error::Map::new(body)));
 
                     return Ok(Ready(resp));
