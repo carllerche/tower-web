@@ -42,8 +42,8 @@ struct HelloResponse {
 
 impl_web! {
     impl HelloWorld {
-        /// @get("/")
-        /// @content_type("json")
+        #[get("/")]
+        #[content_type("json")]
         fn hello_world(&self) -> Result<HelloResponse, ()> {
             Ok(HelloResponse {
                 message: "hello world",

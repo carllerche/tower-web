@@ -22,28 +22,28 @@ struct Four;
 
 impl_web! {
     impl One {
-        /// @get("/one")
+        #[get("/one")]
         fn action(&self) -> Result<&'static str, ()> {
             Ok("/one")
         }
     }
 
     impl Two {
-        /// @get("/two")
+        #[get("/two")]
         fn action(&self) -> Result<&'static str, ()> {
             Ok("/two")
         }
     }
 
     impl Three {
-        /// @get("/three")
+        #[get("/three")]
         fn action(&self) -> Result<&'static str, ()> {
             Ok("/three")
         }
     }
 
     impl Four {
-        /// @get("/four")
+        #[get("/four")]
         fn action(&self) -> Result<&'static str, ()> {
             Ok("/four")
         }

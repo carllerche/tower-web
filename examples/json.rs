@@ -65,7 +65,7 @@ impl_web! {
         // `serde_json::Value` may be used as the response type. In this case,
         // the response will have a content-type of "application/json".
         //
-        /// @get("/")
+        #[get("/")]
         fn hello_world(&self) -> Result<serde_json::Value, ()> {
             Ok(json!({
                 "message": "hello world",
@@ -76,8 +76,8 @@ impl_web! {
         // does not imply any sort of content type, so we annotate the action
         // here, indicating that the response should be serialized as JSON.
         //
-        /// @get("/custom-type")
-        /// @content_type("application/json")
+        #[get("/custom-type")]
+        #[content_type("application/json")]
         fn custom_type(&self) -> Result<MyResponse, ()> {
             Ok(MyResponse {
                 foo: 123,
@@ -88,8 +88,8 @@ impl_web! {
         // Same as above, but this time we also customize the HTTP status code
         // and include a custom header in the response.
         //
-        /// @post("/create")
-        /// @content_type("application/json")
+        #[post("/create")]
+        #[content_type("application/json")]
         fn create(&self) -> Result<CreatedResponse, ()> {
             Ok(CreatedResponse {
                 message: "created",

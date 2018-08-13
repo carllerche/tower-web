@@ -15,24 +15,24 @@ struct TestDefaultCatch;
 
 impl_web! {
     impl TestCatch {
-        /// @get("/buggy")
+        #[get("/buggy")]
         fn buggy(&self) -> Result<String, ()> {
             Err(())
         }
 
-        /// @get("/not_buggy")
+        #[get("/not_buggy")]
         fn not_buggy(&self) -> Result<String, ()> {
             Ok("not buggy".to_string())
         }
 
-        /// @catch
+        #[catch]
         fn catch(&self) -> Result<&'static str, ()> {
             Ok("catch")
         }
     }
 
     impl TestDefaultCatch {
-        /// @get("/buggy")
+        #[get("/buggy")]
         fn buggy(&self) -> Result<String, ()> {
             Err(())
         }

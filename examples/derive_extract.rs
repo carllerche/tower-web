@@ -39,7 +39,7 @@ impl_web! {
 
         // By convention, arguments named `query_string` will be populated using
         // the HTTP request query string.
-        /// @get("/query-string")
+        #[get("/query-string")]
         fn hello_query_string(&self, query_string: Option<Foo>) -> Result<String, ()> {
             Ok(format!("We received the query {:?}", query_string))
         }

@@ -66,16 +66,16 @@ pub struct DynHeader2 {
 
 impl_web! {
     impl TestResponse {
-        /// @get("/hello_world")
-        /// @content_type("json")
+        #[get("/hello_world")]
+        #[content_type("json")]
         fn hello_world(&self) -> Result<HelloResponse, ()> {
             Ok(HelloResponse {
                 msg: "hello world",
             })
         }
 
-        /// @get("/nested")
-        /// @content_type("json")
+        #[get("/nested")]
+        #[content_type("json")]
         fn nested(&self) -> Result<NestedResponse, ()> {
             Ok(NestedResponse {
                 inner: Inner {
@@ -84,32 +84,32 @@ impl_web! {
             })
         }
 
-        /// @get("/wrapped_nested")
-        /// @content_type("json")
+        #[get("/wrapped_nested")]
+        #[content_type("json")]
         fn wrapped_nested(&self) -> Result<WrappedNestedResponse, ()> {
             Ok(WrappedNestedResponse(Inner {
                 msg: "nested",
             }))
         }
 
-        /// @get("/http_response")
-        /// @content_type("plain")
+        #[get("/http_response")]
+        #[content_type("plain")]
         fn http_response(&self) -> Result<http::Response<String>, ()> {
             http::Response::builder()
                 .body("http_response".to_string())
                 .map_err(|_| ())
         }
 
-        /// @get("/respond_static_status")
-        /// @content_type("json")
+        #[get("/respond_static_status")]
+        #[content_type("json")]
         fn respond_static_status(&self) -> Result<StaticStatus, ()> {
             Ok(StaticStatus {
                 msg: "respond_static_status",
             })
         }
 
-        /// @get("/respond_dyn_status")
-        /// @content_type("json")
+        #[get("/respond_dyn_status")]
+        #[content_type("json")]
         fn respond_dyn_status(&self) -> Result<DynStatus, ()> {
             Ok(DynStatus {
                 msg: "respond_dyn_status",
@@ -117,16 +117,16 @@ impl_web! {
             })
         }
 
-        /// @get("/respond_static_header")
-        /// @content_type("json")
+        #[get("/respond_static_header")]
+        #[content_type("json")]
         fn respond_static_header(&self) -> Result<StaticHeader, ()> {
             Ok(StaticHeader {
                 msg: "respond_static_header",
             })
         }
 
-        /// @get("/respond_dyn_header_1")
-        /// @content_type("json")
+        #[get("/respond_dyn_header_1")]
+        #[content_type("json")]
         fn respond_dyn_header_1(&self) -> Result<DynHeader1, ()> {
             Ok(DynHeader1 {
                 msg: "respond_dyn_header_1",
@@ -134,8 +134,8 @@ impl_web! {
             })
         }
 
-        /// @get("/respond_dyn_header_2")
-        /// @content_type("json")
+        #[get("/respond_dyn_header_2")]
+        #[content_type("json")]
         fn respond_dyn_header_2(&self) -> Result<DynHeader2, ()> {
             Ok(DynHeader2 {
                 msg: "respond_dyn_header_2",

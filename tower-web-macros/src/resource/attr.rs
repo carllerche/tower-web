@@ -77,36 +77,41 @@ impl Attributes {
 
     /// Returns `true` if the attribute is processed
     pub fn process(&mut self, attr: &syn::Attribute) -> bool {
-        use syn::{Lit, Meta};
+        let path = &attr.path;
+        let ident = quote!(#path).to_string();
+        match ident.as_str() {
+            "doc" => {
+                use syn::{Lit, Meta};
 
-        let meta = match attr.interpret_meta() {
-            Some(Meta::NameValue(meta)) => meta,
-            _ => return false,
-        };
+                let meta = match attr.interpret_meta() {
+                    Some(Meta::NameValue(meta)) => meta,
+                    _ => return false,
+                };
 
-        if meta.ident != "doc" {
-            return false;
-        }
-
-        match meta.lit {
-            Lit::Str(ref lit) => {
                 // Extract the contents of the string literal
-                let lit = lit.value();
+                let lit = match meta.lit {
+                    Lit::Str(ref lit) => lit.value(),
+                    _ => return false,
+                };
+
                 let raw = match trim_at_prefix(&lit) {
                     Some(raw) => raw,
                     None => return false,
                 };
 
                 self.process_doc_rule(&raw);
-
-                if self.method.is_some() && self.catch.is_some() {
-                    panic!("catch handlers can not be routable");
-                }
-
-                true
             }
-            _ => false,
+            "get" | "post" | "put" | "patch" | "delete" | "content_type" | "catch" => {
+                self.process_attr2(attr);
+            }
+            _ => return false,
         }
+
+        if self.method.is_some() && self.catch.is_some() {
+            panic!("catch handlers can not be routable");
+        }
+
+        true
     }
 
     fn process_doc_rule(&mut self, doc: &str) {
@@ -226,7 +231,7 @@ impl Attributes {
     }
 
     fn process_catch(&mut self, _list: &syn::MetaList) {
-        unimplemented!("`@catch` must not have any additional attributes");
+        unimplemented!("`#[catch]` must not have any additional attributes");
     }
 }
 

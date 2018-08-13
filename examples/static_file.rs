@@ -30,8 +30,8 @@ pub struct SelfServing;
 
 impl_web! {
     impl SelfServing {
-        /// @get("/")
-        /// @content_type("plain")
+        #[get("/")]
+        #[content_type("plain")]
         fn index(&self) -> impl Future<Item = File, Error = io::Error> + Send {
             let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
             path.push(file!());
@@ -45,8 +45,8 @@ impl_web! {
         //
         // See below for the correct way to do it.
         //
-        /// @get("/unsafe-files/*relative_path")
-        /// @content_type("plain")
+        #[get("/unsafe-files/*relative_path")]
+        #[content_type("plain")]
         fn unsafe_files(&self, relative_path: String) -> impl Future<Item = File, Error = io::Error> + Send {
             let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
             // String does no checks for path traversal; do not use this in production!
@@ -58,8 +58,8 @@ impl_web! {
         // rejected. This prevents an attacker from accessing files outside of
         // the "public" directory.
         //
-        /// @get("/files/*relative_path")
-        /// @content_type("plain")
+        #[get("/files/*relative_path")]
+        #[content_type("plain")]
         fn files(&self, relative_path: PathBuf) -> impl Future<Item = File, Error = io::Error> + Send {
             let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
             path.push(relative_path);

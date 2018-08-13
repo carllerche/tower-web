@@ -53,7 +53,7 @@ impl_web! {
         // The key is to realize that `tower-web` users function argument names
         // to determine how to populate them.
         //
-        /// @get("/one/:param")
+        #[get("/one/:param")]
         fn path_str(&self, param: String) -> Result<String, ()> {
             Ok(format!("We received: {} in the path", param))
         }
@@ -62,7 +62,7 @@ impl_web! {
         // function. The function is not *required* to include them in the
         // function argument list.
         //
-        /// @get("/two/:foo/:bar")
+        #[get("/two/:foo/:bar")]
         fn path_multi_str(&self, foo: String, bar: String) -> Result<String, ()> {
             Ok(format!("We received: {} and {} in the path", foo, bar))
         }
@@ -71,7 +71,7 @@ impl_web! {
         // valid `u32` value, then the HTTP request will fail and a 400 bad
         // request is returned as a response.
         //
-        /// @get("/num/:num")
+        #[get("/num/:num")]
         fn path_num(&self, num: u32) -> Result<String, ()> {
             Ok(format!("We received: {} in the path", num))
         }
@@ -86,7 +86,7 @@ impl_web! {
         //      curl -vv http://localhost:8080/query-string?foo
         //      curl -vv http://localhost:8080/query-string
         //
-        /// @get("/query-string")
+        #[get("/query-string")]
         fn hello_query_string(&self, query_string: String) -> Result<String, ()> {
             Ok(format!("We received the query {:?}", query_string))
         }
@@ -95,7 +95,7 @@ impl_web! {
 
         // The HTTP request body is accessed by including an argument named
         // `body`.
-        /// @post("/request-body")
+        #[post("/request-body")]
         fn request_body(&self, body: Vec<u8>) -> Result<String, ()> {
             Ok(format!("We received {} bytes", body.len()))
         }
@@ -118,7 +118,7 @@ impl_web! {
         //      curl -vv -H 'x-required: One' http://localhost:8080/headers
         //      curl -vv -H 'x-required: One' -H 'x-optional: two' http://localhost:8080/headers
         //
-        /// @get("/headers")
+        #[get("/headers")]
         fn headers(&self, x_required: String, x_optional: Option<String>) -> Result<String, ()> {
             Ok(format!("We received: x-required = {}; x-optional = {:?}", x_required, x_optional))
         }
