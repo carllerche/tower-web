@@ -46,11 +46,11 @@ where
     type Future = <M::Service as HttpService>::Future;
 
     fn poll_ready(&mut self) -> Poll<(), Self::Error> {
-        self.inner.poll_ready()
+        self.inner.poll_http_ready()
     }
 
     fn call(&mut self, request: Self::Request) -> Self::Future {
-        self.inner.call(request)
+        self.inner.call_http(request)
     }
 }
 

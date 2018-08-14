@@ -93,11 +93,11 @@ where
 {
     type Body = Either1<A::Body>;
 
-    fn poll(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
+    fn poll_http(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
         use self::Either1::*;
 
         match *self {
-            A(ref mut f) => Ok(try_ready!(f.poll()).map(A).into()),
+            A(ref mut f) => Ok(try_ready!(f.poll_http()).map(A).into()),
         }
     }
 }
@@ -263,12 +263,12 @@ where
 {
     type Body = Either2<A::Body, B::Body>;
 
-    fn poll(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
+    fn poll_http(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
         use self::Either2::*;
 
         match *self {
-            A(ref mut f) => Ok(try_ready!(f.poll()).map(A).into()),
-            B(ref mut f) => Ok(try_ready!(f.poll()).map(B).into()),
+            A(ref mut f) => Ok(try_ready!(f.poll_http()).map(A).into()),
+            B(ref mut f) => Ok(try_ready!(f.poll_http()).map(B).into()),
         }
     }
 }
@@ -455,13 +455,13 @@ where
 {
     type Body = Either3<A::Body, B::Body, C::Body>;
 
-    fn poll(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
+    fn poll_http(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
         use self::Either3::*;
 
         match *self {
-            A(ref mut f) => Ok(try_ready!(f.poll()).map(A).into()),
-            B(ref mut f) => Ok(try_ready!(f.poll()).map(B).into()),
-            C(ref mut f) => Ok(try_ready!(f.poll()).map(C).into()),
+            A(ref mut f) => Ok(try_ready!(f.poll_http()).map(A).into()),
+            B(ref mut f) => Ok(try_ready!(f.poll_http()).map(B).into()),
+            C(ref mut f) => Ok(try_ready!(f.poll_http()).map(C).into()),
         }
     }
 }
@@ -669,14 +669,14 @@ where
 {
     type Body = Either4<A::Body, B::Body, C::Body, D::Body>;
 
-    fn poll(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
+    fn poll_http(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
         use self::Either4::*;
 
         match *self {
-            A(ref mut f) => Ok(try_ready!(f.poll()).map(A).into()),
-            B(ref mut f) => Ok(try_ready!(f.poll()).map(B).into()),
-            C(ref mut f) => Ok(try_ready!(f.poll()).map(C).into()),
-            D(ref mut f) => Ok(try_ready!(f.poll()).map(D).into()),
+            A(ref mut f) => Ok(try_ready!(f.poll_http()).map(A).into()),
+            B(ref mut f) => Ok(try_ready!(f.poll_http()).map(B).into()),
+            C(ref mut f) => Ok(try_ready!(f.poll_http()).map(C).into()),
+            D(ref mut f) => Ok(try_ready!(f.poll_http()).map(D).into()),
         }
     }
 }
@@ -905,15 +905,15 @@ where
 {
     type Body = Either5<A::Body, B::Body, C::Body, D::Body, E::Body>;
 
-    fn poll(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
+    fn poll_http(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
         use self::Either5::*;
 
         match *self {
-            A(ref mut f) => Ok(try_ready!(f.poll()).map(A).into()),
-            B(ref mut f) => Ok(try_ready!(f.poll()).map(B).into()),
-            C(ref mut f) => Ok(try_ready!(f.poll()).map(C).into()),
-            D(ref mut f) => Ok(try_ready!(f.poll()).map(D).into()),
-            E(ref mut f) => Ok(try_ready!(f.poll()).map(E).into()),
+            A(ref mut f) => Ok(try_ready!(f.poll_http()).map(A).into()),
+            B(ref mut f) => Ok(try_ready!(f.poll_http()).map(B).into()),
+            C(ref mut f) => Ok(try_ready!(f.poll_http()).map(C).into()),
+            D(ref mut f) => Ok(try_ready!(f.poll_http()).map(D).into()),
+            E(ref mut f) => Ok(try_ready!(f.poll_http()).map(E).into()),
         }
     }
 }
@@ -1163,16 +1163,16 @@ where
 {
     type Body = Either6<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body>;
 
-    fn poll(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
+    fn poll_http(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
         use self::Either6::*;
 
         match *self {
-            A(ref mut f) => Ok(try_ready!(f.poll()).map(A).into()),
-            B(ref mut f) => Ok(try_ready!(f.poll()).map(B).into()),
-            C(ref mut f) => Ok(try_ready!(f.poll()).map(C).into()),
-            D(ref mut f) => Ok(try_ready!(f.poll()).map(D).into()),
-            E(ref mut f) => Ok(try_ready!(f.poll()).map(E).into()),
-            F(ref mut f) => Ok(try_ready!(f.poll()).map(F).into()),
+            A(ref mut f) => Ok(try_ready!(f.poll_http()).map(A).into()),
+            B(ref mut f) => Ok(try_ready!(f.poll_http()).map(B).into()),
+            C(ref mut f) => Ok(try_ready!(f.poll_http()).map(C).into()),
+            D(ref mut f) => Ok(try_ready!(f.poll_http()).map(D).into()),
+            E(ref mut f) => Ok(try_ready!(f.poll_http()).map(E).into()),
+            F(ref mut f) => Ok(try_ready!(f.poll_http()).map(F).into()),
         }
     }
 }
@@ -1443,17 +1443,17 @@ where
 {
     type Body = Either7<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body, G::Body>;
 
-    fn poll(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
+    fn poll_http(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
         use self::Either7::*;
 
         match *self {
-            A(ref mut f) => Ok(try_ready!(f.poll()).map(A).into()),
-            B(ref mut f) => Ok(try_ready!(f.poll()).map(B).into()),
-            C(ref mut f) => Ok(try_ready!(f.poll()).map(C).into()),
-            D(ref mut f) => Ok(try_ready!(f.poll()).map(D).into()),
-            E(ref mut f) => Ok(try_ready!(f.poll()).map(E).into()),
-            F(ref mut f) => Ok(try_ready!(f.poll()).map(F).into()),
-            G(ref mut f) => Ok(try_ready!(f.poll()).map(G).into()),
+            A(ref mut f) => Ok(try_ready!(f.poll_http()).map(A).into()),
+            B(ref mut f) => Ok(try_ready!(f.poll_http()).map(B).into()),
+            C(ref mut f) => Ok(try_ready!(f.poll_http()).map(C).into()),
+            D(ref mut f) => Ok(try_ready!(f.poll_http()).map(D).into()),
+            E(ref mut f) => Ok(try_ready!(f.poll_http()).map(E).into()),
+            F(ref mut f) => Ok(try_ready!(f.poll_http()).map(F).into()),
+            G(ref mut f) => Ok(try_ready!(f.poll_http()).map(G).into()),
         }
     }
 }
@@ -1745,18 +1745,18 @@ where
 {
     type Body = Either8<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body, G::Body, H::Body>;
 
-    fn poll(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
+    fn poll_http(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
         use self::Either8::*;
 
         match *self {
-            A(ref mut f) => Ok(try_ready!(f.poll()).map(A).into()),
-            B(ref mut f) => Ok(try_ready!(f.poll()).map(B).into()),
-            C(ref mut f) => Ok(try_ready!(f.poll()).map(C).into()),
-            D(ref mut f) => Ok(try_ready!(f.poll()).map(D).into()),
-            E(ref mut f) => Ok(try_ready!(f.poll()).map(E).into()),
-            F(ref mut f) => Ok(try_ready!(f.poll()).map(F).into()),
-            G(ref mut f) => Ok(try_ready!(f.poll()).map(G).into()),
-            H(ref mut f) => Ok(try_ready!(f.poll()).map(H).into()),
+            A(ref mut f) => Ok(try_ready!(f.poll_http()).map(A).into()),
+            B(ref mut f) => Ok(try_ready!(f.poll_http()).map(B).into()),
+            C(ref mut f) => Ok(try_ready!(f.poll_http()).map(C).into()),
+            D(ref mut f) => Ok(try_ready!(f.poll_http()).map(D).into()),
+            E(ref mut f) => Ok(try_ready!(f.poll_http()).map(E).into()),
+            F(ref mut f) => Ok(try_ready!(f.poll_http()).map(F).into()),
+            G(ref mut f) => Ok(try_ready!(f.poll_http()).map(G).into()),
+            H(ref mut f) => Ok(try_ready!(f.poll_http()).map(H).into()),
         }
     }
 }
@@ -2069,19 +2069,19 @@ where
 {
     type Body = Either9<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body, G::Body, H::Body, I::Body>;
 
-    fn poll(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
+    fn poll_http(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
         use self::Either9::*;
 
         match *self {
-            A(ref mut f) => Ok(try_ready!(f.poll()).map(A).into()),
-            B(ref mut f) => Ok(try_ready!(f.poll()).map(B).into()),
-            C(ref mut f) => Ok(try_ready!(f.poll()).map(C).into()),
-            D(ref mut f) => Ok(try_ready!(f.poll()).map(D).into()),
-            E(ref mut f) => Ok(try_ready!(f.poll()).map(E).into()),
-            F(ref mut f) => Ok(try_ready!(f.poll()).map(F).into()),
-            G(ref mut f) => Ok(try_ready!(f.poll()).map(G).into()),
-            H(ref mut f) => Ok(try_ready!(f.poll()).map(H).into()),
-            I(ref mut f) => Ok(try_ready!(f.poll()).map(I).into()),
+            A(ref mut f) => Ok(try_ready!(f.poll_http()).map(A).into()),
+            B(ref mut f) => Ok(try_ready!(f.poll_http()).map(B).into()),
+            C(ref mut f) => Ok(try_ready!(f.poll_http()).map(C).into()),
+            D(ref mut f) => Ok(try_ready!(f.poll_http()).map(D).into()),
+            E(ref mut f) => Ok(try_ready!(f.poll_http()).map(E).into()),
+            F(ref mut f) => Ok(try_ready!(f.poll_http()).map(F).into()),
+            G(ref mut f) => Ok(try_ready!(f.poll_http()).map(G).into()),
+            H(ref mut f) => Ok(try_ready!(f.poll_http()).map(H).into()),
+            I(ref mut f) => Ok(try_ready!(f.poll_http()).map(I).into()),
         }
     }
 }
@@ -2415,20 +2415,20 @@ where
 {
     type Body = Either10<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body, G::Body, H::Body, I::Body, J::Body>;
 
-    fn poll(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
+    fn poll_http(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
         use self::Either10::*;
 
         match *self {
-            A(ref mut f) => Ok(try_ready!(f.poll()).map(A).into()),
-            B(ref mut f) => Ok(try_ready!(f.poll()).map(B).into()),
-            C(ref mut f) => Ok(try_ready!(f.poll()).map(C).into()),
-            D(ref mut f) => Ok(try_ready!(f.poll()).map(D).into()),
-            E(ref mut f) => Ok(try_ready!(f.poll()).map(E).into()),
-            F(ref mut f) => Ok(try_ready!(f.poll()).map(F).into()),
-            G(ref mut f) => Ok(try_ready!(f.poll()).map(G).into()),
-            H(ref mut f) => Ok(try_ready!(f.poll()).map(H).into()),
-            I(ref mut f) => Ok(try_ready!(f.poll()).map(I).into()),
-            J(ref mut f) => Ok(try_ready!(f.poll()).map(J).into()),
+            A(ref mut f) => Ok(try_ready!(f.poll_http()).map(A).into()),
+            B(ref mut f) => Ok(try_ready!(f.poll_http()).map(B).into()),
+            C(ref mut f) => Ok(try_ready!(f.poll_http()).map(C).into()),
+            D(ref mut f) => Ok(try_ready!(f.poll_http()).map(D).into()),
+            E(ref mut f) => Ok(try_ready!(f.poll_http()).map(E).into()),
+            F(ref mut f) => Ok(try_ready!(f.poll_http()).map(F).into()),
+            G(ref mut f) => Ok(try_ready!(f.poll_http()).map(G).into()),
+            H(ref mut f) => Ok(try_ready!(f.poll_http()).map(H).into()),
+            I(ref mut f) => Ok(try_ready!(f.poll_http()).map(I).into()),
+            J(ref mut f) => Ok(try_ready!(f.poll_http()).map(J).into()),
         }
     }
 }
@@ -2783,21 +2783,21 @@ where
 {
     type Body = Either11<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body, G::Body, H::Body, I::Body, J::Body, K::Body>;
 
-    fn poll(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
+    fn poll_http(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
         use self::Either11::*;
 
         match *self {
-            A(ref mut f) => Ok(try_ready!(f.poll()).map(A).into()),
-            B(ref mut f) => Ok(try_ready!(f.poll()).map(B).into()),
-            C(ref mut f) => Ok(try_ready!(f.poll()).map(C).into()),
-            D(ref mut f) => Ok(try_ready!(f.poll()).map(D).into()),
-            E(ref mut f) => Ok(try_ready!(f.poll()).map(E).into()),
-            F(ref mut f) => Ok(try_ready!(f.poll()).map(F).into()),
-            G(ref mut f) => Ok(try_ready!(f.poll()).map(G).into()),
-            H(ref mut f) => Ok(try_ready!(f.poll()).map(H).into()),
-            I(ref mut f) => Ok(try_ready!(f.poll()).map(I).into()),
-            J(ref mut f) => Ok(try_ready!(f.poll()).map(J).into()),
-            K(ref mut f) => Ok(try_ready!(f.poll()).map(K).into()),
+            A(ref mut f) => Ok(try_ready!(f.poll_http()).map(A).into()),
+            B(ref mut f) => Ok(try_ready!(f.poll_http()).map(B).into()),
+            C(ref mut f) => Ok(try_ready!(f.poll_http()).map(C).into()),
+            D(ref mut f) => Ok(try_ready!(f.poll_http()).map(D).into()),
+            E(ref mut f) => Ok(try_ready!(f.poll_http()).map(E).into()),
+            F(ref mut f) => Ok(try_ready!(f.poll_http()).map(F).into()),
+            G(ref mut f) => Ok(try_ready!(f.poll_http()).map(G).into()),
+            H(ref mut f) => Ok(try_ready!(f.poll_http()).map(H).into()),
+            I(ref mut f) => Ok(try_ready!(f.poll_http()).map(I).into()),
+            J(ref mut f) => Ok(try_ready!(f.poll_http()).map(J).into()),
+            K(ref mut f) => Ok(try_ready!(f.poll_http()).map(K).into()),
         }
     }
 }
@@ -3173,22 +3173,22 @@ where
 {
     type Body = Either12<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body, G::Body, H::Body, I::Body, J::Body, K::Body, L::Body>;
 
-    fn poll(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
+    fn poll_http(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
         use self::Either12::*;
 
         match *self {
-            A(ref mut f) => Ok(try_ready!(f.poll()).map(A).into()),
-            B(ref mut f) => Ok(try_ready!(f.poll()).map(B).into()),
-            C(ref mut f) => Ok(try_ready!(f.poll()).map(C).into()),
-            D(ref mut f) => Ok(try_ready!(f.poll()).map(D).into()),
-            E(ref mut f) => Ok(try_ready!(f.poll()).map(E).into()),
-            F(ref mut f) => Ok(try_ready!(f.poll()).map(F).into()),
-            G(ref mut f) => Ok(try_ready!(f.poll()).map(G).into()),
-            H(ref mut f) => Ok(try_ready!(f.poll()).map(H).into()),
-            I(ref mut f) => Ok(try_ready!(f.poll()).map(I).into()),
-            J(ref mut f) => Ok(try_ready!(f.poll()).map(J).into()),
-            K(ref mut f) => Ok(try_ready!(f.poll()).map(K).into()),
-            L(ref mut f) => Ok(try_ready!(f.poll()).map(L).into()),
+            A(ref mut f) => Ok(try_ready!(f.poll_http()).map(A).into()),
+            B(ref mut f) => Ok(try_ready!(f.poll_http()).map(B).into()),
+            C(ref mut f) => Ok(try_ready!(f.poll_http()).map(C).into()),
+            D(ref mut f) => Ok(try_ready!(f.poll_http()).map(D).into()),
+            E(ref mut f) => Ok(try_ready!(f.poll_http()).map(E).into()),
+            F(ref mut f) => Ok(try_ready!(f.poll_http()).map(F).into()),
+            G(ref mut f) => Ok(try_ready!(f.poll_http()).map(G).into()),
+            H(ref mut f) => Ok(try_ready!(f.poll_http()).map(H).into()),
+            I(ref mut f) => Ok(try_ready!(f.poll_http()).map(I).into()),
+            J(ref mut f) => Ok(try_ready!(f.poll_http()).map(J).into()),
+            K(ref mut f) => Ok(try_ready!(f.poll_http()).map(K).into()),
+            L(ref mut f) => Ok(try_ready!(f.poll_http()).map(L).into()),
         }
     }
 }

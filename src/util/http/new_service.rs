@@ -32,7 +32,7 @@ pub trait NewHttpService: sealed::Sealed {
     type Future: Future<Item = Self::Service, Error = Self::InitError>;
 
     /// Create and return a new service value asynchronously.
-    fn new_service(&self) -> Self::Future;
+    fn new_http_service(&self) -> Self::Future;
 }
 
 impl<T, B1, B2> NewHttpService for T
@@ -48,7 +48,7 @@ where T: NewService<Request = Request<B1>,
     type InitError = T::InitError;
     type Future = T::Future;
 
-    fn new_service(&self) -> Self::Future {
+    fn new_http_service(&self) -> Self::Future {
         NewService::new_service(self)
     }
 }

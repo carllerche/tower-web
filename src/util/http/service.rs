@@ -23,10 +23,10 @@ pub trait HttpService: sealed::Service {
     type Future: Future<Item = Response<Self::ResponseBody>, Error = Self::Error>;
 
     /// Returns `Ready` when the service is able to process requests.
-    fn poll_ready(&mut self) -> Poll<(), Self::Error>;
+    fn poll_http_ready(&mut self) -> Poll<(), Self::Error>;
 
     /// Process the request and return the response asynchronously.
-    fn call(&mut self, request: Request<Self::RequestBody>) -> Self::Future;
+    fn call_http(&mut self, request: Request<Self::RequestBody>) -> Self::Future;
 
     /// Wraps `self` with `LiftService`. This provides an implementation of
     /// `Service` for `Self`.
@@ -54,11 +54,11 @@ where
     type Error = T::Error;
     type Future = T::Future;
 
-    fn poll_ready(&mut self) -> Poll<(), T::Error> {
+    fn poll_http_ready(&mut self) -> Poll<(), T::Error> {
         Service::poll_ready(self)
     }
 
-    fn call(&mut self, request: Request<Self::RequestBody>) -> Self::Future {
+    fn call_http(&mut self, request: Request<Self::RequestBody>) -> Self::Future {
         Service::call(self, request)
     }
 }
@@ -89,11 +89,11 @@ where T: HttpService,
     type Future = T::Future;
 
     fn poll_ready(&mut self) -> Poll<(), Self::Error> {
-        self.inner.poll_ready()
+        self.inner.poll_http_ready()
     }
 
     fn call(&mut self, request: Self::Request) -> Self::Future {
-        self.inner.call(request)
+        self.inner.call_http(request)
     }
 }
 

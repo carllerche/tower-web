@@ -28,7 +28,7 @@ pub trait HttpMiddleware<S>: sealed::Sealed<S> {
 
     /// Wrap the given service with the middleware, returning a new servicee
     /// that has been decorated with the middleware.
-    fn wrap(&self, inner: S) -> Self::Service;
+    fn wrap_http(&self, inner: S) -> Self::Service;
 }
 
 impl<T, S, B1, B2> HttpMiddleware<S> for T
@@ -42,7 +42,7 @@ where T: Middleware<S, Request = Request<B1>,
     type Error = T::Error;
     type Service = T::Service;
 
-    fn wrap(&self, inner: S) -> Self::Service {
+    fn wrap_http(&self, inner: S) -> Self::Service {
         Middleware::wrap(self, inner)
     }
 }
