@@ -1,3 +1,8 @@
+# 0.2.0 (August 14, 2018)
+
+* Enable true attributes on stable Rust (#59).
+* Rename HTTP trait alias functions (#64).
+
 # 0.1.2 (August 9, 2018)
 
 * Switch docs to S3.
