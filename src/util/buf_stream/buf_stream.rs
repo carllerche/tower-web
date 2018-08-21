@@ -1,7 +1,7 @@
 use super::{Chain, Collect, FromBufStream, SizeHint};
 
 use bytes::Buf;
-use futures::Poll;
+use futures::{Async, Poll};
 
 /// An asynchronous stream of bytes.
 ///
@@ -81,5 +81,27 @@ pub trait BufStream {
         T: FromBufStream,
     {
         Collect::new(self)
+    }
+}
+
+impl<B> BufStream for Option<B>
+where
+    B: BufStream,
+{
+    type Item = B::Item;
+    type Error = B::Error;
+
+    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
+        match self {
+            Some(b) => b.poll(),
+            None => Ok(Async::Ready(None)),
+        }
+    }
+
+    fn size_hint(&self) -> SizeHint {
+        match self {
+            Some(b) => b.size_hint(),
+            None => SizeHint::default(),
+        }
     }
 }

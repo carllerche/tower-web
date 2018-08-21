@@ -22,6 +22,7 @@
 //! [`Middleware`]: trait.Middleware.html
 //! [log]: log/index.html
 
+pub mod cors;
 pub mod log;
 
 mod chain;
