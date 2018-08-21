@@ -2,7 +2,7 @@
 #![deny(missing_debug_implementations)]
 #![cfg_attr(test, deny(warnings))]
 
-//! Tower Web is fast, web framework that aims to remove boilerplate.
+//! Tower Web is a fast web framework that aims to remove boilerplate.
 //!
 //! The goal is to decouple all HTTP concepts from the application logic. You
 //! implement your application using "plain old Rust types" and Tower Web uses a
