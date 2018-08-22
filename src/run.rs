@@ -9,7 +9,7 @@ use hyper::server::conn::Http;
 use hyper::service::Service as HyperService;
 
 use tokio;
-use tokio::net::TcpListener;
+use tokio::net::{TcpListener, TcpStream};
 use tokio::prelude::*;
 
 use std::io;
@@ -97,30 +97,44 @@ where
     <T::Service as HttpService>::Future: Send,
 {
     let listener = TcpListener::bind(addr)?;
-    let http = Arc::new(Http::new());
 
-    tokio::run({
-        listener
-            .incoming()
-            .map_err(|e| println!("failed to accept socket; err = {:?}", e))
-            .for_each(move |socket| {
-                let h = http.clone();
-
-                tokio::spawn({
-                    new_service.new_http_service()
-                        .map_err(|_| unimplemented!())
-                        .and_then(move |service| {
-                            let service = Lift::new(service);
-
-                            h.serve_connection(socket, service)
-                                .map(|_| ())
-                                .map_err(|e| {
-                                    println!("failed to serve connection; err={:?}", e);
-                                })
-                        })
-                })
-            })
-    });
+    tokio::run(serve(listener.incoming(), new_service));
 
     Ok(())
+}
+
+/// Returns a future that must be polled to process the incoming connections.
+///
+/// A non-blocking version of `run`.
+pub fn serve<S, T>(incoming: S, new_service: T) -> impl Future<Item = (), Error = ()>
+where
+    S: Stream<Item = TcpStream, Error = io::Error>,
+    T: NewHttpService<RequestBody = LiftReqBody> + Send + 'static,
+    T::Future: Send,
+    <T::ResponseBody as BufStream>::Item: Send,
+    T::ResponseBody: Send,
+    T::Service: Send,
+    <T::Service as HttpService>::Future: Send,
+{
+    let http = Arc::new(Http::new());
+    incoming
+        .map_err(|e| println!("failed to accept socket; err = {:?}", e))
+        .for_each(move |socket| {
+            let h = http.clone();
+
+            tokio::spawn({
+                new_service
+                    .new_http_service()
+                    .map_err(|_| unimplemented!())
+                    .and_then(move |service| {
+                        let service = Lift::new(service);
+
+                        h.serve_connection(socket, service)
+                            .map(|_| ())
+                            .map_err(|e| {
+                                println!("failed to serve connection; err={:?}", e);
+                            })
+                    })
+            })
+        })
 }
