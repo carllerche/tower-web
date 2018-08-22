@@ -324,14 +324,14 @@ impl Resource {
 
             /// Response body
             pub struct ResponseBody(
-                Result<
+                ::std::result::Result<
                     <<#handler_future_ty as __tw::codegen::futures::Future>::Item as __tw::response::Response>::Body,
                     <<#catch_future_ty as __tw::codegen::futures::Future>::Item as __tw::response::Response>::Body,
                 >);
 
             /// Response buf
             pub struct ResponseBuf(
-                Result<
+                ::std::result::Result<
                     <<#handler_future_ty as __tw::codegen::futures::Future>::Item as __tw::response::Response>::Buf,
                     <<#catch_future_ty as __tw::codegen::futures::Future>::Item as __tw::response::Response>::Buf,
                 >);
