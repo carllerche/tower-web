@@ -145,7 +145,7 @@ impl Response {
                         struct Lift<'a>(&'a #ty);
 
                         impl<'a> __tw::codegen::serde::Serialize for Lift<'a> {
-                            fn serialize<S>(&self, serializer: S) -> __tw::codegen::serde::export::Result<S::Ok, S::Error>
+                            fn serialize<S>(&self, serializer: S) -> ::std::result::Result<S::Ok, S::Error>
                             where S: __tw::codegen::serde::Serializer
                             {
                                 #shadow_ty::serialize(self.0, serializer)
