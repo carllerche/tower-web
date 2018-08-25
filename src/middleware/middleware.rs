@@ -92,7 +92,7 @@ pub trait Middleware<S> {
                          Response = Self::Response,
                             Error = Self::Error>;
 
-    /// Wrap the given service with the middleware, returning a new servicee
+    /// Wrap the given service with the middleware, returning a new service
     /// that has been decorated with the middleware.
     fn wrap(&self, inner: S) -> Self::Service;
 

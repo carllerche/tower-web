@@ -341,7 +341,7 @@ impl<T, C, M> ServiceBuilder<T, C, M> {
     ///
     /// This builds the service and passes it to Hyper to run.
     ///
-    /// Note that Hyper requires all types to be `Send`. This, for this to work,
+    /// Note that Hyper requires all types to be `Send`. Thus, for this to work,
     /// all resources must have response types that are `Send`.
     ///
     /// ```rust
