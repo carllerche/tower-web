@@ -72,7 +72,7 @@ impl_web! {
     impl HelloWorld {
 
         // `hello_world` is a plain old method on `HelloWorld`. However, note
-        // that there are some doc comments. `impl_web` looks at these comments
+        // that there are some attributes. `impl_web` looks at these attributes
         // and uses them to generate the glue code.
         //
         // Functions must take `&self` and return `T: IntoFuture`. Since
