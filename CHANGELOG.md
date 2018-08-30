@@ -1,3 +1,8 @@
+# 0.2.1 (August 30, 2018)
+
+* Add CORS middleware (#61)
+* Support for application/x-www-form-urlencoded (#84).
+
 # 0.2.0 (August 14, 2018)
 
 * Enable true attributes on stable Rust (#59).
