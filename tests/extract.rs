@@ -68,6 +68,13 @@ impl_web! {
             assert_eq!(body.0.foo, "body bar");
             Ok("extract_body_wrap")
         }
+
+        #[post("/extract_x_www_form_urlencoded")]
+        #[content_type("plain")]
+        fn extract_x_www_form_urlencoded(&self, body: Foo) -> Result<&'static str, ()> {
+            assert_eq!(body.foo, "body bar");
+            Ok("extract_x_www_form_urlencoded")
+        }
     }
 }
 
@@ -128,4 +135,15 @@ fn extract_body_wrap_json_success() {
     let response = web.call_unwrap(post!("/extract_body_wrap", body, "content-type": "application/json"));
     assert_ok!(response);
     assert_body!(response, "extract_body_wrap");
+}
+
+#[test]
+fn extract_x_www_form_urlencoded() {
+    let mut web = service(TestExtract);
+
+    let body = "foo=body bar";
+
+    let response = web.call_unwrap(post!("/extract_x_www_form_urlencoded", body, "content-type": "application/x-www-form-urlencoded"));
+    assert_ok!(response);
+    assert_body!(response, "extract_x_www_form_urlencoded");
 }
