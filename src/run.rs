@@ -4,9 +4,11 @@ use util::http::{HttpService, NewHttpService};
 
 use futures::Poll;
 use http;
+use hyper;
 use hyper::body::{Body, Chunk, Payload};
 use hyper::server::conn::Http;
 use hyper::service::Service as HyperService;
+use util::buf_stream::size_hint::{Builder, SizeHint};
 
 use tokio;
 use tokio::net::TcpListener;
@@ -58,7 +60,7 @@ impl BufStream for LiftReqBody {
     type Error = ::Error;
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, ::Error> {
-        self.body.poll().map_err(|_| ErrorKind::internal().into())
+        Stream::poll(&mut self.body).map_err(|_| ErrorKind::internal().into())
     }
 }
 
@@ -123,4 +125,26 @@ where
     });
 
     Ok(())
+}
+
+impl BufStream for Body {
+    type Item = Chunk;
+    type Error = hyper::Error;
+
+    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
+        Stream::poll(self)
+    }
+
+    fn size_hint(&self) -> SizeHint {
+        let mut builder = Builder::new();
+        if let Some(length) = self.content_length() {
+            if length < usize::max_value() as u64 {
+                let length = length as usize;
+                builder.lower(length).upper(length);
+            } else {
+                builder.lower(usize::max_value());
+            }
+        }
+        builder.build()
+    }
 }
