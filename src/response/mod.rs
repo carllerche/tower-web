@@ -25,6 +25,7 @@
 mod content_type;
 mod context;
 mod default_serializer;
+mod either;
 mod file;
 mod json;
 mod response;
