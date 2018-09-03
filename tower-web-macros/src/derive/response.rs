@@ -4,11 +4,12 @@ use http::{self, HeaderMap};
 use http::header::HeaderName;
 use proc_macro2::{TokenStream, Span};
 use quote::ToTokens;
-use syn::{self, DeriveInput};
+use syn::{self, Data, DeriveInput, Ident};
+use syn::spanned::Spanned;
 
 pub(crate) struct Response {
     /// The response type identifier
-    ty: syn::Ident,
+    ty: Ident,
 
     /// How to obtain the status code for the response
     status: Option<StatusCode>,
@@ -18,6 +19,9 @@ pub(crate) struct Response {
 
     /// HTTP headers to get from struct fields
     dyn_headers: Vec<HeaderField>,
+
+    /// Delegate the Response implementation to the enum fields
+    either: bool,
 
     /// Data (struct / enum) definition to interface with `serde`
     shadow_ty: DeriveInput,
@@ -29,12 +33,12 @@ enum StatusCode {
     Static(http::StatusCode),
 
     /// The status code is determined by a field
-    Dynamic(syn::Ident),
+    Dynamic(Ident),
 }
 
 /// Struct field representing an HTTP header
 struct HeaderField {
-    ident: syn::Ident,
+    ident: Ident,
     name: HeaderName,
 }
 
@@ -47,6 +51,7 @@ impl Response {
 
         let mut status = None;
         let mut static_headers = HeaderMap::new();
+        let mut either = false;
 
         for attribute in Attribute::from_ast(&input.attrs)? {
             match attribute.kind {
@@ -72,11 +77,14 @@ impl Response {
 
                     static_headers.append(name, value);
                 }
+                attr::Kind::Either => {
+                    either = true;
+                }
             }
         }
 
         // The hidden struct that is used to implement `serde::Serialize`.
-        let shadow_ty = syn::Ident::new(
+        let shadow_ty = Ident::new(
             &format!("Shadow{}", ty),
             Span::call_site());
 
@@ -110,16 +118,115 @@ impl Response {
         output.ident = shadow_ty;
         output.attrs.retain(|attr| !Attribute::is_web_attribute(attr));
 
+        let dyn_headers = fold_shadow_ty.header_fields;
+
+        if either
+            && (status.is_some() || !static_headers.is_empty() || !dyn_headers.is_empty())
+        {
+            return Err(String::from(
+                "`#[web(either)]` cannot be used together with other `#[web]` attributes.",
+            ));
+        }
+
         Ok(Response {
             ty,
             status,
             static_headers,
-            dyn_headers: fold_shadow_ty.header_fields,
+            dyn_headers,
+            either,
             shadow_ty: output,
         })
     }
 
     pub fn gen(&self) -> Result<TokenStream, String> {
+        if self.either {
+            self.gen_enum()
+        } else {
+            self.gen_serde()
+        }
+    }
+
+    pub fn gen_enum(&self) -> Result<TokenStream, String> {
+        let dummy_const = self.dummy_const();
+        let ty = &self.ty;
+
+        let (body_type, cases) = match self.shadow_ty.data {
+            Data::Enum(ref data) => {
+                let either_type =
+                    Ident::new(&format!("Either{}", data.variants.len()), Span::call_site());
+
+                let args = data
+                    .variants
+                    .iter()
+                    .map(|variant| match variant.fields {
+                        syn::Fields::Unnamed(ref fields) => match fields.unnamed.len() {
+                            1 => {
+                                let ty = &fields.unnamed[0].ty;
+                                let span = variant.ident.span();
+                                Ok((
+                                    quote_spanned!(span=> <#ty as __tw::response::Response>::Body),
+                                    quote_spanned!(span=> #ty),
+                                ))
+                            }
+                            _ => Err(String::from(
+                                "only single-field variants are supported for `#[web(either)]`",
+                            )),
+                        },
+                        _ => Err(String::from(
+                            "only unnamed fields are supported for `#[web(either)]`",
+                        )),
+                    }).collect::<Result<Vec<_>, _>>()?;
+
+                let (body_args, either_args): (Vec<_>, Vec<_>) = args.into_iter().unzip();
+
+                let body_type = quote! { __tw::util::tuple::#either_type<#(#body_args),*> };
+                let either_args = quote! { <#(#either_args),*> };
+
+                let cases = {
+                    let cases = data.variants.iter().enumerate().map(|(i, variant)| {
+                        let case = &variant.ident;
+                        let span = variant.span();
+                        let ctor = Ident::new(&((i as u8 + b'A') as char).to_string(), span);
+                        quote_spanned! {span=>
+                            #ty::#case(inner) => __tw::util::tuple::#either_type::#ctor::#either_args(inner).into_http(context)
+                        }
+                    });
+                    quote! { #(#cases),* }
+                };
+
+                (body_type, cases)
+            }
+            _ => {
+                return Err(String::from(
+                    "only enums are supported for `#[web(either)]`",
+                ))
+            }
+        };
+
+        Ok(quote! {
+            #[allow(unused_variables, non_upper_case_globals)]
+            const #dummy_const: () = {
+                extern crate tower_web as __tw;
+
+                impl __tw::response::Response for #ty {
+                    type Buf = <Self::Body as __tw::util::BufStream>::Item;
+                    type Body = #body_type;
+
+                    fn into_http<S: __tw::response::Serializer>(
+                        self,
+                        context: &__tw::response::Context<S>,
+                    ) -> __tw::codegen::http::Response<Self::Body>
+                    {
+                        match self {
+                            #cases
+                        }
+                    }
+                }
+            };
+        })
+    }
+
+    pub fn gen_serde(&self) -> Result<TokenStream, String> {
         let dummy_const = self.dummy_const();
         let ty = &self.ty;
         let shadow_ty = &self.shadow_ty.ident;
@@ -234,8 +341,8 @@ impl Response {
         }
     }
 
-    fn dummy_const(&self) -> syn::Ident {
-        syn::Ident::new(
+    fn dummy_const(&self) -> Ident {
+        Ident::new(
             &format!("__IMPL_RESPONSE_FOR_{}", self.ty),
             Span::call_site())
     }
@@ -245,7 +352,7 @@ impl Fields {
     /// # Panics
     ///
     /// Panics if `self` represents unnamed fields
-    fn named(&mut self) -> &mut Vec<syn::Ident> {
+    fn named(&mut self) -> &mut Vec<Ident> {
         match *self {
             Fields::Named(ref mut s) => s,
             _ => panic!(),
@@ -269,7 +376,7 @@ struct FoldShadowTy {
     src_fields: Option<Fields>,
 
     /// Field representing the HTTP status code
-    status_field: Option<syn::Ident>,
+    status_field: Option<Ident>,
 
     /// Fields representing HTTP headers
     header_fields: Vec<HeaderField>,
@@ -279,7 +386,7 @@ struct FoldShadowTy {
 }
 
 enum Fields {
-    Named(Vec<syn::Ident>),
+    Named(Vec<Ident>),
     Unnamed(Vec<syn::LitInt>),
 }
 
@@ -361,6 +468,7 @@ impl syn::fold::Fold for FoldShadowTy {
                                 name,
                             });
                         }
+                        attr::Kind::Either => {}
                     }
                 }
             }

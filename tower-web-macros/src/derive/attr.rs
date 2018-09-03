@@ -14,7 +14,8 @@ pub(crate) enum Kind {
     Header {
         name: Option<HeaderName>,
         value: Option<HeaderValue>,
-    }
+    },
+    Either
 }
 
 impl Attribute {
@@ -57,6 +58,8 @@ impl Attribute {
                                     Attribute::header_from_word(&source)
                                 } else if meta == "status" {
                                     Attribute::status_from_word(&source)
+                                } else if meta == "either" {
+                                    Attribute::either_from_word(&source)
                                 } else {
                                     unimplemented!("error handling");
                                 }
@@ -113,6 +116,13 @@ impl Attribute {
                 value: None,
             },
             source: source.clone()
+        }
+    }
+
+    fn either_from_word(source: &syn::Attribute) -> Attribute {
+        Attribute {
+            kind: Kind::Either,
+            source: source.clone(),
         }
     }
 

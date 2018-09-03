@@ -368,6 +368,25 @@
 //! the value of the `custom_status` field and the `X-Foo` header will be set to
 //! the value of the `x_foo` field.
 //!
+//! When a handler can return unrelated response types, like a file or a web
+//! page, `derive(Response)` can delegate the `Response` implementation to them,
+//! through an enum:
+//!
+//! ```rust
+//! # #[macro_use] extern crate tokio;
+//! # #[macro_use] extern crate tower_web;
+//! #[derive(Response)]
+//! #[web(either)]
+//! enum FileOrPage {
+//!     File(tokio::fs::File),
+//!     Page(String),
+//! }
+//! ```
+//!
+//! The `web(either)` attribute is only supported on enums whose variants
+//! a single unnamed field. Right now, the other `web` attributes have no effect
+//! when using `web(either)`.
+//!
 //! ## Starting a server
 //!
 //! Once `Resource` implementations are generated, the types may be passed to
