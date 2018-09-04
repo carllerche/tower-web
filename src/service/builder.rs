@@ -1,3 +1,4 @@
+use config::ConfigBuilder;
 use error::{IntoCatch, DefaultCatch};
 use middleware::Identity;
 use response::DefaultSerializer;
@@ -104,6 +105,7 @@ pub struct ServiceBuilder<T, C, Middleware> {
     resource: T,
     catch: C,
     middleware: Middleware,
+    config: ConfigBuilder,
 }
 
 impl ServiceBuilder<(), DefaultCatch, Identity> {
@@ -137,6 +139,7 @@ impl ServiceBuilder<(), DefaultCatch, Identity> {
             resource: (),
             catch: DefaultCatch::new(),
             middleware: Identity::new(),
+            config: ConfigBuilder::new(),
         }
     }
 }
@@ -178,6 +181,67 @@ impl<T, C, M> ServiceBuilder<T, C, M> {
             resource: self.resource.chain(resource),
             catch: self.catch,
             middleware: self.middleware,
+            config: self.config,
+        }
+    }
+
+    /// Add a config to the service.
+    ///
+    /// Configs may be retrieved by their type and used from within extractors.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # #[macro_use] extern crate tower_web;
+    /// use tower_web::ServiceBuilder;
+    /// use tower_web::extract::{Extract, Context, Immediate};
+    /// use tower_web::util::BufStream;
+    ///
+    /// struct MyResource;
+    /// struct MyConfig {
+    ///     foo: String
+    /// }
+    /// struct MyParam {
+    ///     bar: String
+    /// }
+    ///
+    /// impl<B: BufStream> Extract<B> for MyParam {
+    ///     type Future = Immediate<MyParam>;
+    ///
+    ///     fn extract(context: &Context) -> Self::Future {
+    ///         let config = context.config::<MyConfig>().unwrap();
+    ///         let param = MyParam { bar: config.foo.clone() };
+    ///         Immediate::ok(param)
+    ///     }
+    /// }
+    ///
+    /// impl_web! {
+    ///     impl MyResource {
+    ///         #[get("/")]
+    ///         fn action(&self, param: MyParam) -> Result<String, ()> {
+    ///             Ok(param.bar)
+    ///         }
+    ///     }
+    /// }
+    ///
+    /// # if false {
+    /// # let addr = "127.0.0.1:8080".parse().unwrap();
+    /// ServiceBuilder::new()
+    ///     .resource(MyResource)
+    ///     .config(MyConfig { foo: "bar".to_owned() })
+    ///     .run(&addr);
+    /// # }
+    /// ```
+    pub fn config<U>(self, config: U)
+                       -> ServiceBuilder<T, C, M>
+        where
+            U: Send + Sync + 'static,
+    {
+        ServiceBuilder {
+            resource: self.resource,
+            catch: self.catch,
+            middleware: self.middleware,
+            config: self.config.insert(config),
         }
     }
 
@@ -221,6 +285,7 @@ impl<T, C, M> ServiceBuilder<T, C, M> {
             resource: self.resource,
             catch: self.catch,
             middleware: self.middleware.chain(middleware),
+            config: self.config,
         }
     }
 
@@ -269,6 +334,7 @@ impl<T, C, M> ServiceBuilder<T, C, M> {
             resource: self.resource,
             catch,
             middleware: self.middleware,
+            config: self.config,
         }
     }
 
@@ -330,6 +396,7 @@ impl<T, C, M> ServiceBuilder<T, C, M> {
         let routed = RoutedService::new(
             self.resource.into_resource(serializer),
             self.catch.into_catch(),
+            self.config.into_config(),
             routes);
 
         NewWebService::new(

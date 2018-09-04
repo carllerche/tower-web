@@ -455,6 +455,7 @@ extern crate tokio_io;
 extern crate tower_service;
 
 pub mod codegen;
+pub mod config;
 pub mod error;
 pub mod extract;
 pub mod middleware;
