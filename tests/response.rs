@@ -64,6 +64,13 @@ pub struct DynHeader2 {
     x_bar: &'static str,
 }
 
+#[derive(Debug, Response)]
+#[web(either)]
+pub enum Either {
+    Something(String),
+    SomethingElse(String),
+}
+
 impl_web! {
     impl TestResponse {
         #[get("/hello_world")]
