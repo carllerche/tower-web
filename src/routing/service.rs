@@ -1,3 +1,4 @@
+use config::Config;
 use error::{self, Error, ErrorKind, Catch};
 use routing::{Resource, RouteSet, RouteMatch};
 use util::http::HttpFuture;
@@ -20,6 +21,9 @@ where
 
     /// Error handler
     catch: U,
+
+    /// Config
+    config: Config,
 
     /// Route set. Processes request to determine how the resource will process
     /// it.
@@ -51,6 +55,7 @@ where
         RoutedService {
             resource: self.resource.clone(),
             catch: self.catch.clone(),
+            config: self.config.clone(),
             routes: self.routes.clone(),
         }
     }
@@ -77,12 +82,13 @@ impl<T, U> RoutedService<T, U>
 where T: Resource,
 {
     /// Create a new `RoutedService`
-    pub(crate) fn new(resource: T, catch: U, routes: RouteSet<T::Destination>) -> Self {
+    pub(crate) fn new(resource: T, catch: U, config: Config, routes: RouteSet<T::Destination>) -> Self {
         let routes = Arc::new(routes);
 
         RoutedService {
             resource,
             catch,
+            config,
             routes,
         }
     }
@@ -110,7 +116,7 @@ where T: Resource,
         let state = match self.routes.test(&request) {
             Some((destination, captures)) => {
                 // Create the `RouteMatch` for the routing result
-                let route_match = RouteMatch::new(&request, captures);
+                let route_match = RouteMatch::new(&request, captures, &self.config);
 
                 // Dispatch the requeest
                 let pending = self.resource
