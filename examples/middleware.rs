@@ -20,12 +20,16 @@
 ///     curl -v http://localhost:8080/
 
 extern crate env_logger;
+extern crate flate2;
 #[macro_use]
 extern crate tower_web;
 extern crate tokio;
 
 use tower_web::ServiceBuilder;
+use tower_web::middleware::deflate::DeflateMiddleware;
 use tower_web::middleware::log::LogMiddleware;
+
+use flate2::Compression;
 
 #[derive(Clone, Debug)]
 pub struct HelloWorld;
@@ -49,6 +53,7 @@ pub fn main() {
         .resource(HelloWorld)
         // Add middleware, in this case access logging
         .middleware(LogMiddleware::new("hello_world::web"))
+        .middleware(DeflateMiddleware::new(Compression::best()))
         // We run the service
         .run(&addr)
         .unwrap();

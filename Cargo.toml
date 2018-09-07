@@ -52,5 +52,9 @@ serde_urlencoded = "0.5.1"
 tower-web-macros = { version = "0.2.0", path = "tower-web-macros" }
 proc-macro-hack = "0.4.0"
 
+# Deflate middleware
+flate2 = "1.0.2"
+
 [dev-dependencies]
 env_logger = "0.5.12"
+rand = "0.5.5"

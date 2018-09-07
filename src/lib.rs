@@ -439,6 +439,7 @@
 extern crate atoi;
 extern crate bytes;
 extern crate chrono;
+extern crate flate2;
 #[macro_use]
 extern crate futures;
 extern crate http;
