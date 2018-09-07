@@ -1,3 +1,9 @@
+# 0.2.2 (September 7, 2018)
+
+* Add #[web(either)] to delegate Response to enum variants (#97)
+* Add deflate middleware (#101)
+* Add support for service level configuration (#98)
+
 # 0.2.1 (August 30, 2018)
 
 * Add CORS middleware (#61)
