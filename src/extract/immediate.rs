@@ -14,7 +14,10 @@ pub struct Immediate<T> {
 }
 
 impl<T> Immediate<T> {
-    fn new(result: Result<T, Error>) -> Immediate<T> {
+    /// Create a new `Immediate` instance from a `Result` value.
+    ///
+    /// When polling the returned `Immediate` instance, it will yield `result`.
+    pub fn result(result: Result<T, Error>) -> Immediate<T> {
         Immediate {
             inner: result.map_err(Some),
         }
@@ -24,14 +27,14 @@ impl<T> Immediate<T> {
     ///
     /// When polling the returned `Immediate` instance, it will yield `value`.
     pub fn ok(value: T) -> Immediate<T> {
-        Immediate::new(Ok(value))
+        Immediate::result(Ok(value))
     }
 
     /// Create a new `Immediate` instance that is in the error state.
     ///
     /// When polling the returned `Immediate` instance, it will yield `error`.
     pub fn err(error: Error) -> Immediate<T> {
-        Immediate::new(Err(error))
+        Immediate::result(Err(error))
     }
 }
 
