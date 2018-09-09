@@ -6,7 +6,7 @@ readme = "README.md"
 license = "MIT"
 repository = "https://github.com/carllerche/tower-web"
 homepage = "https://github.com/carllerche/tower-web"
-documentation = "https://docs.rs/tokio-web/0.1.0"
+documentation = "http://rust-doc.s3-website-us-east-1.amazonaws.com/tower-web/v0.2.1/tower_web/"
 description = """
 Macros for tower-web
 """
@@ -19,4 +19,4 @@ http = "0.1.7"
 proc-macro-hack = "0.4.0"
 proc-macro2 = "0.4.4"
 quote = "0.6.3"
-syn = { version = "0.14.1", features = ["full", "fold", "extra-traits"] }
+syn = { version = "0.15", features = ["full", "fold", "extra-traits"] }
