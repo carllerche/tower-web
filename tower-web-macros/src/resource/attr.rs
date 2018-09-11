@@ -115,7 +115,7 @@ impl Attributes {
     }
 
     fn process_doc_rule(&mut self, doc: &str) {
-        use syn::buffer;
+        use syn::parse::Parser;
 
         // Wrap the doc rule (with @ extracted) in an attribute.
         let mut attr = "#[".to_string();
@@ -125,14 +125,10 @@ impl Attributes {
         // Convert that to a token stream
         let tokens: TokenStream = attr.parse().unwrap();
 
-        // Get a TokenBuffer cursor
-        let buffer = buffer::TokenBuffer::new2(tokens);
-        let cursor = buffer.begin();
-
         // Parse the attribute
-        let (attr, _) = syn::Attribute::parse_outer(cursor).unwrap();
+        let attr = syn::Attribute::parse_outer.parse2(tokens).unwrap();
 
-        self.process_attr2(&attr);
+        self.process_attr2(&attr[0]);
     }
 
     /// Returns `true` if the attribute is processed
