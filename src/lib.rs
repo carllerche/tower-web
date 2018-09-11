@@ -457,6 +457,7 @@
 //! [Serde]: http://serde.rs/
 extern crate atoi;
 extern crate bytes;
+extern crate checked;
 extern crate chrono;
 extern crate flate2;
 #[macro_use]
