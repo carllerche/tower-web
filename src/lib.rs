@@ -1,5 +1,4 @@
 #![doc(html_root_url = "https://docs.rs/tower-web/0.2.2")]
-#![deny(missing_debug_implementations)]
 #![cfg_attr(test, deny(warnings))]
 
 //! Tower Web is a fast web framework that aims to remove boilerplate.
@@ -465,6 +464,8 @@ extern crate http;
 extern crate hyper;
 #[macro_use]
 extern crate log;
+#[macro_use]
+extern crate prometheus;
 extern crate serde;
 extern crate serde_json;
 extern crate serde_plain;

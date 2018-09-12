@@ -25,6 +25,7 @@
 pub mod cors;
 pub mod deflate;
 pub mod log;
+pub mod prometheus;
 
 mod chain;
 mod identity;
