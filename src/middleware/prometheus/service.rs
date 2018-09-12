@@ -1,9 +1,8 @@
 use futures::{Future, Poll};
 use http;
-use prometheus::{CounterVec, Encoder, HistogramVec, Opts, Registry, TextEncoder};
-use tower_service::Service;
-
+use prometheus::{CounterVec, Histogram, HistogramVec};
 use std::time::Instant;
+use tower_service::Service;
 
 /// Decorates a service by instrumenting all received requests
 pub struct PrometheusService<S> {
@@ -12,40 +11,22 @@ pub struct PrometheusService<S> {
     histogram_vec: HistogramVec,
 }
 
-/// TODO
-#[derive(Debug)]
+/// TODO: fix derive(debug)
 pub struct ResponseFuture<T> {
     inner: T,
     method: http::Method,
-    path: Option<http::uri::PathAndQuery>,
-    version: http::Version,
+    path: http::uri::PathAndQuery,
     start: Instant,
+    histogram: Histogram,
+    counter_vec: CounterVec,
 }
 
 impl<S> PrometheusService<S> {
     pub(super) fn new(
         inner: S,
-        namespace: &'static str,
-        registry: &Registry,
+        counter_vec: CounterVec,
+        histogram_vec: HistogramVec,
     ) -> PrometheusService<S> {
-        let counter_vec_opts =
-            Opts::new("test_counter_vec", "test counter vector help").namespace(namespace);
-        let counter_vec =
-            CounterVec::new(counter_vec_opts, &["path", "statusCode", "method"]).unwrap();
-
-        // TODO: Note that histogram doesn't report failures.
-        let histogram_opts = histogram_opts!(
-            "test_histogram_opts",
-            "test histogram help",
-            // TODO: Decide on buckets. Expose them to users?
-            vec![0.1, 0.2, 0.5, 1.0, 2.0, 5.0]
-        ).namespace(namespace);
-
-        let histogram_vec = HistogramVec::new(histogram_opts, &["path", "method"]).unwrap();
-
-        registry.register(Box::new(counter_vec.clone())).unwrap();
-        registry.register(Box::new(histogram_vec.clone())).unwrap();
-
         PrometheusService {
             inner,
             counter_vec,
@@ -70,18 +51,23 @@ where
 
     fn call(&mut self, request: Self::Request) -> Self::Future {
         let method = request.method().clone();
-        let path = request.uri().path_and_query().map(|p| p.clone());
-        let version = request.version();
-        let start = Instant::now();
+        let path = request.uri().path_and_query().map(|p| p.clone()).unwrap();
+
+        let histogram = self
+            .histogram_vec
+            .with_label_values(&[path.path(), method.as_str()]);
 
         let inner = self.inner.call(request);
+        let start = Instant::now();
+        let counter_vec = self.counter_vec.clone();
 
         ResponseFuture {
             inner,
             method,
             path,
-            version,
             start,
+            histogram,
+            counter_vec,
         }
     }
 }
@@ -101,11 +87,17 @@ where
 
         match res {
             Ok(Ready(ref response)) => {
-                let full_path = self.path.as_ref().map(|p| p.as_str()).unwrap_or("/");
+                let elapsed = self.start.elapsed();
+                let nanos = f64::from(elapsed.subsec_nanos()) / 1e9;
+                self.histogram.observe(elapsed.as_secs() as f64 + nanos);
 
-                let elapsed = self.start;
-
-                // TODO: Instrument response
+                self.counter_vec
+                    .with_label_values(&[
+                        self.path.path(),
+                        response.status().as_str(),
+                        self.method.as_str(),
+                    ])
+                    .inc();
 
                 // info!(
                 //     target: self.target,
