@@ -98,16 +98,6 @@ where
                         self.method.as_str(),
                     ])
                     .inc();
-
-                // info!(
-                //     target: self.target,
-                //     "\"{} {} {:?}\" {} {:?}",
-                //     self.method,
-                //     full_path,
-                //     self.version,
-                //     response.status().as_u16(),
-                //     self.start.elapsed(),
-                // );
             }
             Err(ref err) => {
                 warn!("ERROR: {}", err);
