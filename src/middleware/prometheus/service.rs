@@ -7,8 +7,10 @@ use tower_service::Service;
 /// Decorates a service by instrumenting all received requests
 pub struct PrometheusService<S> {
     inner: S,
-    counter_vec: CounterVec,
-    histogram_vec: HistogramVec,
+    requests_total_counter_vec: CounterVec,
+    request_bytes_counter_vec: CounterVec,
+    response_bytes_counter_vec: CounterVec,
+    request_duration_histogram_vec: HistogramVec,
 }
 
 /// TODO: fix derive(debug)
@@ -17,20 +19,24 @@ pub struct ResponseFuture<T> {
     method: http::Method,
     path: http::uri::PathAndQuery,
     start: Instant,
-    histogram: Histogram,
-    counter_vec: CounterVec,
+    request_duration_histogram: Histogram,
+    requests_total_counter_vec: CounterVec,
 }
 
 impl<S> PrometheusService<S> {
     pub(super) fn new(
         inner: S,
-        counter_vec: CounterVec,
-        histogram_vec: HistogramVec,
+        requests_total_counter_vec: CounterVec,
+        request_bytes_counter_vec: CounterVec,
+        response_bytes_counter_vec: CounterVec,
+        request_duration_histogram_vec: HistogramVec,
     ) -> PrometheusService<S> {
         PrometheusService {
             inner,
-            counter_vec,
-            histogram_vec,
+            requests_total_counter_vec,
+            request_bytes_counter_vec,
+            response_bytes_counter_vec,
+            request_duration_histogram_vec,
         }
     }
 }
@@ -53,23 +59,23 @@ where
         let method = request.method().clone();
         let path = request.uri().path_and_query().map(|p| p.clone()).unwrap();
 
-        let histogram = self
-            .histogram_vec
+        let request_duration_histogram = self
+            .request_duration_histogram_vec
             .with_label_values(&[path.path(), method.as_str()]);
 
         let inner = self.inner.call(request);
         let start = Instant::now();
-        let counter_vec = self.counter_vec.clone();
+        let requests_total_counter_vec = self.requests_total_counter_vec.clone();
 
-        let size = request.body().length();
+        // TODO: How do I get the length of the request body?
 
         ResponseFuture {
             inner,
             method,
             path,
             start,
-            histogram,
-            counter_vec,
+            request_duration_histogram,
+            requests_total_counter_vec,
         }
     }
 }
@@ -91,9 +97,11 @@ where
             Ok(Ready(ref response)) => {
                 let elapsed = self.start.elapsed();
                 let nanos = f64::from(elapsed.subsec_nanos()) / 1e9;
-                self.histogram.observe(elapsed.as_secs() as f64 + nanos);
+                self.request_duration_histogram.observe(elapsed.as_secs() as f64 + nanos);
 
-                self.counter_vec
+                // TODO: How do I get the length of the response body?
+
+                self.requests_total_counter_vec
                     .with_label_values(&[
                         self.path.path(),
                         response.status().as_str(),
