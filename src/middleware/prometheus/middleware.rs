@@ -15,20 +15,19 @@ pub struct PrometheusMiddleware {
 
 impl PrometheusMiddleware {
     /// Create a new `PrometheusMiddleware` instance.
-    pub fn new(namespace: &'static str, registry: Registry) -> PrometheusMiddleware {
-        let counter_vec_opts =
-            Opts::new("test_counter_vec_d", "test counter vector help").namespace(namespace);
+    pub fn new(namespace: Option<&'static str>, registry: Registry) -> PrometheusMiddleware {
+        let counter_vec_opts = Opts::new("http_requests_total", "Counter of HTTP requests.")
+            .namespace(namespace.unwrap_or(""));
         let counter_vec =
             CounterVec::new(counter_vec_opts, &["path", "statusCode", "method"]).unwrap();
 
         // TODO: Note that histogram doesn't report failures.
         let histogram_opts = histogram_opts!(
-            "test_histogram_opts",
-            "test histogram help",
+            "http_request_duration_seconds",
+            "Histogram of HTTP request duration in seconds.",
             // TODO: Decide on buckets. Expose them to users?
             vec![0.1, 0.2, 0.5, 1.0, 2.0, 5.0]
-        ).namespace(namespace);
-
+        ).namespace(namespace.unwrap_or(""));
         let histogram_vec = HistogramVec::new(histogram_opts, &["path", "method"]).unwrap();
 
         registry.register(Box::new(counter_vec.clone())).unwrap();

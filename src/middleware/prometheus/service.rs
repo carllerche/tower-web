@@ -61,6 +61,8 @@ where
         let start = Instant::now();
         let counter_vec = self.counter_vec.clone();
 
+        let size = request.body().length();
+
         ResponseFuture {
             inner,
             method,
@@ -96,8 +98,7 @@ where
                         self.path.path(),
                         response.status().as_str(),
                         self.method.as_str(),
-                    ])
-                    .inc();
+                    ]).inc();
             }
             Err(ref err) => {
                 warn!("ERROR: {}", err);

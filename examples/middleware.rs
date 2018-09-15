@@ -69,7 +69,7 @@ pub fn main() {
         // Add middleware, in this case access logging
         .middleware(LogMiddleware::new("hello_world::web"))
         .middleware(DeflateMiddleware::new(Compression::best()))
-        .middleware(PrometheusMiddleware::new("example", registry))
+        .middleware(PrometheusMiddleware::new(Some("example"), registry))
         // We run the service
         .run(&addr)
         .unwrap();
