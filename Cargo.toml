@@ -56,6 +56,9 @@ proc-macro-hack = "0.4.0"
 # Deflate middleware
 flate2 = "1.0.2"
 
+# Prometheus middleware
+prometheus = "0.4"
+
 [dev-dependencies]
 env_logger = "0.5.12"
 rand = "0.5.5"
