@@ -2,6 +2,7 @@ use extract::{Extract, Error, Context, Immediate};
 use util::BufStream;
 
 use atoi::atoi;
+use checked::Checked;
 
 use std::error::Error as E;
 use std::str::FromStr;
@@ -30,8 +31,8 @@ impl<B: BufStream> Extract<B> for u32 {
                 };
 
                 match atoi(value.as_bytes()) {
-                    Some(s) => Immediate::ok(s),
-                    None => Immediate::err(Error::invalid_argument(&"invalid integer")),
+                    Some(Checked(Some(s))) => Immediate::ok(s),
+                    _ => Immediate::err(Error::invalid_argument(&"invalid integer")),
                 }
             }
             QueryString => {
