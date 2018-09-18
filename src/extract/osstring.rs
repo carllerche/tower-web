@@ -1,16 +1,29 @@
 use extract::{Context, Error, Extract, Immediate};
 use percent_encoding;
 use std::borrow::Cow;
-use util::BufStream;
+use std::ffi::{OsStr, OsString};
+use util::buf_stream::BufStream;
 
-fn decode(s: &str) -> Result<String, Error> {
-    percent_encoding::percent_decode(s.as_bytes())
-        .decode_utf8()
-        .map(Cow::into_owned)
-        .map_err(|e| Error::invalid_argument(&e))
+#[cfg(not(any(target_os = "windows", target_arch = "wasm32")))]
+fn osstr_from_bytes(bytes: &[u8]) -> Result<&OsStr, Error> {
+    use std::os::unix::ffi::OsStrExt;
+    Ok(OsStr::from_bytes(bytes))
 }
 
-impl<B: BufStream> Extract<B> for String {
+#[cfg(any(target_os = "windows", target_arch = "wasm32"))]
+fn osstr_from_bytes(bytes: &[u8]) -> Result<&OsStr, Error> {
+    use std::str;
+    str::from_utf8(bytes)
+        .map_err(|e| Error::invalid_argument(&e))
+        .map(|s| OsStr::new(s))
+}
+
+fn decode(s: &str) -> Result<OsString, Error> {
+    let percent_decoded = Cow::from(percent_encoding::percent_decode(s.as_bytes()));
+    Ok(osstr_from_bytes(percent_decoded.as_ref())?.to_os_string())
+}
+
+impl<B: BufStream> Extract<B> for OsString {
     type Future = Immediate<Self>;
 
     fn extract(ctx: &Context) -> Self::Future {
@@ -33,7 +46,7 @@ impl<B: BufStream> Extract<B> for String {
 
                 let r = value
                     .to_str()
-                    .map(|s| s.to_string())
+                    .map(OsString::from)
                     .map_err(|e| Error::invalid_argument(&e));
                 Immediate::result(r)
             }
@@ -55,10 +68,16 @@ impl<B: BufStream> Extract<B> for String {
 #[cfg(test)]
 mod test {
     use super::*;
+    use std::path::Path;
 
     #[test]
     fn extract() {
-        assert_eq!("hello, world", decode("hello,%20world").unwrap());
-        assert!(decode("%ff").unwrap_err().is_invalid_argument());
+        assert_eq!(Path::new("hello, world"), decode("hello,%20world").unwrap());
+    }
+
+    #[test]
+    fn disallows_path_traversal() {
+        assert_eq!(decode("foo").unwrap(), OsString::from("foo"));
+        assert_eq!(decode("foo%20bar").unwrap(), OsString::from("foo bar"));
     }
 }

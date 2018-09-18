@@ -1,23 +1,7 @@
 use extract::{Context, Error, Extract, Immediate};
-use percent_encoding;
-use std::borrow::Cow;
-use std::ffi::OsStr;
+use std::ffi::{OsStr, OsString};
 use std::path::{self, Path, PathBuf};
 use util::buf_stream::BufStream;
-
-#[cfg(not(any(target_os = "windows", target_arch = "wasm32")))]
-fn osstr_from_bytes(bytes: &[u8]) -> Result<&OsStr, Error> {
-    use std::os::unix::ffi::OsStrExt;
-    Ok(OsStr::from_bytes(bytes))
-}
-
-#[cfg(any(target_os = "windows", target_arch = "wasm32"))]
-fn osstr_from_bytes(bytes: &[u8]) -> Result<&OsStr, Error> {
-    use std::str;
-    str::from_utf8(bytes)
-        .map_err(|e| Error::invalid_argument(&e))
-        .map(|s| OsStr::new(s))
-}
 
 // https://www.owasp.org/index.php/Path_Traversal
 fn check_for_path_traversal(path: &Path) -> Result<(), Error> {
@@ -50,29 +34,20 @@ fn check_for_path_traversal(path: &Path) -> Result<(), Error> {
     Ok(())
 }
 
-fn decode(s: &str) -> Result<PathBuf, Error> {
-    let percent_decoded = Cow::from(percent_encoding::percent_decode(s.as_bytes()));
-    let path = PathBuf::from(osstr_from_bytes(percent_decoded.as_ref())?);
-
+fn decode(s: &OsStr) -> Result<PathBuf, Error> {
+    let path = PathBuf::from(s);
     check_for_path_traversal(&path)?;
     Ok(path)
 }
 
 impl<B: BufStream> Extract<B> for PathBuf {
-    type Future = Immediate<PathBuf>;
+    type Future = Immediate<Self>;
 
     fn extract(ctx: &Context) -> Self::Future {
-        use codegen::Source::*;
+        use extract::ExtractFuture;
 
-        match ctx.callsite().source() {
-            Capture(idx) => {
-                let path = ctx.request().uri().path();
-                let value = ctx.captures().get(*idx, path);
-
-                Immediate::result(decode(value))
-            }
-            _ => unimplemented!("A PathBuf can only be extracted from a path capture for now"),
-        }
+        let s = <OsString as Extract<B>>::extract(ctx).extract();
+        Immediate::result(decode(&s))
     }
 }
 
@@ -83,19 +58,28 @@ mod test {
 
     #[test]
     fn extract() {
-        assert_eq!(Path::new("hello, world"), decode("hello,%20world").unwrap());
+        assert_eq!(
+            decode(OsStr::new("hello, world")).unwrap(),
+            Path::new("hello, world")
+        );
     }
 
     #[test]
     fn disallows_path_traversal() {
-        assert!(decode("/").unwrap_err().is_invalid_argument());
-        assert!(decode("..").unwrap_err().is_invalid_argument());
-        assert_eq!(decode("a/..").unwrap(), Path::new("a/.."));
-        assert!(decode("../a").unwrap_err().is_invalid_argument());
-        assert!(decode("../a/b").unwrap_err().is_invalid_argument());
-        assert_eq!(decode("a/../b").unwrap(), Path::new("a/../b"));
-        assert_eq!(decode("a/b/..").unwrap(), Path::new("a/b/.."));
-        assert!(decode("%2e%2e").unwrap_err().is_invalid_argument());
-        assert_eq!(decode("a/%2e%2e").unwrap(), Path::new("a/.."));
+        assert!(decode(OsStr::new("/")).unwrap_err().is_invalid_argument());
+        assert!(decode(OsStr::new("..")).unwrap_err().is_invalid_argument());
+        assert_eq!(decode(OsStr::new("a/..")).unwrap(), Path::new("a/.."));
+        assert!(
+            decode(OsStr::new("../a"))
+                .unwrap_err()
+                .is_invalid_argument()
+        );
+        assert!(
+            decode(OsStr::new("../a/b"))
+                .unwrap_err()
+                .is_invalid_argument()
+        );
+        assert_eq!(decode(OsStr::new("a/../b")).unwrap(), Path::new("a/../b"));
+        assert_eq!(decode(OsStr::new("a/b/..")).unwrap(), Path::new("a/b/.."));
     }
 }
