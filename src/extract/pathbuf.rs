@@ -1,8 +1,8 @@
 use extract::{Context, Error, Extract, Immediate};
+use percent_encoding;
 use std::borrow::Cow;
 use std::ffi::OsStr;
 use std::path::{self, Path, PathBuf};
-use url::percent_encoding;
 use util::buf_stream::BufStream;
 
 #[cfg(not(any(target_os = "windows", target_arch = "wasm32")))]

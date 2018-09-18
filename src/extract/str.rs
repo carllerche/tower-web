@@ -1,6 +1,6 @@
 use extract::{Context, Error, Extract, Immediate};
+use percent_encoding;
 use std::borrow::Cow;
-use url::percent_encoding;
 use util::BufStream;
 
 fn decode(s: &str) -> Result<String, Error> {

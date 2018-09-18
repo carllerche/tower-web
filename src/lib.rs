@@ -465,6 +465,7 @@ extern crate http;
 extern crate hyper;
 #[macro_use]
 extern crate log;
+extern crate percent_encoding;
 extern crate serde;
 extern crate serde_json;
 extern crate serde_plain;
@@ -473,7 +474,6 @@ extern crate tokio;
 extern crate tokio_fs;
 extern crate tokio_io;
 extern crate tower_service;
-extern crate url;
 
 pub mod codegen;
 pub mod config;
