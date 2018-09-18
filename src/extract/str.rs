@@ -4,8 +4,10 @@ use std::borrow::Cow;
 use util::BufStream;
 
 fn decode(s: &str) -> Result<String, Error> {
-    let percent_decoded = Cow::from(percent_encoding::percent_decode(s.as_bytes())).into_owned();
-    String::from_utf8(percent_decoded).map_err(|e| Error::invalid_argument(&e))
+    percent_encoding::percent_decode(s.as_bytes())
+        .decode_utf8()
+        .map(Cow::into_owned)
+        .map_err(|e| Error::invalid_argument(&e))
 }
 
 impl<B: BufStream> Extract<B> for String {
