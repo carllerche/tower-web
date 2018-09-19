@@ -1,4 +1,4 @@
-use response::{ContentType, Serializer};
+use response::{ContentType, Serializer, SerializerContext};
 
 use bytes::Bytes;
 use http::header::HeaderValue;
@@ -62,7 +62,8 @@ impl Serializer for DefaultSerializer {
         }
     }
 
-    fn serialize<T>(&self, value: &T, format: &Self::Format) -> Result<Bytes, ::Error>
+    fn serialize<T>(&self, value: &T, format: &Self::Format, _ctx: &SerializerContext)
+        -> Result<Bytes, ::Error>
     where
         T: Serialize,
     {

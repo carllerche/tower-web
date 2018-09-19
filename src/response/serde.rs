@@ -1,5 +1,5 @@
 use error;
-use response::{Response, Serializer, Context};
+use response::{Response, Serializer, SerializerContext, Context};
 use util::BufStream;
 
 use bytes::Bytes;
@@ -33,8 +33,13 @@ where
         let content_type = context.content_type_header()
             .expect("no content type specified for response");
 
-        // TODO: Improve and handle errors
-        let body = error::Map::new(context.serialize(&self.0).unwrap());
+        let serialize_context = SerializerContext::new(context.request());
+
+        let serialized = context.serialize(&self.0, &serialize_context)
+            // TODO: Improve and handle errors
+            .unwrap();
+
+        let body = error::Map::new(serialized);
 
         let mut response = http::Response::builder()
             // Customize response

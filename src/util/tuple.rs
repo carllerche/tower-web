@@ -5,9 +5,9 @@
 
 use extract::{self, ExtractFuture};
 use response::{Context, Response, Serializer};
-use routing::{self, Resource, IntoResource, RouteSet, RouteMatch};
+use routing::{self, Resource, ResourceFuture, IntoResource, RouteSet, RouteMatch};
 use util::{BufStream, Chain};
-use util::http::{HttpFuture, LiftFuture, SealedFuture};
+use util::http::{HttpFuture, SealedFuture};
 
 use bytes::Buf;
 use futures::{Future, Stream, Async, Poll};
@@ -70,6 +70,22 @@ where
         match *self {
             A(ref mut f) => Ok(A(try_ready!(f.poll())).into()),
         }
+    }
+}
+
+impl<A> ResourceFuture for Either1<A>
+where
+    A: ResourceFuture,
+{
+    type Body = Either1<A::Body>;
+
+    fn poll_response(&mut self, request: &http::Request<()>) -> Poll<http::Response<Self::Body>, ::Error> {
+        use self::Either1::*;
+
+        let response = match *self {
+            A(ref mut f) => try_ready!(f.poll_response(request)).map(A),
+        };
+        Ok(response.into())
     }
 }
 
@@ -195,7 +211,7 @@ where
     type RequestBody = R0::RequestBody;
     type Buf = Either1<R0::Buf>;
     type Body = Either1<R0::Body>;
-    type Future = LiftFuture<Either1<R0::Future>>;
+    type Future = Either1<R0::Future>;
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
@@ -205,13 +221,11 @@ where
     {
         use self::Either1::*;
 
-        let inner = match destination {
+        match destination {
             A(d) => {
                 A(self.0.dispatch(d, route_match, body))
             }
-        };
-
-        inner.lift()
+        }
     }
 }
 // ===== 2 =====
@@ -237,6 +251,24 @@ where
             A(ref mut f) => Ok(A(try_ready!(f.poll())).into()),
             B(ref mut f) => Ok(B(try_ready!(f.poll())).into()),
         }
+    }
+}
+
+impl<A, B> ResourceFuture for Either2<A, B>
+where
+    A: ResourceFuture,
+    B: ResourceFuture,
+{
+    type Body = Either2<A::Body, B::Body>;
+
+    fn poll_response(&mut self, request: &http::Request<()>) -> Poll<http::Response<Self::Body>, ::Error> {
+        use self::Either2::*;
+
+        let response = match *self {
+            A(ref mut f) => try_ready!(f.poll_response(request)).map(A),
+            B(ref mut f) => try_ready!(f.poll_response(request)).map(B),
+        };
+        Ok(response.into())
     }
 }
 
@@ -378,7 +410,7 @@ where
     type RequestBody = R0::RequestBody;
     type Buf = Either2<R0::Buf, R1::Buf>;
     type Body = Either2<R0::Body, R1::Body>;
-    type Future = LiftFuture<Either2<R0::Future, R1::Future>>;
+    type Future = Either2<R0::Future, R1::Future>;
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
@@ -388,16 +420,14 @@ where
     {
         use self::Either2::*;
 
-        let inner = match destination {
+        match destination {
             A(d) => {
                 A(self.0.dispatch(d, route_match, body))
             }
             B(d) => {
                 B(self.1.dispatch(d, route_match, body))
             }
-        };
-
-        inner.lift()
+        }
     }
 }
 // ===== 3 =====
@@ -426,6 +456,26 @@ where
             B(ref mut f) => Ok(B(try_ready!(f.poll())).into()),
             C(ref mut f) => Ok(C(try_ready!(f.poll())).into()),
         }
+    }
+}
+
+impl<A, B, C> ResourceFuture for Either3<A, B, C>
+where
+    A: ResourceFuture,
+    B: ResourceFuture,
+    C: ResourceFuture,
+{
+    type Body = Either3<A::Body, B::Body, C::Body>;
+
+    fn poll_response(&mut self, request: &http::Request<()>) -> Poll<http::Response<Self::Body>, ::Error> {
+        use self::Either3::*;
+
+        let response = match *self {
+            A(ref mut f) => try_ready!(f.poll_response(request)).map(A),
+            B(ref mut f) => try_ready!(f.poll_response(request)).map(B),
+            C(ref mut f) => try_ready!(f.poll_response(request)).map(C),
+        };
+        Ok(response.into())
     }
 }
 
@@ -583,7 +633,7 @@ where
     type RequestBody = R0::RequestBody;
     type Buf = Either3<R0::Buf, R1::Buf, R2::Buf>;
     type Body = Either3<R0::Body, R1::Body, R2::Body>;
-    type Future = LiftFuture<Either3<R0::Future, R1::Future, R2::Future>>;
+    type Future = Either3<R0::Future, R1::Future, R2::Future>;
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
@@ -593,7 +643,7 @@ where
     {
         use self::Either3::*;
 
-        let inner = match destination {
+        match destination {
             A(d) => {
                 A(self.0.dispatch(d, route_match, body))
             }
@@ -603,9 +653,7 @@ where
             C(d) => {
                 C(self.2.dispatch(d, route_match, body))
             }
-        };
-
-        inner.lift()
+        }
     }
 }
 // ===== 4 =====
@@ -637,6 +685,28 @@ where
             C(ref mut f) => Ok(C(try_ready!(f.poll())).into()),
             D(ref mut f) => Ok(D(try_ready!(f.poll())).into()),
         }
+    }
+}
+
+impl<A, B, C, D> ResourceFuture for Either4<A, B, C, D>
+where
+    A: ResourceFuture,
+    B: ResourceFuture,
+    C: ResourceFuture,
+    D: ResourceFuture,
+{
+    type Body = Either4<A::Body, B::Body, C::Body, D::Body>;
+
+    fn poll_response(&mut self, request: &http::Request<()>) -> Poll<http::Response<Self::Body>, ::Error> {
+        use self::Either4::*;
+
+        let response = match *self {
+            A(ref mut f) => try_ready!(f.poll_response(request)).map(A),
+            B(ref mut f) => try_ready!(f.poll_response(request)).map(B),
+            C(ref mut f) => try_ready!(f.poll_response(request)).map(C),
+            D(ref mut f) => try_ready!(f.poll_response(request)).map(D),
+        };
+        Ok(response.into())
     }
 }
 
@@ -810,7 +880,7 @@ where
     type RequestBody = R0::RequestBody;
     type Buf = Either4<R0::Buf, R1::Buf, R2::Buf, R3::Buf>;
     type Body = Either4<R0::Body, R1::Body, R2::Body, R3::Body>;
-    type Future = LiftFuture<Either4<R0::Future, R1::Future, R2::Future, R3::Future>>;
+    type Future = Either4<R0::Future, R1::Future, R2::Future, R3::Future>;
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
@@ -820,7 +890,7 @@ where
     {
         use self::Either4::*;
 
-        let inner = match destination {
+        match destination {
             A(d) => {
                 A(self.0.dispatch(d, route_match, body))
             }
@@ -833,9 +903,7 @@ where
             D(d) => {
                 D(self.3.dispatch(d, route_match, body))
             }
-        };
-
-        inner.lift()
+        }
     }
 }
 // ===== 5 =====
@@ -870,6 +938,30 @@ where
             D(ref mut f) => Ok(D(try_ready!(f.poll())).into()),
             E(ref mut f) => Ok(E(try_ready!(f.poll())).into()),
         }
+    }
+}
+
+impl<A, B, C, D, E> ResourceFuture for Either5<A, B, C, D, E>
+where
+    A: ResourceFuture,
+    B: ResourceFuture,
+    C: ResourceFuture,
+    D: ResourceFuture,
+    E: ResourceFuture,
+{
+    type Body = Either5<A::Body, B::Body, C::Body, D::Body, E::Body>;
+
+    fn poll_response(&mut self, request: &http::Request<()>) -> Poll<http::Response<Self::Body>, ::Error> {
+        use self::Either5::*;
+
+        let response = match *self {
+            A(ref mut f) => try_ready!(f.poll_response(request)).map(A),
+            B(ref mut f) => try_ready!(f.poll_response(request)).map(B),
+            C(ref mut f) => try_ready!(f.poll_response(request)).map(C),
+            D(ref mut f) => try_ready!(f.poll_response(request)).map(D),
+            E(ref mut f) => try_ready!(f.poll_response(request)).map(E),
+        };
+        Ok(response.into())
     }
 }
 
@@ -1059,7 +1151,7 @@ where
     type RequestBody = R0::RequestBody;
     type Buf = Either5<R0::Buf, R1::Buf, R2::Buf, R3::Buf, R4::Buf>;
     type Body = Either5<R0::Body, R1::Body, R2::Body, R3::Body, R4::Body>;
-    type Future = LiftFuture<Either5<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future>>;
+    type Future = Either5<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future>;
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
@@ -1069,7 +1161,7 @@ where
     {
         use self::Either5::*;
 
-        let inner = match destination {
+        match destination {
             A(d) => {
                 A(self.0.dispatch(d, route_match, body))
             }
@@ -1085,9 +1177,7 @@ where
             E(d) => {
                 E(self.4.dispatch(d, route_match, body))
             }
-        };
-
-        inner.lift()
+        }
     }
 }
 // ===== 6 =====
@@ -1125,6 +1215,32 @@ where
             E(ref mut f) => Ok(E(try_ready!(f.poll())).into()),
             F(ref mut f) => Ok(F(try_ready!(f.poll())).into()),
         }
+    }
+}
+
+impl<A, B, C, D, E, F> ResourceFuture for Either6<A, B, C, D, E, F>
+where
+    A: ResourceFuture,
+    B: ResourceFuture,
+    C: ResourceFuture,
+    D: ResourceFuture,
+    E: ResourceFuture,
+    F: ResourceFuture,
+{
+    type Body = Either6<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body>;
+
+    fn poll_response(&mut self, request: &http::Request<()>) -> Poll<http::Response<Self::Body>, ::Error> {
+        use self::Either6::*;
+
+        let response = match *self {
+            A(ref mut f) => try_ready!(f.poll_response(request)).map(A),
+            B(ref mut f) => try_ready!(f.poll_response(request)).map(B),
+            C(ref mut f) => try_ready!(f.poll_response(request)).map(C),
+            D(ref mut f) => try_ready!(f.poll_response(request)).map(D),
+            E(ref mut f) => try_ready!(f.poll_response(request)).map(E),
+            F(ref mut f) => try_ready!(f.poll_response(request)).map(F),
+        };
+        Ok(response.into())
     }
 }
 
@@ -1330,7 +1446,7 @@ where
     type RequestBody = R0::RequestBody;
     type Buf = Either6<R0::Buf, R1::Buf, R2::Buf, R3::Buf, R4::Buf, R5::Buf>;
     type Body = Either6<R0::Body, R1::Body, R2::Body, R3::Body, R4::Body, R5::Body>;
-    type Future = LiftFuture<Either6<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future, R5::Future>>;
+    type Future = Either6<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future, R5::Future>;
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
@@ -1340,7 +1456,7 @@ where
     {
         use self::Either6::*;
 
-        let inner = match destination {
+        match destination {
             A(d) => {
                 A(self.0.dispatch(d, route_match, body))
             }
@@ -1359,9 +1475,7 @@ where
             F(d) => {
                 F(self.5.dispatch(d, route_match, body))
             }
-        };
-
-        inner.lift()
+        }
     }
 }
 // ===== 7 =====
@@ -1402,6 +1516,34 @@ where
             F(ref mut f) => Ok(F(try_ready!(f.poll())).into()),
             G(ref mut f) => Ok(G(try_ready!(f.poll())).into()),
         }
+    }
+}
+
+impl<A, B, C, D, E, F, G> ResourceFuture for Either7<A, B, C, D, E, F, G>
+where
+    A: ResourceFuture,
+    B: ResourceFuture,
+    C: ResourceFuture,
+    D: ResourceFuture,
+    E: ResourceFuture,
+    F: ResourceFuture,
+    G: ResourceFuture,
+{
+    type Body = Either7<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body, G::Body>;
+
+    fn poll_response(&mut self, request: &http::Request<()>) -> Poll<http::Response<Self::Body>, ::Error> {
+        use self::Either7::*;
+
+        let response = match *self {
+            A(ref mut f) => try_ready!(f.poll_response(request)).map(A),
+            B(ref mut f) => try_ready!(f.poll_response(request)).map(B),
+            C(ref mut f) => try_ready!(f.poll_response(request)).map(C),
+            D(ref mut f) => try_ready!(f.poll_response(request)).map(D),
+            E(ref mut f) => try_ready!(f.poll_response(request)).map(E),
+            F(ref mut f) => try_ready!(f.poll_response(request)).map(F),
+            G(ref mut f) => try_ready!(f.poll_response(request)).map(G),
+        };
+        Ok(response.into())
     }
 }
 
@@ -1623,7 +1765,7 @@ where
     type RequestBody = R0::RequestBody;
     type Buf = Either7<R0::Buf, R1::Buf, R2::Buf, R3::Buf, R4::Buf, R5::Buf, R6::Buf>;
     type Body = Either7<R0::Body, R1::Body, R2::Body, R3::Body, R4::Body, R5::Body, R6::Body>;
-    type Future = LiftFuture<Either7<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future, R5::Future, R6::Future>>;
+    type Future = Either7<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future, R5::Future, R6::Future>;
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
@@ -1633,7 +1775,7 @@ where
     {
         use self::Either7::*;
 
-        let inner = match destination {
+        match destination {
             A(d) => {
                 A(self.0.dispatch(d, route_match, body))
             }
@@ -1655,9 +1797,7 @@ where
             G(d) => {
                 G(self.6.dispatch(d, route_match, body))
             }
-        };
-
-        inner.lift()
+        }
     }
 }
 // ===== 8 =====
@@ -1701,6 +1841,36 @@ where
             G(ref mut f) => Ok(G(try_ready!(f.poll())).into()),
             H(ref mut f) => Ok(H(try_ready!(f.poll())).into()),
         }
+    }
+}
+
+impl<A, B, C, D, E, F, G, H> ResourceFuture for Either8<A, B, C, D, E, F, G, H>
+where
+    A: ResourceFuture,
+    B: ResourceFuture,
+    C: ResourceFuture,
+    D: ResourceFuture,
+    E: ResourceFuture,
+    F: ResourceFuture,
+    G: ResourceFuture,
+    H: ResourceFuture,
+{
+    type Body = Either8<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body, G::Body, H::Body>;
+
+    fn poll_response(&mut self, request: &http::Request<()>) -> Poll<http::Response<Self::Body>, ::Error> {
+        use self::Either8::*;
+
+        let response = match *self {
+            A(ref mut f) => try_ready!(f.poll_response(request)).map(A),
+            B(ref mut f) => try_ready!(f.poll_response(request)).map(B),
+            C(ref mut f) => try_ready!(f.poll_response(request)).map(C),
+            D(ref mut f) => try_ready!(f.poll_response(request)).map(D),
+            E(ref mut f) => try_ready!(f.poll_response(request)).map(E),
+            F(ref mut f) => try_ready!(f.poll_response(request)).map(F),
+            G(ref mut f) => try_ready!(f.poll_response(request)).map(G),
+            H(ref mut f) => try_ready!(f.poll_response(request)).map(H),
+        };
+        Ok(response.into())
     }
 }
 
@@ -1938,7 +2108,7 @@ where
     type RequestBody = R0::RequestBody;
     type Buf = Either8<R0::Buf, R1::Buf, R2::Buf, R3::Buf, R4::Buf, R5::Buf, R6::Buf, R7::Buf>;
     type Body = Either8<R0::Body, R1::Body, R2::Body, R3::Body, R4::Body, R5::Body, R6::Body, R7::Body>;
-    type Future = LiftFuture<Either8<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future, R5::Future, R6::Future, R7::Future>>;
+    type Future = Either8<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future, R5::Future, R6::Future, R7::Future>;
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
@@ -1948,7 +2118,7 @@ where
     {
         use self::Either8::*;
 
-        let inner = match destination {
+        match destination {
             A(d) => {
                 A(self.0.dispatch(d, route_match, body))
             }
@@ -1973,9 +2143,7 @@ where
             H(d) => {
                 H(self.7.dispatch(d, route_match, body))
             }
-        };
-
-        inner.lift()
+        }
     }
 }
 // ===== 9 =====
@@ -2022,6 +2190,38 @@ where
             H(ref mut f) => Ok(H(try_ready!(f.poll())).into()),
             I(ref mut f) => Ok(I(try_ready!(f.poll())).into()),
         }
+    }
+}
+
+impl<A, B, C, D, E, F, G, H, I> ResourceFuture for Either9<A, B, C, D, E, F, G, H, I>
+where
+    A: ResourceFuture,
+    B: ResourceFuture,
+    C: ResourceFuture,
+    D: ResourceFuture,
+    E: ResourceFuture,
+    F: ResourceFuture,
+    G: ResourceFuture,
+    H: ResourceFuture,
+    I: ResourceFuture,
+{
+    type Body = Either9<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body, G::Body, H::Body, I::Body>;
+
+    fn poll_response(&mut self, request: &http::Request<()>) -> Poll<http::Response<Self::Body>, ::Error> {
+        use self::Either9::*;
+
+        let response = match *self {
+            A(ref mut f) => try_ready!(f.poll_response(request)).map(A),
+            B(ref mut f) => try_ready!(f.poll_response(request)).map(B),
+            C(ref mut f) => try_ready!(f.poll_response(request)).map(C),
+            D(ref mut f) => try_ready!(f.poll_response(request)).map(D),
+            E(ref mut f) => try_ready!(f.poll_response(request)).map(E),
+            F(ref mut f) => try_ready!(f.poll_response(request)).map(F),
+            G(ref mut f) => try_ready!(f.poll_response(request)).map(G),
+            H(ref mut f) => try_ready!(f.poll_response(request)).map(H),
+            I(ref mut f) => try_ready!(f.poll_response(request)).map(I),
+        };
+        Ok(response.into())
     }
 }
 
@@ -2275,7 +2475,7 @@ where
     type RequestBody = R0::RequestBody;
     type Buf = Either9<R0::Buf, R1::Buf, R2::Buf, R3::Buf, R4::Buf, R5::Buf, R6::Buf, R7::Buf, R8::Buf>;
     type Body = Either9<R0::Body, R1::Body, R2::Body, R3::Body, R4::Body, R5::Body, R6::Body, R7::Body, R8::Body>;
-    type Future = LiftFuture<Either9<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future, R5::Future, R6::Future, R7::Future, R8::Future>>;
+    type Future = Either9<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future, R5::Future, R6::Future, R7::Future, R8::Future>;
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
@@ -2285,7 +2485,7 @@ where
     {
         use self::Either9::*;
 
-        let inner = match destination {
+        match destination {
             A(d) => {
                 A(self.0.dispatch(d, route_match, body))
             }
@@ -2313,9 +2513,7 @@ where
             I(d) => {
                 I(self.8.dispatch(d, route_match, body))
             }
-        };
-
-        inner.lift()
+        }
     }
 }
 // ===== 10 =====
@@ -2365,6 +2563,40 @@ where
             I(ref mut f) => Ok(I(try_ready!(f.poll())).into()),
             J(ref mut f) => Ok(J(try_ready!(f.poll())).into()),
         }
+    }
+}
+
+impl<A, B, C, D, E, F, G, H, I, J> ResourceFuture for Either10<A, B, C, D, E, F, G, H, I, J>
+where
+    A: ResourceFuture,
+    B: ResourceFuture,
+    C: ResourceFuture,
+    D: ResourceFuture,
+    E: ResourceFuture,
+    F: ResourceFuture,
+    G: ResourceFuture,
+    H: ResourceFuture,
+    I: ResourceFuture,
+    J: ResourceFuture,
+{
+    type Body = Either10<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body, G::Body, H::Body, I::Body, J::Body>;
+
+    fn poll_response(&mut self, request: &http::Request<()>) -> Poll<http::Response<Self::Body>, ::Error> {
+        use self::Either10::*;
+
+        let response = match *self {
+            A(ref mut f) => try_ready!(f.poll_response(request)).map(A),
+            B(ref mut f) => try_ready!(f.poll_response(request)).map(B),
+            C(ref mut f) => try_ready!(f.poll_response(request)).map(C),
+            D(ref mut f) => try_ready!(f.poll_response(request)).map(D),
+            E(ref mut f) => try_ready!(f.poll_response(request)).map(E),
+            F(ref mut f) => try_ready!(f.poll_response(request)).map(F),
+            G(ref mut f) => try_ready!(f.poll_response(request)).map(G),
+            H(ref mut f) => try_ready!(f.poll_response(request)).map(H),
+            I(ref mut f) => try_ready!(f.poll_response(request)).map(I),
+            J(ref mut f) => try_ready!(f.poll_response(request)).map(J),
+        };
+        Ok(response.into())
     }
 }
 
@@ -2634,7 +2866,7 @@ where
     type RequestBody = R0::RequestBody;
     type Buf = Either10<R0::Buf, R1::Buf, R2::Buf, R3::Buf, R4::Buf, R5::Buf, R6::Buf, R7::Buf, R8::Buf, R9::Buf>;
     type Body = Either10<R0::Body, R1::Body, R2::Body, R3::Body, R4::Body, R5::Body, R6::Body, R7::Body, R8::Body, R9::Body>;
-    type Future = LiftFuture<Either10<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future, R5::Future, R6::Future, R7::Future, R8::Future, R9::Future>>;
+    type Future = Either10<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future, R5::Future, R6::Future, R7::Future, R8::Future, R9::Future>;
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
@@ -2644,7 +2876,7 @@ where
     {
         use self::Either10::*;
 
-        let inner = match destination {
+        match destination {
             A(d) => {
                 A(self.0.dispatch(d, route_match, body))
             }
@@ -2675,9 +2907,7 @@ where
             J(d) => {
                 J(self.9.dispatch(d, route_match, body))
             }
-        };
-
-        inner.lift()
+        }
     }
 }
 // ===== 11 =====
@@ -2730,6 +2960,42 @@ where
             J(ref mut f) => Ok(J(try_ready!(f.poll())).into()),
             K(ref mut f) => Ok(K(try_ready!(f.poll())).into()),
         }
+    }
+}
+
+impl<A, B, C, D, E, F, G, H, I, J, K> ResourceFuture for Either11<A, B, C, D, E, F, G, H, I, J, K>
+where
+    A: ResourceFuture,
+    B: ResourceFuture,
+    C: ResourceFuture,
+    D: ResourceFuture,
+    E: ResourceFuture,
+    F: ResourceFuture,
+    G: ResourceFuture,
+    H: ResourceFuture,
+    I: ResourceFuture,
+    J: ResourceFuture,
+    K: ResourceFuture,
+{
+    type Body = Either11<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body, G::Body, H::Body, I::Body, J::Body, K::Body>;
+
+    fn poll_response(&mut self, request: &http::Request<()>) -> Poll<http::Response<Self::Body>, ::Error> {
+        use self::Either11::*;
+
+        let response = match *self {
+            A(ref mut f) => try_ready!(f.poll_response(request)).map(A),
+            B(ref mut f) => try_ready!(f.poll_response(request)).map(B),
+            C(ref mut f) => try_ready!(f.poll_response(request)).map(C),
+            D(ref mut f) => try_ready!(f.poll_response(request)).map(D),
+            E(ref mut f) => try_ready!(f.poll_response(request)).map(E),
+            F(ref mut f) => try_ready!(f.poll_response(request)).map(F),
+            G(ref mut f) => try_ready!(f.poll_response(request)).map(G),
+            H(ref mut f) => try_ready!(f.poll_response(request)).map(H),
+            I(ref mut f) => try_ready!(f.poll_response(request)).map(I),
+            J(ref mut f) => try_ready!(f.poll_response(request)).map(J),
+            K(ref mut f) => try_ready!(f.poll_response(request)).map(K),
+        };
+        Ok(response.into())
     }
 }
 
@@ -3015,7 +3281,7 @@ where
     type RequestBody = R0::RequestBody;
     type Buf = Either11<R0::Buf, R1::Buf, R2::Buf, R3::Buf, R4::Buf, R5::Buf, R6::Buf, R7::Buf, R8::Buf, R9::Buf, R10::Buf>;
     type Body = Either11<R0::Body, R1::Body, R2::Body, R3::Body, R4::Body, R5::Body, R6::Body, R7::Body, R8::Body, R9::Body, R10::Body>;
-    type Future = LiftFuture<Either11<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future, R5::Future, R6::Future, R7::Future, R8::Future, R9::Future, R10::Future>>;
+    type Future = Either11<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future, R5::Future, R6::Future, R7::Future, R8::Future, R9::Future, R10::Future>;
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
@@ -3025,7 +3291,7 @@ where
     {
         use self::Either11::*;
 
-        let inner = match destination {
+        match destination {
             A(d) => {
                 A(self.0.dispatch(d, route_match, body))
             }
@@ -3059,9 +3325,7 @@ where
             K(d) => {
                 K(self.10.dispatch(d, route_match, body))
             }
-        };
-
-        inner.lift()
+        }
     }
 }
 // ===== 12 =====
@@ -3117,6 +3381,44 @@ where
             K(ref mut f) => Ok(K(try_ready!(f.poll())).into()),
             L(ref mut f) => Ok(L(try_ready!(f.poll())).into()),
         }
+    }
+}
+
+impl<A, B, C, D, E, F, G, H, I, J, K, L> ResourceFuture for Either12<A, B, C, D, E, F, G, H, I, J, K, L>
+where
+    A: ResourceFuture,
+    B: ResourceFuture,
+    C: ResourceFuture,
+    D: ResourceFuture,
+    E: ResourceFuture,
+    F: ResourceFuture,
+    G: ResourceFuture,
+    H: ResourceFuture,
+    I: ResourceFuture,
+    J: ResourceFuture,
+    K: ResourceFuture,
+    L: ResourceFuture,
+{
+    type Body = Either12<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body, G::Body, H::Body, I::Body, J::Body, K::Body, L::Body>;
+
+    fn poll_response(&mut self, request: &http::Request<()>) -> Poll<http::Response<Self::Body>, ::Error> {
+        use self::Either12::*;
+
+        let response = match *self {
+            A(ref mut f) => try_ready!(f.poll_response(request)).map(A),
+            B(ref mut f) => try_ready!(f.poll_response(request)).map(B),
+            C(ref mut f) => try_ready!(f.poll_response(request)).map(C),
+            D(ref mut f) => try_ready!(f.poll_response(request)).map(D),
+            E(ref mut f) => try_ready!(f.poll_response(request)).map(E),
+            F(ref mut f) => try_ready!(f.poll_response(request)).map(F),
+            G(ref mut f) => try_ready!(f.poll_response(request)).map(G),
+            H(ref mut f) => try_ready!(f.poll_response(request)).map(H),
+            I(ref mut f) => try_ready!(f.poll_response(request)).map(I),
+            J(ref mut f) => try_ready!(f.poll_response(request)).map(J),
+            K(ref mut f) => try_ready!(f.poll_response(request)).map(K),
+            L(ref mut f) => try_ready!(f.poll_response(request)).map(L),
+        };
+        Ok(response.into())
     }
 }
 
@@ -3418,7 +3720,7 @@ where
     type RequestBody = R0::RequestBody;
     type Buf = Either12<R0::Buf, R1::Buf, R2::Buf, R3::Buf, R4::Buf, R5::Buf, R6::Buf, R7::Buf, R8::Buf, R9::Buf, R10::Buf, R11::Buf>;
     type Body = Either12<R0::Body, R1::Body, R2::Body, R3::Body, R4::Body, R5::Body, R6::Body, R7::Body, R8::Body, R9::Body, R10::Body, R11::Body>;
-    type Future = LiftFuture<Either12<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future, R5::Future, R6::Future, R7::Future, R8::Future, R9::Future, R10::Future, R11::Future>>;
+    type Future = Either12<R0::Future, R1::Future, R2::Future, R3::Future, R4::Future, R5::Future, R6::Future, R7::Future, R8::Future, R9::Future, R10::Future, R11::Future>;
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
@@ -3428,7 +3730,7 @@ where
     {
         use self::Either12::*;
 
-        let inner = match destination {
+        match destination {
             A(d) => {
                 A(self.0.dispatch(d, route_match, body))
             }
@@ -3465,9 +3767,7 @@ where
             L(d) => {
                 L(self.11.dispatch(d, route_match, body))
             }
-        };
-
-        inner.lift()
+        }
     }
 }
 

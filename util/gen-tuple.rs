@@ -39,9 +39,9 @@ pub fn main() {
 
 use extract::{self, ExtractFuture};
 use response::{Context, Response, Serializer};
-use routing::{self, Resource, IntoResource, RouteSet, RouteMatch};
+use routing::{self, Resource, ResourceFuture, IntoResource, RouteSet, RouteMatch};
 use util::{BufStream, Chain};
-use util::http::{HttpFuture, LiftFuture, SealedFuture};
+use util::http::{HttpFuture, SealedFuture};
 
 use bytes::Buf;
 use futures::{Future, Stream, Async, Poll};
@@ -175,6 +175,33 @@ impl Either {
         }
 
         println!("        }}");
+        println!("    }}");
+        println!("}}");
+        println!("");
+
+        // ===== impl ResourceFuture or Either =====
+
+        println!("impl<{}> ResourceFuture for Either{}<{}>", gens, self.level, gens);
+        println!("where");
+
+        for n in 0..self.level {
+            println!("    {}: ResourceFuture,", VARS[n]);
+        }
+
+        println!("{{");
+        println!("    type Body = Either{}<{}>;", self.level, body_gens);
+        println!("");
+        println!("    fn poll_response(&mut self, request: &http::Request<()>) -> Poll<http::Response<Self::Body>, ::Error> {{");
+        println!("        use self::Either{}::*;", self.level);
+        println!("");
+        println!("        let response = match *self {{");
+
+        for n in 0..self.level {
+            println!("            {}(ref mut f) => try_ready!(f.poll_response(request)).map({}),", VARS[n], VARS[n]);
+        }
+
+        println!("        }};");
+        println!("        Ok(response.into())");
         println!("    }}");
         println!("}}");
         println!("");
@@ -417,7 +444,7 @@ impl Either {
             .collect::<Vec<_>>()
             .join(", ");
 
-        println!("    type Future = LiftFuture<Either{}<{}>>;", self.level, gens);
+        println!("    type Future = Either{}<{}>;", self.level, gens);
         println!("");
         println!("    fn dispatch(&mut self,");
         println!("                destination: Self::Destination,");
@@ -427,7 +454,7 @@ impl Either {
         println!("    {{");
         println!("        use self::Either{}::*;", self.level);
         println!("");
-        println!("        let inner = match destination {{");
+        println!("        match destination {{");
 
         for n in 0..self.level {
             println!("            {}(d) => {{", VARS[n]);
@@ -435,9 +462,7 @@ impl Either {
             println!("            }}");
         }
 
-        println!("        }};");
-        println!("");
-        println!("        inner.lift()");
+        println!("        }}");
         println!("    }}");
         println!("}}");
     }

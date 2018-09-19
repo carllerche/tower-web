@@ -1,6 +1,7 @@
-use response::{Serializer, ContentType};
+use response::{Serializer, ContentType, SerializerContext};
 
 use bytes::Bytes;
+use http;
 use http::header::HeaderValue;
 use serde::Serialize;
 
@@ -9,6 +10,7 @@ use serde::Serialize;
 pub struct Context<'a, S: Serializer + 'a> {
     serializer: &'a S,
     default_content_type: Option<&'a ContentType<S::Format>>,
+    request: &'a http::Request<()>,
 }
 
 impl<'a, S> Context<'a, S>
@@ -17,12 +19,20 @@ where
 {
     /// Create a new response context.
     pub fn new(serializer: &'a S,
-               default_content_type: Option<&'a ContentType<S::Format>>) -> Context<'a, S>
+               default_content_type: Option<&'a ContentType<S::Format>>,
+               request: &'a http::Request<()>,
+               ) -> Context<'a, S>
     {
         Context {
             serializer,
             default_content_type,
+            request,
         }
+    }
+
+    /// Returns a reference to the request
+    pub fn request(&self) -> &http::Request<()> {
+        self.request
     }
 
     /// Serialize a value.
@@ -33,7 +43,8 @@ where
     ///
     /// Calling this function *requires* a default content type. If set to
     /// `None`, this function will panic.
-    pub fn serialize<T>(&self, value: &T) -> Result<Bytes, ::Error>
+    pub fn serialize<T>(&self, value: &T, context: &SerializerContext)
+        -> Result<Bytes, ::Error>
     where
         T: Serialize,
     {
@@ -41,13 +52,14 @@ where
             .expect("no default content type associated with action");
 
         match content_type.format() {
-            Some(format) => self.serializer.serialize(value, format),
+            Some(format) => self.serializer.serialize(value, format, context),
             None => panic!("no serializer associated with content type `{:?}`", content_type.header()),
         }
     }
 
     /// Serialize a value as the specified content type.
-    pub fn serialize_as<T>(&self, _value: &T, _content_type: &str) -> Result<Bytes, ::Error>
+    pub fn serialize_as<T>(&self, _value: &T, _content_type: &str)
+        -> Result<Bytes, ::Error>
     where
         T: Serialize,
     {

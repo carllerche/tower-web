@@ -1,4 +1,4 @@
-use response::ContentType;
+use response::{ContentType, SerializerContext};
 
 use bytes::Bytes;
 use serde::Serialize;
@@ -22,7 +22,8 @@ pub trait Serializer: Clone + Send + Sync + 'static + ::util::Sealed {
     fn lookup(&self, name: &str) -> ContentType<Self::Format>;
 
     /// Serialize the value using the specified format.
-    fn serialize<T>(&self, value: &T, format: &Self::Format) -> Result<Bytes, ::Error>
+    fn serialize<T>(&self, value: &T, format: &Self::Format, context: &SerializerContext)
+        -> Result<Bytes, ::Error>
     where
         T: Serialize;
 }

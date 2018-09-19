@@ -1,6 +1,6 @@
 use config::Config;
 use error::{self, Error, ErrorKind, Catch};
-use routing::{Resource, RouteSet, RouteMatch};
+use routing::{Resource, ResourceFuture, RouteSet, RouteMatch};
 use util::http::HttpFuture;
 use util::tuple::Either2;
 
@@ -145,7 +145,7 @@ where T: Resource,
 // ===== impl RoutedResponse =====
 
 impl<T, U> Future for RoutedResponse<T, U>
-where T: HttpFuture,
+where T: ResourceFuture,
       U: Catch,
 {
     type Item = http::Response<Either2<T::Body, error::Map<U::Body>>>;
@@ -159,7 +159,7 @@ where T: HttpFuture,
         loop {
             let catching = match self.state {
                 Pending(ref mut fut) => {
-                    let error = match fut.poll_http() {
+                    let error = match fut.poll_response(&self.request) {
                         Ok(Ready(v)) => {
                             let v = v.map(A);
                             return Ok(Ready(v))

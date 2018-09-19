@@ -205,7 +205,7 @@ impl Resource {
                 type Buf = <Self::Body as __tw::util::BufStream>::Item;
 
                 // The reesponse body type
-                type Body = <Self::Future as __tw::util::http::HttpFuture>::Body;
+                type Body = <Self::Future as __tw::routing::ResourceFuture>::Body;
 
                 // Future representing processing the request.
                 type Future = ResponseFuture<S, B>;
@@ -265,14 +265,15 @@ impl Resource {
                 Invalid(::std::marker::PhantomData<B>),
             }
 
-            impl<S, B> __tw::codegen::futures::Future for ResponseFuture<S, B>
+            impl<S, B> __tw::routing::ResourceFuture for ResponseFuture<S, B>
             where S: __tw::response::Serializer,
                   B: __tw::util::BufStream,
             {
-                type Item = __tw::codegen::http::Response<ResponseBody>;
-                type Error = __tw::Error;
+                type Body = ResponseBody;
 
-                fn poll(&mut self) -> __tw::codegen::futures::Poll<Self::Item, Self::Error> {
+                fn poll_response(&mut self, request: &__tw::codegen::http::Request<()>)
+                    -> __tw::codegen::futures::Poll<__tw::codegen::http::Response<Self::Body>, __tw::Error>
+                {
                     loop {
                         // TODO: Clean this up!
                         let mut err = None;
@@ -282,7 +283,7 @@ impl Resource {
                                 try_ready!(__tw::codegen::futures::Future::poll(extract_future));
                             }
                             State::Response(ref mut response) => {
-                                let response = match response.poll() {
+                                let response = match __tw::codegen::futures::Future::poll(response) {
                                     Ok(__tw::codegen::futures::Async::Ready(response)) => {
                                         return Ok(__tw::codegen::futures::Async::Ready(match response {
                                             #match_into_response
@@ -298,7 +299,8 @@ impl Resource {
                             }
                             State::Error(ref mut response) => {
                                 return Ok(__tw::codegen::futures::Async::Ready({
-                                    let response = try_ready!(response.poll());
+                                    let res = __tw::codegen::futures::Future::poll(response);
+                                    let response = try_ready!(res);
                                     #catch_into_response
                                 }));
                             }
@@ -634,7 +636,8 @@ impl Resource {
 
                     let context = __tw::response::Context::new(
                         &self.inner.serializer,
-                        content_type);
+                        content_type,
+                        request);
 
                     __tw::response::Response::into_http(response, &context)
                         .map(|body| ResponseBody(Ok(#map)))
@@ -649,7 +652,8 @@ impl Resource {
 
             let context = __tw::response::Context::new(
                 &self.inner.serializer,
-                content_type);
+                content_type,
+                request);
 
             __tw::response::Response::into_http(response, &context)
                 .map(|body| ResponseBody(Err(body)))
