@@ -539,15 +539,29 @@ impl Resource {
         let init = self.routes.iter()
             .map(|route| {
                 if let Some(ref content_type) = route.attributes.content_type {
-                    quote!(Some(serializer.lookup(#content_type)))
+                    quote!({
+                        match serializer.lookup(#content_type) {
+                            Some(content_type) => ContentType::Serializable(content_type),
+                            None => {
+                                let value = __tw::codegen::http::header::HeaderValue::from_str(#content_type)
+                                    .unwrap();
+                                ContentType::Unknown(Some(value))
+                            }
+                        }
+                    })
                 } else {
-                    quote!(None)
+                    quote!(ContentType::Unknown(None))
                 }
             });
 
         quote! {
             struct ContentTypes<S: __tw::response::Serializer> {
-                content_types: [Option<__tw::response::ContentType<S::Format>>; #num],
+                content_types: [ContentType<S::Format>; #num],
+            }
+
+            enum ContentType<T> {
+                Serializable(__tw::response::ContentType<T>),
+                Unknown(Option<__tw::codegen::http::header::HeaderValue>),
             }
 
             impl<S> ContentTypes<S>
@@ -650,14 +664,21 @@ impl Resource {
 
             quote! {
                 #left => {
-                    let content_type = self.inner.content_types
-                        .content_types[#idx]
-                        .as_ref();
-
                     let mut context = __tw::response::Context::new(
-                        &self.inner.serializer,
-                        content_type,
-                        request);
+                        request, &self.inner.serializer);
+
+                    match self.inner.content_types.content_types[#idx] {
+                        ContentType::Serializable(ref v) => {
+                            context.set_default_format(v.format());
+                            context.set_content_type(v.header());
+                        }
+                        ContentType::Unknown(ref header) => {
+                            if let Some(ref header) = *header {
+                                context.set_content_type(header);
+                            }
+                        }
+                    }
+
                     context.set_resource_mod(module_path!());
                     #set_resource_name
                     context.set_handler_name(#fn_ident);
@@ -671,12 +692,9 @@ impl Resource {
 
     fn catch_into_response(&self) -> TokenStream {
         quote! {
-            let content_type = None;
-
             let context = __tw::response::Context::new(
-                &self.inner.serializer,
-                content_type,
-                request);
+                request,
+                &self.inner.serializer);
 
             __tw::response::Response::into_http(response, &context)
                 .map(|body| ResponseBody(Err(body)))

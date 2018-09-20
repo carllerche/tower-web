@@ -272,6 +272,7 @@ impl Response {
                             }
                         }
 
+                        #[allow(unused_mut)]
                         let mut serializer_context = context.serializer_context();
                         #template
 

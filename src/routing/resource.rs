@@ -40,7 +40,7 @@ pub trait Resource: Clone {
     type Body: BufStream<Item = Self::Buf, Error = ::Error>;
 
     /// Response future
-    type Future: ResourceFuture;
+    type Future: ResourceFuture<Body = Self::Body>;
 
     /// Process the HTTP request and return the response asynchronously.
     ///

@@ -1,4 +1,4 @@
-use response::{Serializer, ContentType, SerializerContext};
+use response::{Serializer, SerializerContext};
 
 use bytes::Bytes;
 use http;
@@ -8,9 +8,10 @@ use serde::Serialize;
 /// Context available when serializing the response.
 #[derive(Debug)]
 pub struct Context<'a, S: Serializer + 'a> {
-    serializer: &'a S,
-    default_content_type: Option<&'a ContentType<S::Format>>,
     request: &'a http::Request<()>,
+    serializer: &'a S,
+    default_format: Option<&'a S::Format>,
+    content_type: Option<&'a HeaderValue>,
     resource_mod: Option<&'a str>,
     resource_name: Option<&'a str>,
     handler_name: Option<&'a str>,
@@ -21,15 +22,13 @@ where
     S: Serializer,
 {
     /// Create a new response context.
-    pub fn new(serializer: &'a S,
-               default_content_type: Option<&'a ContentType<S::Format>>,
-               request: &'a http::Request<()>,
-               ) -> Context<'a, S>
+    pub fn new(request: &'a http::Request<()>, serializer: &'a S) -> Context<'a, S>
     {
         Context {
-            serializer,
-            default_content_type,
             request,
+            serializer,
+            default_format: None,
+            content_type: None,
             resource_mod: None,
             resource_name: None,
             handler_name: None,
@@ -65,6 +64,16 @@ where
         ret
     }
 
+    #[doc(hidden)]
+    pub fn set_default_format(&mut self, value: &'a S::Format) {
+        self.default_format = Some(value);
+    }
+
+    #[doc(hidden)]
+    pub fn set_content_type(&mut self, value: &'a HeaderValue) {
+        self.content_type = Some(value);
+    }
+
     /// Serialize a value.
     ///
     /// This uses the default content type for the action.
@@ -78,13 +87,10 @@ where
     where
         T: Serialize,
     {
-        let content_type = self.default_content_type
-            .expect("no default content type associated with action");
+        let format = self.default_format
+            .expect("no default serialization format associated with action");
 
-        match content_type.format() {
-            Some(format) => self.serializer.serialize(value, format, context),
-            None => panic!("no serializer associated with content type `{:?}`", content_type.header()),
-        }
+        self.serializer.serialize(value, format, context)
     }
 
     /// Serialize a value as the specified content type.
@@ -98,7 +104,6 @@ where
 
     /// Returns a `HeaderValue` representation of the default content type.
     pub fn content_type_header(&self) -> Option<&HeaderValue> {
-        self.default_content_type
-            .map(|content_type| content_type.header())
+        self.content_type
     }
 }

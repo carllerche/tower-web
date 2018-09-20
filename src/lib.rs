@@ -474,6 +474,7 @@ extern crate tokio;
 extern crate tokio_fs;
 extern crate tokio_io;
 extern crate tower_service;
+extern crate void;
 
 pub mod codegen;
 pub mod config;
