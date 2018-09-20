@@ -11,6 +11,9 @@ pub struct Context<'a, S: Serializer + 'a> {
     serializer: &'a S,
     default_content_type: Option<&'a ContentType<S::Format>>,
     request: &'a http::Request<()>,
+    resource_mod: Option<&'a str>,
+    resource_name: Option<&'a str>,
+    handler_name: Option<&'a str>,
 }
 
 impl<'a, S> Context<'a, S>
@@ -27,12 +30,39 @@ where
             serializer,
             default_content_type,
             request,
+            resource_mod: None,
+            resource_name: None,
+            handler_name: None,
         }
     }
 
     /// Returns a reference to the request
     pub fn request(&self) -> &http::Request<()> {
         self.request
+    }
+
+    #[doc(hidden)]
+    pub fn set_resource_mod(&mut self, value: &'a str) {
+        self.resource_mod = Some(value);
+    }
+
+    #[doc(hidden)]
+    pub fn set_resource_name(&mut self, value: &'a str) {
+        self.resource_name = Some(value);
+    }
+
+    #[doc(hidden)]
+    pub fn set_handler_name(&mut self, value: &'a str) {
+        self.handler_name = Some(value);
+    }
+
+    #[doc(hidden)]
+    pub fn serializer_context(&self) -> SerializerContext {
+        let mut ret = SerializerContext::new(self.request);
+        ret.set_resource_mod(self.resource_mod);
+        ret.set_resource_name(self.resource_name);
+        ret.set_handler_name(self.handler_name);
+        ret
     }
 
     /// Serialize a value.

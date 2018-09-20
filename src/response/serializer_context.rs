@@ -7,15 +7,18 @@ use http;
 pub struct SerializerContext<'a> {
     request: &'a http::Request<()>,
     resource_mod: Option<&'a str>,
+    resource_name: Option<&'a str>,
+    handler_name: Option<&'a str>,
     template: Option<&'a str>,
 }
 
 impl<'a> SerializerContext<'a> {
-    #[doc(hidden)]
-    pub fn new(request: &'a http::Request<()>) -> SerializerContext<'a> {
+    pub(crate) fn new(request: &'a http::Request<()>) -> SerializerContext<'a> {
         SerializerContext {
             request,
             resource_mod: None,
+            resource_name: None,
+            handler_name: None,
             template: None,
         }
     }
@@ -30,9 +33,26 @@ impl<'a> SerializerContext<'a> {
         self.resource_mod
     }
 
-    #[doc(hidden)]
-    pub fn set_resource_mod(&mut self, value: &'a str) {
-        self.resource_mod = Some(value);
+    pub(crate) fn set_resource_mod(&mut self, value: Option<&'a str>) {
+        self.resource_mod = value;
+    }
+
+    /// Returns the name of the resource handling the request.
+    pub fn resource_name(&self) -> Option<&str> {
+        self.resource_name
+    }
+
+    pub(crate) fn set_resource_name(&mut self, value: Option<&'a str>) {
+        self.resource_name = value;
+    }
+
+    /// Returns the name of the function handling the request.
+    pub fn handler_name(&self) -> Option<&str> {
+        self.handler_name
+    }
+
+    pub(crate) fn set_handler_name(&mut self, value: Option<&'a str>) {
+        self.handler_name = value;
     }
 
     /// Returns the `template` value set for the response.

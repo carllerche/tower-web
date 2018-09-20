@@ -1,5 +1,5 @@
 use error;
-use response::{Response, Serializer, SerializerContext, Context};
+use response::{Response, Serializer, Context};
 use util::BufStream;
 
 use bytes::Bytes;
@@ -33,7 +33,7 @@ where
         let content_type = context.content_type_header()
             .expect("no content type specified for response");
 
-        let serialize_context = SerializerContext::new(context.request());
+        let serialize_context = context.serializer_context();
 
         let serialized = context.serialize(&self.0, &serialize_context)
             // TODO: Improve and handle errors

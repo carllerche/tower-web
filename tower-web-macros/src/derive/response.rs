@@ -272,7 +272,7 @@ impl Response {
                             }
                         }
 
-                        let mut serializer_context = __tw::response::SerializerContext::new(context.request());
+                        let mut serializer_context = context.serializer_context();
                         #template
 
                         // TODO: Improve and handle errors

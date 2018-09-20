@@ -18,9 +18,6 @@
 extern crate tower_web;
 extern crate tokio;
 
-#[macro_use]
-extern crate serde_json;
-
 use tower_web::ServiceBuilder;
 
 /// This type will be the web service implementation.

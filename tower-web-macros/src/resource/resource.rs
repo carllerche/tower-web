@@ -430,6 +430,17 @@ impl Resource {
         }
     }
 
+    fn self_ident(&self) -> Option<&syn::Ident> {
+        match *self.self_ty {
+            syn::Type::Path(ref type_path) => {
+                let segments = &type_path.path.segments;
+                let len = segments.len();
+                Some(&segments[len-1].ident)
+            }
+            _ => None,
+        }
+    }
+
     fn dummy_const(&self) -> syn::Ident {
         // A (slightly) helpful string snippet to identify *which* service
         // implementation this scope is for
@@ -623,7 +634,16 @@ impl Resource {
     }
 
     fn match_into_response(&self) -> TokenStream {
+        let set_resource_name = match self.self_ident() {
+            Some(ident) => {
+                let name = ident.to_string();
+                quote!(context.set_resource_name(#name);)
+            }
+            None => quote!(),
+        };
+
         self.destination_syms(|route, destination| {
+            let fn_ident = route.ident().to_string();
             let left = destination.build(quote!(response));
             let map = destination.build(quote!(body));
             let idx = route.index;
@@ -634,10 +654,13 @@ impl Resource {
                         .content_types[#idx]
                         .as_ref();
 
-                    let context = __tw::response::Context::new(
+                    let mut context = __tw::response::Context::new(
                         &self.inner.serializer,
                         content_type,
                         request);
+                    context.set_resource_mod(module_path!());
+                    #set_resource_name
+                    context.set_handler_name(#fn_ident);
 
                     __tw::response::Response::into_http(response, &context)
                         .map(|body| ResponseBody(Ok(#map)))
