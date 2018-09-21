@@ -1,4 +1,5 @@
 use response::{ContentType, SerializerContext};
+use util::tuple::Either2;
 
 use bytes::Bytes;
 use serde::Serialize;
@@ -42,5 +43,33 @@ impl Serializer for () {
         T: Serialize
     {
         unreachable!();
+    }
+}
+
+impl<T, U> Serializer for (T, U)
+where
+    T: Serializer,
+    U: Serializer,
+{
+    type Format = Either2<T::Format, U::Format>;
+
+    fn lookup(&self, name: &str) -> Option<ContentType<Self::Format>> {
+        if let Some(content_type) = self.0.lookup(name) {
+            return Some(content_type.map(Either2::A));
+        }
+
+        self.1.lookup(name)
+            .map(|content_type| content_type.map(Either2::B))
+    }
+
+    fn serialize<V>(&self, value: &V, format: &Self::Format, context: &SerializerContext)
+        -> Result<Bytes, ::Error>
+    where
+        V: Serialize
+    {
+        match *format {
+            Either2::A(ref format) => self.0.serialize(value, format, context),
+            Either2::B(ref format) => self.1.serialize(value, format, context),
+        }
     }
 }

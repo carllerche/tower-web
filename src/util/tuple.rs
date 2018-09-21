@@ -192,13 +192,13 @@ where
     type Buf = Either1<A::Buf>;
     type Body = Either1<A::Body>;
 
-    fn into_http<S>(self, context: &Context<S>) ->  http::Response<Self::Body>
+    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, ::Error>
     where S: Serializer
     {
         use self::Either1::*;
 
         match self {
-            A(r) => r.into_http(context).map(Either1::A),
+            A(r) => Ok(r.into_http(context)?.map(Either1::A)),
         }
     }
 }
@@ -389,14 +389,14 @@ where
     type Buf = Either2<A::Buf, B::Buf>;
     type Body = Either2<A::Body, B::Body>;
 
-    fn into_http<S>(self, context: &Context<S>) ->  http::Response<Self::Body>
+    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, ::Error>
     where S: Serializer
     {
         use self::Either2::*;
 
         match self {
-            A(r) => r.into_http(context).map(Either2::A),
-            B(r) => r.into_http(context).map(Either2::B),
+            A(r) => Ok(r.into_http(context)?.map(Either2::A)),
+            B(r) => Ok(r.into_http(context)?.map(Either2::B)),
         }
     }
 }
@@ -610,15 +610,15 @@ where
     type Buf = Either3<A::Buf, B::Buf, C::Buf>;
     type Body = Either3<A::Body, B::Body, C::Body>;
 
-    fn into_http<S>(self, context: &Context<S>) ->  http::Response<Self::Body>
+    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, ::Error>
     where S: Serializer
     {
         use self::Either3::*;
 
         match self {
-            A(r) => r.into_http(context).map(Either3::A),
-            B(r) => r.into_http(context).map(Either3::B),
-            C(r) => r.into_http(context).map(Either3::C),
+            A(r) => Ok(r.into_http(context)?.map(Either3::A)),
+            B(r) => Ok(r.into_http(context)?.map(Either3::B)),
+            C(r) => Ok(r.into_http(context)?.map(Either3::C)),
         }
     }
 }
@@ -855,16 +855,16 @@ where
     type Buf = Either4<A::Buf, B::Buf, C::Buf, D::Buf>;
     type Body = Either4<A::Body, B::Body, C::Body, D::Body>;
 
-    fn into_http<S>(self, context: &Context<S>) ->  http::Response<Self::Body>
+    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, ::Error>
     where S: Serializer
     {
         use self::Either4::*;
 
         match self {
-            A(r) => r.into_http(context).map(Either4::A),
-            B(r) => r.into_http(context).map(Either4::B),
-            C(r) => r.into_http(context).map(Either4::C),
-            D(r) => r.into_http(context).map(Either4::D),
+            A(r) => Ok(r.into_http(context)?.map(Either4::A)),
+            B(r) => Ok(r.into_http(context)?.map(Either4::B)),
+            C(r) => Ok(r.into_http(context)?.map(Either4::C)),
+            D(r) => Ok(r.into_http(context)?.map(Either4::D)),
         }
     }
 }
@@ -1124,17 +1124,17 @@ where
     type Buf = Either5<A::Buf, B::Buf, C::Buf, D::Buf, E::Buf>;
     type Body = Either5<A::Body, B::Body, C::Body, D::Body, E::Body>;
 
-    fn into_http<S>(self, context: &Context<S>) ->  http::Response<Self::Body>
+    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, ::Error>
     where S: Serializer
     {
         use self::Either5::*;
 
         match self {
-            A(r) => r.into_http(context).map(Either5::A),
-            B(r) => r.into_http(context).map(Either5::B),
-            C(r) => r.into_http(context).map(Either5::C),
-            D(r) => r.into_http(context).map(Either5::D),
-            E(r) => r.into_http(context).map(Either5::E),
+            A(r) => Ok(r.into_http(context)?.map(Either5::A)),
+            B(r) => Ok(r.into_http(context)?.map(Either5::B)),
+            C(r) => Ok(r.into_http(context)?.map(Either5::C)),
+            D(r) => Ok(r.into_http(context)?.map(Either5::D)),
+            E(r) => Ok(r.into_http(context)?.map(Either5::E)),
         }
     }
 }
@@ -1417,18 +1417,18 @@ where
     type Buf = Either6<A::Buf, B::Buf, C::Buf, D::Buf, E::Buf, F::Buf>;
     type Body = Either6<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body>;
 
-    fn into_http<S>(self, context: &Context<S>) ->  http::Response<Self::Body>
+    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, ::Error>
     where S: Serializer
     {
         use self::Either6::*;
 
         match self {
-            A(r) => r.into_http(context).map(Either6::A),
-            B(r) => r.into_http(context).map(Either6::B),
-            C(r) => r.into_http(context).map(Either6::C),
-            D(r) => r.into_http(context).map(Either6::D),
-            E(r) => r.into_http(context).map(Either6::E),
-            F(r) => r.into_http(context).map(Either6::F),
+            A(r) => Ok(r.into_http(context)?.map(Either6::A)),
+            B(r) => Ok(r.into_http(context)?.map(Either6::B)),
+            C(r) => Ok(r.into_http(context)?.map(Either6::C)),
+            D(r) => Ok(r.into_http(context)?.map(Either6::D)),
+            E(r) => Ok(r.into_http(context)?.map(Either6::E)),
+            F(r) => Ok(r.into_http(context)?.map(Either6::F)),
         }
     }
 }
@@ -1734,19 +1734,19 @@ where
     type Buf = Either7<A::Buf, B::Buf, C::Buf, D::Buf, E::Buf, F::Buf, G::Buf>;
     type Body = Either7<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body, G::Body>;
 
-    fn into_http<S>(self, context: &Context<S>) ->  http::Response<Self::Body>
+    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, ::Error>
     where S: Serializer
     {
         use self::Either7::*;
 
         match self {
-            A(r) => r.into_http(context).map(Either7::A),
-            B(r) => r.into_http(context).map(Either7::B),
-            C(r) => r.into_http(context).map(Either7::C),
-            D(r) => r.into_http(context).map(Either7::D),
-            E(r) => r.into_http(context).map(Either7::E),
-            F(r) => r.into_http(context).map(Either7::F),
-            G(r) => r.into_http(context).map(Either7::G),
+            A(r) => Ok(r.into_http(context)?.map(Either7::A)),
+            B(r) => Ok(r.into_http(context)?.map(Either7::B)),
+            C(r) => Ok(r.into_http(context)?.map(Either7::C)),
+            D(r) => Ok(r.into_http(context)?.map(Either7::D)),
+            E(r) => Ok(r.into_http(context)?.map(Either7::E)),
+            F(r) => Ok(r.into_http(context)?.map(Either7::F)),
+            G(r) => Ok(r.into_http(context)?.map(Either7::G)),
         }
     }
 }
@@ -2075,20 +2075,20 @@ where
     type Buf = Either8<A::Buf, B::Buf, C::Buf, D::Buf, E::Buf, F::Buf, G::Buf, H::Buf>;
     type Body = Either8<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body, G::Body, H::Body>;
 
-    fn into_http<S>(self, context: &Context<S>) ->  http::Response<Self::Body>
+    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, ::Error>
     where S: Serializer
     {
         use self::Either8::*;
 
         match self {
-            A(r) => r.into_http(context).map(Either8::A),
-            B(r) => r.into_http(context).map(Either8::B),
-            C(r) => r.into_http(context).map(Either8::C),
-            D(r) => r.into_http(context).map(Either8::D),
-            E(r) => r.into_http(context).map(Either8::E),
-            F(r) => r.into_http(context).map(Either8::F),
-            G(r) => r.into_http(context).map(Either8::G),
-            H(r) => r.into_http(context).map(Either8::H),
+            A(r) => Ok(r.into_http(context)?.map(Either8::A)),
+            B(r) => Ok(r.into_http(context)?.map(Either8::B)),
+            C(r) => Ok(r.into_http(context)?.map(Either8::C)),
+            D(r) => Ok(r.into_http(context)?.map(Either8::D)),
+            E(r) => Ok(r.into_http(context)?.map(Either8::E)),
+            F(r) => Ok(r.into_http(context)?.map(Either8::F)),
+            G(r) => Ok(r.into_http(context)?.map(Either8::G)),
+            H(r) => Ok(r.into_http(context)?.map(Either8::H)),
         }
     }
 }
@@ -2440,21 +2440,21 @@ where
     type Buf = Either9<A::Buf, B::Buf, C::Buf, D::Buf, E::Buf, F::Buf, G::Buf, H::Buf, I::Buf>;
     type Body = Either9<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body, G::Body, H::Body, I::Body>;
 
-    fn into_http<S>(self, context: &Context<S>) ->  http::Response<Self::Body>
+    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, ::Error>
     where S: Serializer
     {
         use self::Either9::*;
 
         match self {
-            A(r) => r.into_http(context).map(Either9::A),
-            B(r) => r.into_http(context).map(Either9::B),
-            C(r) => r.into_http(context).map(Either9::C),
-            D(r) => r.into_http(context).map(Either9::D),
-            E(r) => r.into_http(context).map(Either9::E),
-            F(r) => r.into_http(context).map(Either9::F),
-            G(r) => r.into_http(context).map(Either9::G),
-            H(r) => r.into_http(context).map(Either9::H),
-            I(r) => r.into_http(context).map(Either9::I),
+            A(r) => Ok(r.into_http(context)?.map(Either9::A)),
+            B(r) => Ok(r.into_http(context)?.map(Either9::B)),
+            C(r) => Ok(r.into_http(context)?.map(Either9::C)),
+            D(r) => Ok(r.into_http(context)?.map(Either9::D)),
+            E(r) => Ok(r.into_http(context)?.map(Either9::E)),
+            F(r) => Ok(r.into_http(context)?.map(Either9::F)),
+            G(r) => Ok(r.into_http(context)?.map(Either9::G)),
+            H(r) => Ok(r.into_http(context)?.map(Either9::H)),
+            I(r) => Ok(r.into_http(context)?.map(Either9::I)),
         }
     }
 }
@@ -2829,22 +2829,22 @@ where
     type Buf = Either10<A::Buf, B::Buf, C::Buf, D::Buf, E::Buf, F::Buf, G::Buf, H::Buf, I::Buf, J::Buf>;
     type Body = Either10<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body, G::Body, H::Body, I::Body, J::Body>;
 
-    fn into_http<S>(self, context: &Context<S>) ->  http::Response<Self::Body>
+    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, ::Error>
     where S: Serializer
     {
         use self::Either10::*;
 
         match self {
-            A(r) => r.into_http(context).map(Either10::A),
-            B(r) => r.into_http(context).map(Either10::B),
-            C(r) => r.into_http(context).map(Either10::C),
-            D(r) => r.into_http(context).map(Either10::D),
-            E(r) => r.into_http(context).map(Either10::E),
-            F(r) => r.into_http(context).map(Either10::F),
-            G(r) => r.into_http(context).map(Either10::G),
-            H(r) => r.into_http(context).map(Either10::H),
-            I(r) => r.into_http(context).map(Either10::I),
-            J(r) => r.into_http(context).map(Either10::J),
+            A(r) => Ok(r.into_http(context)?.map(Either10::A)),
+            B(r) => Ok(r.into_http(context)?.map(Either10::B)),
+            C(r) => Ok(r.into_http(context)?.map(Either10::C)),
+            D(r) => Ok(r.into_http(context)?.map(Either10::D)),
+            E(r) => Ok(r.into_http(context)?.map(Either10::E)),
+            F(r) => Ok(r.into_http(context)?.map(Either10::F)),
+            G(r) => Ok(r.into_http(context)?.map(Either10::G)),
+            H(r) => Ok(r.into_http(context)?.map(Either10::H)),
+            I(r) => Ok(r.into_http(context)?.map(Either10::I)),
+            J(r) => Ok(r.into_http(context)?.map(Either10::J)),
         }
     }
 }
@@ -3242,23 +3242,23 @@ where
     type Buf = Either11<A::Buf, B::Buf, C::Buf, D::Buf, E::Buf, F::Buf, G::Buf, H::Buf, I::Buf, J::Buf, K::Buf>;
     type Body = Either11<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body, G::Body, H::Body, I::Body, J::Body, K::Body>;
 
-    fn into_http<S>(self, context: &Context<S>) ->  http::Response<Self::Body>
+    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, ::Error>
     where S: Serializer
     {
         use self::Either11::*;
 
         match self {
-            A(r) => r.into_http(context).map(Either11::A),
-            B(r) => r.into_http(context).map(Either11::B),
-            C(r) => r.into_http(context).map(Either11::C),
-            D(r) => r.into_http(context).map(Either11::D),
-            E(r) => r.into_http(context).map(Either11::E),
-            F(r) => r.into_http(context).map(Either11::F),
-            G(r) => r.into_http(context).map(Either11::G),
-            H(r) => r.into_http(context).map(Either11::H),
-            I(r) => r.into_http(context).map(Either11::I),
-            J(r) => r.into_http(context).map(Either11::J),
-            K(r) => r.into_http(context).map(Either11::K),
+            A(r) => Ok(r.into_http(context)?.map(Either11::A)),
+            B(r) => Ok(r.into_http(context)?.map(Either11::B)),
+            C(r) => Ok(r.into_http(context)?.map(Either11::C)),
+            D(r) => Ok(r.into_http(context)?.map(Either11::D)),
+            E(r) => Ok(r.into_http(context)?.map(Either11::E)),
+            F(r) => Ok(r.into_http(context)?.map(Either11::F)),
+            G(r) => Ok(r.into_http(context)?.map(Either11::G)),
+            H(r) => Ok(r.into_http(context)?.map(Either11::H)),
+            I(r) => Ok(r.into_http(context)?.map(Either11::I)),
+            J(r) => Ok(r.into_http(context)?.map(Either11::J)),
+            K(r) => Ok(r.into_http(context)?.map(Either11::K)),
         }
     }
 }
@@ -3679,24 +3679,24 @@ where
     type Buf = Either12<A::Buf, B::Buf, C::Buf, D::Buf, E::Buf, F::Buf, G::Buf, H::Buf, I::Buf, J::Buf, K::Buf, L::Buf>;
     type Body = Either12<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body, G::Body, H::Body, I::Body, J::Body, K::Body, L::Body>;
 
-    fn into_http<S>(self, context: &Context<S>) ->  http::Response<Self::Body>
+    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, ::Error>
     where S: Serializer
     {
         use self::Either12::*;
 
         match self {
-            A(r) => r.into_http(context).map(Either12::A),
-            B(r) => r.into_http(context).map(Either12::B),
-            C(r) => r.into_http(context).map(Either12::C),
-            D(r) => r.into_http(context).map(Either12::D),
-            E(r) => r.into_http(context).map(Either12::E),
-            F(r) => r.into_http(context).map(Either12::F),
-            G(r) => r.into_http(context).map(Either12::G),
-            H(r) => r.into_http(context).map(Either12::H),
-            I(r) => r.into_http(context).map(Either12::I),
-            J(r) => r.into_http(context).map(Either12::J),
-            K(r) => r.into_http(context).map(Either12::K),
-            L(r) => r.into_http(context).map(Either12::L),
+            A(r) => Ok(r.into_http(context)?.map(Either12::A)),
+            B(r) => Ok(r.into_http(context)?.map(Either12::B)),
+            C(r) => Ok(r.into_http(context)?.map(Either12::C)),
+            D(r) => Ok(r.into_http(context)?.map(Either12::D)),
+            E(r) => Ok(r.into_http(context)?.map(Either12::E)),
+            F(r) => Ok(r.into_http(context)?.map(Either12::F)),
+            G(r) => Ok(r.into_http(context)?.map(Either12::G)),
+            H(r) => Ok(r.into_http(context)?.map(Either12::H)),
+            I(r) => Ok(r.into_http(context)?.map(Either12::I)),
+            J(r) => Ok(r.into_http(context)?.map(Either12::J)),
+            K(r) => Ok(r.into_http(context)?.map(Either12::K)),
+            L(r) => Ok(r.into_http(context)?.map(Either12::L)),
         }
     }
 }

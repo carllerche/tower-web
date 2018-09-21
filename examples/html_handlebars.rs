@@ -14,11 +14,13 @@
 ///
 ///     curl -v http://localhost:8080/
 
+extern crate env_logger;
 #[macro_use]
 extern crate tower_web;
 extern crate tokio;
 
 use tower_web::ServiceBuilder;
+use tower_web::view::Handlebars;
 
 /// This type will be the web service implementation.
 #[derive(Clone, Debug)]
@@ -28,8 +30,7 @@ struct HtmlResource;
 #[derive(Debug, Response)]
 #[web(template = "foo")]
 struct MyResponse {
-    foo: usize,
-    bar: &'static str,
+    title: &'static str,
 }
 
 impl_web! {
@@ -38,22 +39,24 @@ impl_web! {
         // the response will have a content-type of "application/json".
         //
         #[get("/")]
-        #[content_type("json")]
+        #[content_type("html")]
         fn hello_world(&self) -> Result<MyResponse, ()> {
             Ok(MyResponse {
-                foo: 123,
-                bar: "hello world!",
+                title: "Handler variable",
             })
         }
     }
 }
 
 pub fn main() {
+    let _ = env_logger::try_init();
+
     let addr = "127.0.0.1:8080".parse().expect("Invalid address");
     println!("Listening on http://{}", addr);
 
     ServiceBuilder::new()
         .resource(HtmlResource)
+        .serializer(Handlebars::new())
         .run(&addr)
         .unwrap();
 }

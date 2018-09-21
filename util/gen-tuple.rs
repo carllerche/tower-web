@@ -381,14 +381,14 @@ impl Either {
         println!("    type Buf = Either{}<{}>;", self.level, buf_gens);
         println!("    type Body = Either{}<{}>;", self.level, body_gens);
         println!("");
-        println!("    fn into_http<S>(self, context: &Context<S>) ->  http::Response<Self::Body>");
+        println!("    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, ::Error>");
         println!("    where S: Serializer");
         println!("    {{");
         println!("        use self::Either{}::*;", self.level);
         println!("");
         println!("        match self {{");
         for n in 0..self.level {
-            println!("            {}(r) => r.into_http(context).map(Either{}::{}),", VARS[n], self.level, VARS[n]);
+            println!("            {}(r) => Ok(r.into_http(context)?.map(Either{}::{})),", VARS[n], self.level, VARS[n]);
         }
         println!("        }}");
         println!("    }}");

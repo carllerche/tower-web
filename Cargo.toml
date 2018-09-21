@@ -29,6 +29,7 @@ members = [
 [dependencies]
 bytes = "0.4.7"
 futures = "0.1.21"
+handlebars = "1.0.3"
 http = "0.1.7"
 hyper = "0.12.1"
 log = "0.4.1"

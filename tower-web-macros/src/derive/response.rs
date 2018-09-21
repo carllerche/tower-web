@@ -200,7 +200,7 @@ impl Response {
                         let span = variant.span();
                         let ctor = Ident::new(&((i as u8 + b'A') as char).to_string(), span);
                         quote_spanned! {span=>
-                            #ty::#case(inner) => __tw::util::tuple::#either_type::#ctor::#either_args(inner).into_http(context)
+                            #ty::#case(inner) => __tw::util::tuple::#either_type::#ctor::#either_args(inner).into_http(context)?
                         }
                     });
                     quote! { #(#cases),* }
@@ -227,11 +227,11 @@ impl Response {
                     fn into_http<S: __tw::response::Serializer>(
                         self,
                         context: &__tw::response::Context<S>,
-                    ) -> __tw::codegen::http::Response<Self::Body>
+                    ) -> Result<__tw::codegen::http::Response<Self::Body>, __tw::Error>
                     {
-                        match self {
+                        Ok(match self {
                             #cases
-                        }
+                        })
                     }
                 }
             };
@@ -260,7 +260,7 @@ impl Response {
                     fn into_http<S: __tw::response::Serializer>(
                         self,
                         context: &__tw::response::Context<S>,
-                    ) -> __tw::codegen::http::Response<Self::Body>
+                    ) -> Result<__tw::codegen::http::Response<Self::Body>, __tw::Error>
                     {
                         struct Lift<'a>(&'a #ty);
 
@@ -277,8 +277,10 @@ impl Response {
                         #template
 
                         // TODO: Improve and handle errors
-                        let body = __tw::error::Map::new(
-                            context.serialize(&Lift(&self), &serializer_context).unwrap());
+                        let body: __tw::codegen::bytes::Bytes = context.serialize(&Lift(&self), &serializer_context)
+                            .map_err(|_| __tw::Error::from(__tw::error::ErrorKind::internal()))?;
+
+                        let body = __tw::error::Map::new(body);
 
                         let mut response = __tw::codegen::http::Response::builder()
                             // Customize response
@@ -300,7 +302,7 @@ impl Response {
                                     })
                             });
 
-                        response
+                        Ok(response)
                     }
                 }
 

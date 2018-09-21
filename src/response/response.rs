@@ -31,7 +31,7 @@ pub trait Response {
     type Body: BufStream<Item = Self::Buf, Error = ::Error>;
 
     /// Convert the value into a response future
-    fn into_http<S: Serializer>(self, context: &Context<S>) -> http::Response<Self::Body>;
+    fn into_http<S: Serializer>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, ::Error>;
 }
 
 impl<T> Response for http::Response<T>
@@ -40,7 +40,7 @@ where T: BufStream,
     type Buf = T::Item;
     type Body = error::Map<T>;
 
-    fn into_http<S: Serializer>(self, _: &Context<S>) -> http::Response<Self::Body> {
-        self.map(error::Map::new)
+    fn into_http<S: Serializer>(self, _: &Context<S>) -> Result<http::Response<Self::Body>, ::Error> {
+        Ok(self.map(error::Map::new))
     }
 }

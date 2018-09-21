@@ -3,3 +3,4 @@
 pub trait Sealed {}
 
 impl Sealed for () {}
+impl<T, U> Sealed for (T, U) {}

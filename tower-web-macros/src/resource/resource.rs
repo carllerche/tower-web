@@ -285,9 +285,16 @@ impl Resource {
                             State::Response(ref mut response) => {
                                 let response = match __tw::codegen::futures::Future::poll(response) {
                                     Ok(__tw::codegen::futures::Async::Ready(response)) => {
-                                        return Ok(__tw::codegen::futures::Async::Ready(match response {
+                                        let response = match response {
                                             #match_into_response
-                                        }));
+                                        };
+
+                                        match response {
+                                            Ok(response) => return Ok(__tw::codegen::futures::Async::Ready(response)),
+                                            Err(e) => {
+                                                err = Some(e);
+                                            }
+                                        }
                                     }
                                     Ok(__tw::codegen::futures::Async::NotReady) => {
                                         return Ok(__tw::codegen::futures::Async::NotReady);
@@ -301,7 +308,8 @@ impl Resource {
                                 return Ok(__tw::codegen::futures::Async::Ready({
                                     let res = __tw::codegen::futures::Future::poll(response);
                                     let response = try_ready!(res);
-                                    #catch_into_response
+                                    let response = #catch_into_response;
+                                    response?
                                 }));
                             }
                             State::Invalid(_) => unreachable!(),
@@ -683,22 +691,24 @@ impl Resource {
                     #set_resource_name
                     context.set_handler_name(#fn_ident);
 
-                    __tw::response::Response::into_http(response, &context)
-                        .map(|body| ResponseBody(Ok(#map)))
+                    __tw::response::Response::into_http(response, &context).map(|response| {
+                        response.map(|body| ResponseBody(Ok(#map)))
+                    })
                 }
             }
         })
     }
 
     fn catch_into_response(&self) -> TokenStream {
-        quote! {
+        quote!({
             let context = __tw::response::Context::new(
                 request,
                 &self.inner.serializer);
 
-            __tw::response::Response::into_http(response, &context)
-                .map(|body| ResponseBody(Err(body)))
-        }
+            __tw::response::Response::into_http(response, &context).map(|response| {
+                response.map(|body| ResponseBody(Err(body)))
+            })
+        })
     }
 
     /// The resource's future type

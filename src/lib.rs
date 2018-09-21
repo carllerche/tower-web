@@ -462,6 +462,7 @@ extern crate chrono;
 extern crate flate2;
 #[macro_use]
 extern crate futures;
+extern crate handlebars;
 extern crate http;
 extern crate hyper;
 #[macro_use]
@@ -485,6 +486,7 @@ pub mod response;
 pub mod routing;
 pub mod service;
 pub mod util;
+pub mod view;
 
 mod run;
 

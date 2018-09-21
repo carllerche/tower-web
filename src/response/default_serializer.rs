@@ -1,4 +1,5 @@
 use response::{ContentType, Serializer, SerializerContext};
+use util::Chain;
 use util::tuple::Either2;
 
 use bytes::Bytes;
@@ -63,14 +64,6 @@ where T: Serializer,
             _ => {
                 None
             }
-            /*
-            _ => {
-                let header = HeaderValue::from_str(name)
-                    .unwrap();
-
-                ContentType::new(header, None)
-            }
-            */
         }
     }
 
@@ -93,6 +86,18 @@ where T: Serializer,
                     }
                 }
             }
+        }
+    }
+}
+
+impl<T, U> Chain<U> for DefaultSerializer<T> {
+    type Output = DefaultSerializer<(T, U)>;
+
+    fn chain(self, other: U) -> Self::Output {
+        DefaultSerializer {
+            custom: (self.custom, other),
+            plain: self.plain,
+            json: self.json,
         }
     }
 }
