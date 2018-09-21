@@ -87,8 +87,13 @@ where
     where
         T: Serialize,
     {
-        let format = self.default_format
-            .expect("no default serialization format associated with action");
+        let format = match self.default_format {
+            Some(format) => format,
+            None => {
+                warn!("no default serialization format associated with action");
+                return Err(::error::ErrorKind::internal().into());
+            }
+        };
 
         self.serializer.serialize(value, format, context)
     }

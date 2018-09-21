@@ -71,7 +71,12 @@ impl Serializer for Handlebars {
             }
         }
 
-        unimplemented!("no template specified");
+        // TODO: Add conventional template lookup
+        error!("no template specified; {}::{}::{}",
+               context.resource_mod().unwrap_or("???"),
+               context.resource_name().unwrap_or("???"),
+               context.handler_name().unwrap_or("???"));
+        Err(::error::ErrorKind::internal().into())
     }
 }
 
