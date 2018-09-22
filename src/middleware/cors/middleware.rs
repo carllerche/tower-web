@@ -6,6 +6,7 @@ use util::http::HttpService;
 
 use std::sync::Arc;
 
+/// Middleware providing an implementation of the CORS specification.
 #[derive(Debug)]
 pub struct CorsMiddleware {
     config: Arc<Config>,

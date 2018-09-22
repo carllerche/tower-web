@@ -1,5 +1,5 @@
 #![doc(html_root_url = "https://docs.rs/tower-web/0.2.2")]
-#![deny(missing_debug_implementations)]
+#![deny(missing_debug_implementations, missing_docs)]
 #![cfg_attr(test, deny(warnings))]
 
 //! Tower Web is a fast web framework that aims to remove boilerplate.
