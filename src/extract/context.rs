@@ -50,5 +50,6 @@ impl<'a> Context<'a> {
         &self.request
     }
 
+    /// Returns the stored configuration value of type `T`.
     pub fn config<T: Send + Sync + 'static>(&self) -> Option<&T> { self.config.get::<T>() }
 }

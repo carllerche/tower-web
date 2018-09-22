@@ -1,3 +1,8 @@
+//! Application level configuration.
+//!
+//! Provides infrastructure for application level configuration. Configuration
+//! values may be set and retrieved by type.
+
 use std::any::{Any, TypeId};
 use std::sync::Arc;
 use std::collections::HashMap;
@@ -51,12 +56,17 @@ impl fmt::Debug for ConfigBuilder {
     }
 }
 
+/// A type of application level configuration.
 #[derive(Clone)]
 pub struct Config {
     inner: Arc<AnyMap>,
 }
 
 impl Config {
+    /// Get the configuration value of the specified type.
+    ///
+    /// If a configuration value of type `T` is stored in `Config`, it is
+    /// returned. Otherwise, `None` is returned.
     pub fn get<T: 'static>(&self) -> Option<&T> {
         self.inner
             .get(&TypeId::of::<T>())

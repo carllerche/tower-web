@@ -44,6 +44,10 @@ const MIN_BUF: usize = 1024;
 impl<T> CompressStream<T>
 where T: BufStream,
 {
+    /// Create a new `CompressStream` which returns the compressed data from
+    /// `inner`.
+    ///
+    /// `level` specifies the compression level.
     pub fn new(inner: T, level: Compression) -> CompressStream<T> {
         CompressStream {
             inner,
