@@ -2,7 +2,11 @@
 ///
 /// ## Overview
 ///
-/// TODO: Dox
+/// Tower web supports templates and responding with HTML using the handlebars
+/// templating engine. Plain old Rust structs are used to represent data and
+/// aree used as the handler return value. Tower Web passes the response structs
+/// to the handlebars serializer. HTML is rendered using a handlebars template
+/// and populated using the data in the response struct.
 ///
 /// ## Usage
 ///
@@ -26,7 +30,16 @@ use tower_web::view::Handlebars;
 #[derive(Clone, Debug)]
 struct HtmlResource;
 
-/// TODO: Dox
+/// The type is annotated with `#[derive(Response)]`, this allows `MyResponse`
+/// to be used as a response to resource methods.
+///
+/// We are using the handlebars serializer to render the HTML response. It
+/// requires that a template to render is specified. This is done with the
+/// `#[web(template = "<template name>")]` attribute.
+///
+/// The default location to look for templates is in the `templates` directory
+/// at the crate root. To make the example work, this crate has a handlebars
+/// template at "foo.hbs" in the templates directory at the crate root.
 #[derive(Debug, Response)]
 #[web(template = "foo")]
 struct MyResponse {
@@ -35,8 +48,8 @@ struct MyResponse {
 
 impl_web! {
     impl HtmlResource {
-        // `serde_json::Value` may be used as the response type. In this case,
-        // the response will have a content-type of "application/json".
+        // Respond as HTML. For this to work, a serializer supporting HTML must
+        // be added to the service.
         //
         #[get("/")]
         #[content_type("html")]
@@ -56,6 +69,18 @@ pub fn main() {
 
     ServiceBuilder::new()
         .resource(HtmlResource)
+        // Add the handlebars serializer to application. This uses the template
+        // rendering default settings. Templates are located at the crate root
+        // in the `templates` directory. Template files use the `.hbs`
+        // extension.
+        //
+        // The handlebars serializer is configurd by calling
+        // `Handlebars::new_with_registery` and passing in a configured
+        // registery. This allows changing the template directory as well as
+        // defining helpers and other configuration options.
+        //
+        // See the `handlebars` crate for more documentation on configuration
+        // options.
         .serializer(Handlebars::new())
         .run(&addr)
         .unwrap();

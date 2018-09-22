@@ -28,3 +28,6 @@ order:
 
 * [`middleware`](middleware.rs) - Decorate the application with middleware.
   Doing so adds additional functionality. This example adds request logging.
+
+* [`html_handlebars`](html_handlebars.rs) - Respond with HTML by rendering
+  handlebars templates.

@@ -9,6 +9,11 @@ use std::env;
 use std::path::Path;
 use std::sync::Arc;
 
+/// Serialize response values using Handlebars templates
+///
+/// This serializer is able to render handlebar templates using structs with
+/// `#[derive(Response)]` and a template name, set with the `#[web(template =
+/// "<template name>")]` annotation.
 #[derive(Clone, Debug)]
 pub struct Handlebars {
     registery: Arc<Registery>,
@@ -18,7 +23,15 @@ pub struct Handlebars {
 const TEXT_HTML: &str = "text/html";
 
 impl Handlebars {
-    /// TODO: Dox
+    /// Create a new handlebars serializer.
+    ///
+    /// The serializer renders handlebar templates using the response value to
+    /// populate template variables. The response value must have
+    /// `#[derive(Response)]` and a template name specified using the
+    /// `#[web(template = "<template name>")]`.
+    ///
+    /// Templates are loaded from the `templates` directory in the crate root
+    /// and have the `.hbs` file extension.
     pub fn new() -> Handlebars {
         let mut registery = Registery::new();
 
@@ -33,7 +46,10 @@ impl Handlebars {
         Handlebars::new_with_registery(registery)
     }
 
-    /// TODO: Dox
+    /// Create a new handlebars serializer.
+    ///
+    /// Similar to `new`, but uses the provided registery. This allows
+    /// customizing how templates are rendered.
     pub fn new_with_registery(registery: Registery) -> Handlebars {
         Handlebars {
             registery: Arc::new(registery),

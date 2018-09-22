@@ -62,8 +62,6 @@ impl_web! {
 
 #[test]
 fn render_template() {
-    let _ = ::env_logger::try_init();
-
     let mut web = service_with_serializer(TestHandlebars, hb());
 
     let response = web.call_unwrap(get!("/foo"));
@@ -74,8 +72,6 @@ fn render_template() {
 
 #[test]
 fn invalid_template() {
-    let _ = ::env_logger::try_init();
-
     let mut web = service_with_serializer(TestHandlebars, hb());
 
     let response = web.call_unwrap(get!("/bad_template"));
@@ -84,8 +80,6 @@ fn invalid_template() {
 
 #[test]
 fn no_template() {
-    let _ = ::env_logger::try_init();
-
     let mut web = service_with_serializer(TestHandlebars, hb());
 
     let response = web.call_unwrap(get!("/no_template"));

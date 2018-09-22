@@ -188,7 +188,54 @@ impl<T, S, C, M> ServiceBuilder<T, S, C, M> {
         }
     }
 
-    /// TODO: Dox
+    /// Add a serializer to the service.
+    ///
+    /// Serializers convert response structs to bytes. Each given serializer
+    /// handles a specific content-type. A service may have many registered
+    /// serializers, each handling different content-types.
+    ///
+    /// By default, the service is able to respond with "text/plain" and
+    /// "application/json" bodies. Adding new serializers adds the ability to
+    /// handle additional formats.
+    ///
+    /// Currently, the only other supported format is "text/html" and is
+    /// provided by the [handlebars] serializer. In future releases, third party
+    /// crates will be able to provide serializer implementations.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[macro_use] extern crate tower_web;
+    /// use tower_web::ServiceBuilder;
+    /// use tower_web::view::Handlebars;
+    ///
+    /// struct MyResource;
+    ///
+    /// #[derive(Response)]
+    /// #[web(template = "index")]
+    /// struct Index {
+    ///     title: &'static str,
+    /// }
+    ///
+    /// impl_web! {
+    ///     impl MyResource {
+    ///         #[get("/")]
+    ///         fn index(&self) -> Result<Index, ()> {
+    ///             Ok(Index {
+    ///                 title: "hello world",
+    ///             })
+    ///         }
+    ///     }
+    /// }
+    ///
+    /// # fn dox() {
+    /// # let addr = "127.0.0.1:0".parse().unwrap();
+    /// ServiceBuilder::new()
+    ///     .serializer(Handlebars::new())
+    ///     .resource(MyResource)
+    ///     .run(&addr);
+    /// # }
+    /// ```
     pub fn serializer<U>(self, serializer: U)
         -> ServiceBuilder<T, <S as Chain<U>>::Output, C, M>
     where
@@ -243,7 +290,7 @@ impl<T, S, C, M> ServiceBuilder<T, S, C, M> {
     /// }
     ///
     /// # if false {
-    /// # let addr = "127.0.0.1:8080".parse().unwrap();
+    /// # let addr = "127.0.0.1:0".parse().unwrap();
     /// ServiceBuilder::new()
     ///     .resource(MyResource)
     ///     .config(MyConfig { foo: "bar".to_owned() })
