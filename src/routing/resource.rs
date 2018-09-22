@@ -56,16 +56,20 @@ pub trait Resource: Clone {
     ) -> Self::Future;
 }
 
+/// A specialized response future returned by resources.
+///
+/// The `ResourceFuture` allows passing the HTTP response into the future when
+/// polling.
 pub trait ResourceFuture {
+    /// HTTP response body type
     type Body;
 
+    /// Attempt to resolve the response future to a final value.
     fn poll_response(&mut self, request: &http::Request<()>)
         -> Poll<http::Response<Self::Body>, ::Error>;
 }
 
 /// Convert a value into a `Resource`
-///
-///
 pub trait IntoResource<S, RequestBody>
 where S: Serializer,
       RequestBody: BufStream,
