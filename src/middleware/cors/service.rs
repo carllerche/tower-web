@@ -7,6 +7,7 @@ use util::http::HttpService;
 
 use std::sync::Arc;
 
+/// Decorates a service, providing an implementation of the CORS specification.
 #[derive(Debug)]
 pub struct CorsService<S> {
     inner: S,
