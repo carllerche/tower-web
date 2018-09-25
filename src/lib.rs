@@ -462,7 +462,6 @@ extern crate chrono;
 extern crate flate2;
 #[macro_use]
 extern crate futures;
-extern crate handlebars;
 extern crate http;
 extern crate hyper;
 #[macro_use]
@@ -477,6 +476,9 @@ extern crate tokio_io;
 extern crate tower_service;
 extern crate void;
 
+#[cfg(feature = "handlebars")]
+extern crate handlebars;
+
 pub mod codegen;
 pub mod config;
 pub mod error;
@@ -486,6 +488,8 @@ pub mod response;
 pub mod routing;
 pub mod service;
 pub mod util;
+
+#[cfg(feature = "handlebars")]
 pub mod view;
 
 mod run;
