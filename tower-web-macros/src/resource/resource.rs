@@ -670,10 +670,21 @@ impl Resource {
             let map = destination.build(quote!(body));
             let idx = route.index;
 
+            let set_template = match route.template() {
+                Some(template) => {
+                    quote! {
+                        context.set_template(#template);
+                    }
+                }
+                None => quote!(),
+            };
+
             quote! {
                 #left => {
                     let mut context = __tw::response::Context::new(
                         request, &self.inner.serializer);
+
+                    #set_template
 
                     match self.inner.content_types.content_types[#idx] {
                         ContentType::Serializable(ref v) => {

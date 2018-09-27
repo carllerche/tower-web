@@ -600,6 +600,9 @@ macro_rules! impl_web_clean_nested {
     (($($outer:tt)*) ($($done:tt)*) { #[catch $($attr:tt)*] $($nested:tt)* } $dup:tt $($rest:tt)*) => {
         impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } { $($nested)* } $($rest)*);
     };
+    (($($outer:tt)*) ($($done:tt)*) { #[web $($attr:tt)*] $($nested:tt)* } $dup:tt $($rest:tt)*) => {
+        impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } { $($nested)* } $($rest)*);
+    };
 
     // Seek forward to the next `#` token. This reduces the depth of our macro
     // recursion to avoid requiring a higher recursion limit for simple

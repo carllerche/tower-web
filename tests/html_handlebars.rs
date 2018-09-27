@@ -24,6 +24,11 @@ struct Foo {
 }
 
 #[derive(Response, Debug)]
+struct Foo2 {
+    title: &'static str,
+}
+
+#[derive(Response, Debug)]
 #[web(template = "missing")]
 struct BadTemplate {
     title: &'static str,
@@ -41,6 +46,15 @@ impl_web! {
         fn foo(&self) -> Result<Foo, ()> {
             Ok(Foo {
                 title: "This is foo",
+            })
+        }
+
+        #[get("/foo2")]
+        #[content_type("html")]
+        #[web(template = "foo")]
+        fn foo2(&self) -> Result<Foo2, ()> {
+            Ok(Foo2 {
+                title: "This is foo2",
             })
         }
 
@@ -63,13 +77,23 @@ impl_web! {
 }
 
 #[test]
-fn render_template() {
+fn render_template_response_attr() {
     let mut web = service_with_serializer(TestHandlebars, hb());
 
     let response = web.call_unwrap(get!("/foo"));
     assert_ok!(response);
     assert_header!(response, "content-type", "text/html");
     assert_body!(response, "<html><title>This is foo</title></html>\n");
+}
+
+#[test]
+fn render_template_handler_attr() {
+    let mut web = service_with_serializer(TestHandlebars, hb());
+
+    let response = web.call_unwrap(get!("/foo2"));
+    assert_ok!(response);
+    assert_header!(response, "content-type", "text/html");
+    assert_body!(response, "<html><title>This is foo2</title></html>\n");
 }
 
 #[test]

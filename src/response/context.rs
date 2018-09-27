@@ -15,6 +15,7 @@ pub struct Context<'a, S: Serializer + 'a> {
     resource_mod: Option<&'a str>,
     resource_name: Option<&'a str>,
     handler_name: Option<&'a str>,
+    template: Option<&'a str>,
 }
 
 impl<'a, S> Context<'a, S>
@@ -32,6 +33,7 @@ where
             resource_mod: None,
             resource_name: None,
             handler_name: None,
+            template: None,
         }
     }
 
@@ -61,6 +63,11 @@ where
         ret.set_resource_mod(self.resource_mod);
         ret.set_resource_name(self.resource_name);
         ret.set_handler_name(self.handler_name);
+
+        if let Some(template) = self.template {
+            ret.set_template(template);
+        }
+
         ret
     }
 
@@ -72,6 +79,16 @@ where
     #[doc(hidden)]
     pub fn set_content_type(&mut self, value: &'a HeaderValue) {
         self.content_type = Some(value);
+    }
+
+    /// Returns the `template` value set for the response.
+    pub fn template(&self) -> Option<&str> {
+        self.template
+    }
+
+    #[doc(hidden)]
+    pub fn set_template(&mut self, value: &'a str) {
+        self.template = Some(value);
     }
 
     /// Serialize a value.

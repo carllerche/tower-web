@@ -30,6 +30,10 @@ impl Route {
         self.sig.args()
     }
 
+    pub fn template(&self) -> Option<&str> {
+        self.attributes.template()
+    }
+
     /// Route builder fn call to add the route definition.
     pub fn build_route(&self, destination: TokenStream) -> TokenStream {
         let method = self.attributes.method_expr();
