@@ -41,7 +41,6 @@ struct HtmlResource;
 /// at the crate root. To make the example work, this crate has a handlebars
 /// template at "foo.hbs" in the templates directory at the crate root.
 #[derive(Debug, Response)]
-#[web(template = "foo")]
 struct MyResponse {
     title: &'static str,
 }
@@ -55,6 +54,7 @@ impl_web! {
         //
         #[get("/")]
         #[content_type("html")]
+        #[web(template = "examples/hello_world")]
         fn hello_world(&self) -> Result<MyResponse, ()> {
             Ok(MyResponse {
                 title: "Handler variable",
