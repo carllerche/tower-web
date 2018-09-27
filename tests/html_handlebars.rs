@@ -24,7 +24,7 @@ struct Foo {
 }
 
 #[derive(Response, Debug)]
-struct Foo2 {
+struct Bar {
     title: &'static str,
 }
 
@@ -45,16 +45,27 @@ impl_web! {
         #[content_type("html")]
         fn foo(&self) -> Result<Foo, ()> {
             Ok(Foo {
-                title: "This is foo",
+                title: "hello",
+            })
+        }
+
+        #[get("/bar")]
+        #[content_type("html")]
+        #[web(template = "bar")]
+        fn bar(&self) -> Result<Bar, ()> {
+            Ok(Bar {
+                title: "world",
             })
         }
 
         #[get("/foo2")]
         #[content_type("html")]
-        #[web(template = "foo")]
-        fn foo2(&self) -> Result<Foo2, ()> {
-            Ok(Foo2 {
-                title: "This is foo2",
+        #[web(template = "bar")]
+        fn foo2(&self) -> Result<Foo, ()> {
+            // If both the handler and the response have specified a template, the response value
+            // takes precedence.
+            Ok(Foo {
+                title: "2",
             })
         }
 
@@ -83,17 +94,27 @@ fn render_template_response_attr() {
     let response = web.call_unwrap(get!("/foo"));
     assert_ok!(response);
     assert_header!(response, "content-type", "text/html");
-    assert_body!(response, "<html><title>This is foo</title></html>\n");
+    assert_body!(response, "<html><title>Foo - hello</title></html>\n");
 }
 
 #[test]
 fn render_template_handler_attr() {
     let mut web = service_with_serializer(TestHandlebars, hb());
 
+    let response = web.call_unwrap(get!("/bar"));
+    assert_ok!(response);
+    assert_header!(response, "content-type", "text/html");
+    assert_body!(response, "<html><title>Bar - world</title></html>\n");
+}
+
+#[test]
+fn render_template_both_handler_and_response_attr() {
+    let mut web = service_with_serializer(TestHandlebars, hb());
+
     let response = web.call_unwrap(get!("/foo2"));
     assert_ok!(response);
     assert_header!(response, "content-type", "text/html");
-    assert_body!(response, "<html><title>This is foo2</title></html>\n");
+    assert_body!(response, "<html><title>Foo - 2</title></html>\n");
 }
 
 #[test]
