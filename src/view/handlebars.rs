@@ -87,7 +87,8 @@ impl Serializer for Handlebars {
             }
         }
 
-        // TODO: Add conventional template lookup
+        // TODO: Use a convention to pick a template name if none is
+        // specified. Probably "<module>/<handler>.hbs"
         error!("no template specified; {}::{}::{}",
                context.resource_mod().unwrap_or("???"),
                context.resource_name().unwrap_or("???"),
