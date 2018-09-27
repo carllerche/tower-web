@@ -39,7 +39,8 @@ struct HtmlResource;
 ///
 /// The default location to look for templates is in the `templates` directory
 /// at the crate root. To make the example work, this crate has a handlebars
-/// template at "foo.hbs" in the templates directory at the crate root.
+/// template at "examples/hello_world.hbs" in the templates directory at the
+/// crate root.
 #[derive(Debug, Response)]
 struct MyResponse {
     title: &'static str,
