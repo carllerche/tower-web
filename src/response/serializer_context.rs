@@ -28,7 +28,7 @@ impl<'a> SerializerContext<'a> {
         self.request
     }
 
-    /// Returns the module in which the `impl_web!` was
+    /// Returns the module in which the `impl_web!` was used to implement the resource.
     pub fn resource_mod(&self) -> Option<&str> {
         self.resource_mod
     }

@@ -4,7 +4,7 @@
 ///
 /// Tower web supports templates and responding with HTML using the handlebars
 /// templating engine. Plain old Rust structs are used to represent data and
-/// aree used as the handler return value. Tower Web passes the response structs
+/// are used as the handler return value. Tower Web passes the response structs
 /// to the handlebars serializer. HTML is rendered using a handlebars template
 /// and populated using the data in the response struct.
 ///
@@ -51,6 +51,8 @@ impl_web! {
         // Respond as HTML. For this to work, a serializer supporting HTML must
         // be added to the service.
         //
+        // If no serializer is specified, a 500 response will be returned.
+        //
         #[get("/")]
         #[content_type("html")]
         fn hello_world(&self) -> Result<MyResponse, ()> {
@@ -69,15 +71,15 @@ pub fn main() {
 
     ServiceBuilder::new()
         .resource(HtmlResource)
-        // Add the handlebars serializer to application. This uses the template
-        // rendering default settings. Templates are located at the crate root
-        // in the `templates` directory. Template files use the `.hbs`
-        // extension.
+        // Add the handlebars serializer to the application. This uses the
+        // template rendering default settings. Templates are located at
+        // the crate root in the `templates` directory. Template files
+        // use the `.hbs` extension.
         //
-        // The handlebars serializer is configurd by calling
-        // `Handlebars::new_with_registery` and passing in a configured
-        // registery. This allows changing the template directory as well as
-        // defining helpers and other configuration options.
+        // The handlebars serializer is configured by calling
+        // `Handlebars::new_with_registry` and passing in a configured
+        // registry. This allows changing the template directory as well
+        // as defining helpers and other configuration options.
         //
         // See the `handlebars` crate for more documentation on configuration
         // options.

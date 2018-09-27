@@ -78,10 +78,7 @@ where
     ///
     /// This uses the default content type for the action.
     ///
-    /// # Panics
-    ///
-    /// Calling this function *requires* a default content type. If set to
-    /// `None`, this function will panic.
+    /// Returns an error when a default content type is not set.
     pub fn serialize<T>(&self, value: &T, context: &SerializerContext)
         -> Result<Bytes, ::Error>
     where

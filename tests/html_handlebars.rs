@@ -99,5 +99,5 @@ fn hb() -> Handlebars {
 
     registry.register_templates_directory(".hbs", dir).unwrap();
 
-    Handlebars::new_with_registery(registry)
+    Handlebars::new_with_registry(registry)
 }

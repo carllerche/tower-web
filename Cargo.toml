@@ -26,6 +26,9 @@ members = [
   "tower-web-macros",
 ]
 
+[features]
+default = ["handlebars"]
+
 [dependencies]
 bytes = "0.4.7"
 futures = "0.1.21"
