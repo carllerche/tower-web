@@ -15,22 +15,33 @@ pub struct ContentType<T> {
 
     /// Used by `Serializer` to match the content type with a specific
     /// serializer.
-    format: Option<T>,
+    format: T,
 }
 
 impl<T> ContentType<T> {
-    pub(crate) fn new(header: HeaderValue, format: Option<T>) -> Self {
+    pub(crate) fn new(header: HeaderValue, format: T) -> Self {
         ContentType {
             header,
             format,
         }
     }
 
-    pub(crate) fn header(&self) -> &HeaderValue {
+    #[doc(hidden)]
+    pub fn header(&self) -> &HeaderValue {
         &self.header
     }
 
-    pub(crate) fn format(&self) -> Option<&T> {
-        self.format.as_ref()
+    #[doc(hidden)]
+    pub fn format(&self) -> &T {
+        &self.format
+    }
+
+    pub(crate) fn map<F, U>(self, f: F) -> ContentType<U>
+    where F: FnOnce(T) -> U
+    {
+        ContentType {
+            header: self.header,
+            format: f(self.format),
+        }
     }
 }

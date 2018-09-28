@@ -20,6 +20,9 @@ pub(crate) struct Response {
     /// HTTP headers to get from struct fields
     dyn_headers: Vec<HeaderField>,
 
+    /// The template to use, if one is set
+    template: Option<String>,
+
     /// Delegate the Response implementation to the enum fields
     either: bool,
 
@@ -52,6 +55,7 @@ impl Response {
         let mut status = None;
         let mut static_headers = HeaderMap::new();
         let mut either = false;
+        let mut template = None;
 
         for attribute in Attribute::from_ast(&input.attrs)? {
             match attribute.kind {
@@ -76,6 +80,13 @@ impl Response {
                     };
 
                     static_headers.append(name, value);
+                }
+                attr::Kind::Template(value) => {
+                    if template.is_some() {
+                        return Err("struct must have at most one `template` annotation.".to_string());
+                    }
+
+                    template = Some(value);
                 }
                 attr::Kind::Either => {
                     either = true;
@@ -134,6 +145,7 @@ impl Response {
             static_headers,
             dyn_headers,
             either,
+            template,
             shadow_ty: output,
         })
     }
@@ -188,7 +200,7 @@ impl Response {
                         let span = variant.span();
                         let ctor = Ident::new(&((i as u8 + b'A') as char).to_string(), span);
                         quote_spanned! {span=>
-                            #ty::#case(inner) => __tw::util::tuple::#either_type::#ctor::#either_args(inner).into_http(context)
+                            #ty::#case(inner) => __tw::util::tuple::#either_type::#ctor::#either_args(inner).into_http(context)?
                         }
                     });
                     quote! { #(#cases),* }
@@ -215,11 +227,11 @@ impl Response {
                     fn into_http<S: __tw::response::Serializer>(
                         self,
                         context: &__tw::response::Context<S>,
-                    ) -> __tw::codegen::http::Response<Self::Body>
+                    ) -> Result<__tw::codegen::http::Response<Self::Body>, __tw::Error>
                     {
-                        match self {
+                        Ok(match self {
                             #cases
-                        }
+                        })
                     }
                 }
             };
@@ -234,6 +246,7 @@ impl Response {
         let status = self.status();
         let static_headers = self.static_headers();
         let dyn_headers = self.dyn_headers();
+        let template = self.template();
 
         Ok(quote! {
             #[allow(unused_variables, non_upper_case_globals)]
@@ -247,7 +260,7 @@ impl Response {
                     fn into_http<S: __tw::response::Serializer>(
                         self,
                         context: &__tw::response::Context<S>,
-                    ) -> __tw::codegen::http::Response<Self::Body>
+                    ) -> Result<__tw::codegen::http::Response<Self::Body>, __tw::Error>
                     {
                         struct Lift<'a>(&'a #ty);
 
@@ -259,9 +272,15 @@ impl Response {
                             }
                         }
 
+                        #[allow(unused_mut)]
+                        let mut serializer_context = context.serializer_context();
+                        #template
+
                         // TODO: Improve and handle errors
-                        let body = __tw::error::Map::new(
-                            context.serialize(&Lift(&self)).unwrap());
+                        let body: __tw::codegen::bytes::Bytes = context.serialize(&Lift(&self), &serializer_context)
+                            .map_err(|_| __tw::Error::from(__tw::error::ErrorKind::internal()))?;
+
+                        let body = __tw::error::Map::new(body);
 
                         let mut response = __tw::codegen::http::Response::builder()
                             // Customize response
@@ -283,7 +302,7 @@ impl Response {
                                     })
                             });
 
-                        response
+                        Ok(response)
                     }
                 }
 
@@ -328,6 +347,15 @@ impl Response {
                     .header(#name, self.#ident)
                 }
             })
+    }
+
+    fn template(&self) -> TokenStream {
+        match self.template {
+            Some(ref template) => {
+                quote!(serializer_context.set_template(#template);)
+            }
+            None => quote!(),
+        }
     }
 
     fn shadow_def(&self) -> TokenStream {
@@ -467,6 +495,10 @@ impl syn::fold::Fold for FoldShadowTy {
                                 ident,
                                 name,
                             });
+                        }
+                        attr::Kind::Template(_) => {
+                            self.err = Some(format!("`template` attribute must be at the struct level."));
+                            return fields;
                         }
                         attr::Kind::Either => {}
                     }

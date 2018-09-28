@@ -26,6 +26,9 @@ members = [
   "tower-web-macros",
 ]
 
+[features]
+default = ["handlebars"]
+
 [dependencies]
 bytes = "0.4.7"
 futures = "0.1.21"
@@ -36,6 +39,7 @@ tokio = "0.1.6"
 tokio-fs = "0.1.2"
 tokio-io = "0.1.7"
 tower-service = "0.1.0"
+void = "1.0.2"
 
 # Parsing params
 atoi = "0.2.3"
@@ -55,6 +59,8 @@ proc-macro-hack = "0.4.0"
 
 # Deflate middleware
 flate2 = "1.0.2"
+
+handlebars = { version = "1.0.3", optional = true }
 
 [dev-dependencies]
 env_logger = "0.5.12"

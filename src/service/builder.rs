@@ -1,7 +1,7 @@
 use config::ConfigBuilder;
 use error::{IntoCatch, DefaultCatch};
 use middleware::Identity;
-use response::DefaultSerializer;
+use response::{DefaultSerializer, Serializer};
 use routing::{Resource, IntoResource, RoutedService};
 use service::NewWebService;
 use util::{BufStream, Chain};
@@ -100,15 +100,16 @@ use std::net::SocketAddr;
 /// # }
 /// ```
 #[derive(Debug)]
-pub struct ServiceBuilder<T, C, Middleware> {
+pub struct ServiceBuilder<T, Serializer, Catch, Middleware> {
     /// The inner resource
     resource: T,
-    catch: C,
+    serializer: Serializer,
+    catch: Catch,
     middleware: Middleware,
     config: ConfigBuilder,
 }
 
-impl ServiceBuilder<(), DefaultCatch, Identity> {
+impl ServiceBuilder<(), DefaultSerializer, DefaultCatch, Identity> {
     /// Create a new `ServiceBuilder` with default configuration.
     ///
     /// At least one resource must be added before building the service.
@@ -137,6 +138,7 @@ impl ServiceBuilder<(), DefaultCatch, Identity> {
     pub fn new() -> Self {
         ServiceBuilder {
             resource: (),
+            serializer: DefaultSerializer::new(),
             catch: DefaultCatch::new(),
             middleware: Identity::new(),
             config: ConfigBuilder::new(),
@@ -144,7 +146,7 @@ impl ServiceBuilder<(), DefaultCatch, Identity> {
     }
 }
 
-impl<T, C, M> ServiceBuilder<T, C, M> {
+impl<T, S, C, M> ServiceBuilder<T, S, C, M> {
     /// Add a resource to the service.
     ///
     /// Resources are prioritized based on the order they are added to the
@@ -173,12 +175,75 @@ impl<T, C, M> ServiceBuilder<T, C, M> {
     /// # }
     /// ```
     pub fn resource<U>(self, resource: U)
-        -> ServiceBuilder<<T as Chain<U>>::Output, C, M>
+        -> ServiceBuilder<<T as Chain<U>>::Output, S, C, M>
     where
         T: Chain<U>,
     {
         ServiceBuilder {
             resource: self.resource.chain(resource),
+            serializer: self.serializer,
+            catch: self.catch,
+            middleware: self.middleware,
+            config: self.config,
+        }
+    }
+
+    /// Add a serializer to the service.
+    ///
+    /// Serializers convert response structs to bytes. Each given serializer
+    /// handles a specific content-type. A service may have many registered
+    /// serializers, each handling different content-types.
+    ///
+    /// By default, the service is able to respond with "text/plain" and
+    /// "application/json" bodies. Adding new serializers adds the ability to
+    /// handle additional formats.
+    ///
+    /// Currently, the only other supported format is "text/html" and is
+    /// provided by the [handlebars] serializer. In future releases, third party
+    /// crates will be able to provide serializer implementations.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[macro_use] extern crate tower_web;
+    /// use tower_web::ServiceBuilder;
+    /// use tower_web::view::Handlebars;
+    ///
+    /// struct MyResource;
+    ///
+    /// #[derive(Response)]
+    /// #[web(template = "index")]
+    /// struct Index {
+    ///     title: &'static str,
+    /// }
+    ///
+    /// impl_web! {
+    ///     impl MyResource {
+    ///         #[get("/")]
+    ///         fn index(&self) -> Result<Index, ()> {
+    ///             Ok(Index {
+    ///                 title: "hello world",
+    ///             })
+    ///         }
+    ///     }
+    /// }
+    ///
+    /// # fn dox() {
+    /// # let addr = "127.0.0.1:0".parse().unwrap();
+    /// ServiceBuilder::new()
+    ///     .serializer(Handlebars::new())
+    ///     .resource(MyResource)
+    ///     .run(&addr);
+    /// # }
+    /// ```
+    pub fn serializer<U>(self, serializer: U)
+        -> ServiceBuilder<T, <S as Chain<U>>::Output, C, M>
+    where
+        S: Chain<U>,
+    {
+        ServiceBuilder {
+            resource: self.resource,
+            serializer: self.serializer.chain(serializer),
             catch: self.catch,
             middleware: self.middleware,
             config: self.config,
@@ -225,7 +290,7 @@ impl<T, C, M> ServiceBuilder<T, C, M> {
     /// }
     ///
     /// # if false {
-    /// # let addr = "127.0.0.1:8080".parse().unwrap();
+    /// # let addr = "127.0.0.1:0".parse().unwrap();
     /// ServiceBuilder::new()
     ///     .resource(MyResource)
     ///     .config(MyConfig { foo: "bar".to_owned() })
@@ -233,12 +298,13 @@ impl<T, C, M> ServiceBuilder<T, C, M> {
     /// # }
     /// ```
     pub fn config<U>(self, config: U)
-                       -> ServiceBuilder<T, C, M>
+                       -> ServiceBuilder<T, S, C, M>
         where
             U: Send + Sync + 'static,
     {
         ServiceBuilder {
             resource: self.resource,
+            serializer: self.serializer,
             catch: self.catch,
             middleware: self.middleware,
             config: self.config.insert(config),
@@ -277,12 +343,13 @@ impl<T, C, M> ServiceBuilder<T, C, M> {
     /// # }
     /// ```
     pub fn middleware<U>(self, middleware: U)
-        -> ServiceBuilder<T, C, <M as Chain<U>>::Output>
+        -> ServiceBuilder<T, S, C, <M as Chain<U>>::Output>
     where
         M: Chain<U>,
     {
         ServiceBuilder {
             resource: self.resource,
+            serializer: self.serializer,
             catch: self.catch,
             middleware: self.middleware.chain(middleware),
             config: self.config,
@@ -329,9 +396,10 @@ impl<T, C, M> ServiceBuilder<T, C, M> {
     ///     .run(&addr);
     /// # }
     /// ```
-    pub fn catch<U>(self, catch: U) -> ServiceBuilder<T, U, M> {
+    pub fn catch<U>(self, catch: U) -> ServiceBuilder<T, S, U, M> {
         ServiceBuilder {
             resource: self.resource,
+            serializer: self.serializer,
             catch,
             middleware: self.middleware,
             config: self.config,
@@ -383,14 +451,15 @@ impl<T, C, M> ServiceBuilder<T, C, M> {
     /// let response = service.call(request);
     /// ```
     pub fn build_new_service<RequestBody>(self) -> NewWebService<T::Resource, C::Catch, M>
-    where T: IntoResource<DefaultSerializer, RequestBody>,
-          C: IntoCatch<DefaultSerializer>,
+    where T: IntoResource<S, RequestBody>,
+          S: Serializer,
+          C: IntoCatch<S>,
           M: HttpMiddleware<RoutedService<T::Resource, C::Catch>>,
           RequestBody: BufStream,
     {
         // Build the routes
         let routes = self.resource.routes();
-        let serializer = DefaultSerializer::new();
+        let serializer = self.serializer;
 
         // Create the routed service
         let routed = RoutedService::new(
@@ -431,8 +500,9 @@ impl<T, C, M> ServiceBuilder<T, C, M> {
     /// # }
     /// ```
     pub fn run(self, addr: &SocketAddr) -> io::Result<()>
-    where T: IntoResource<DefaultSerializer, ::run::LiftReqBody>,
-          C: IntoCatch<DefaultSerializer> + Send + 'static,
+    where T: IntoResource<S, ::run::LiftReqBody>,
+          S: Serializer,
+          C: IntoCatch<S> + Send + 'static,
           C::Catch: Send,
           M: HttpMiddleware<RoutedService<T::Resource, C::Catch>, RequestBody = ::run::LiftReqBody> + Send + 'static,
           M::Service: Send,

@@ -1,6 +1,7 @@
 use resource::{Arg, Attributes, Signature, TyTree};
 
 use proc_macro2::{TokenStream, Span};
+use syn;
 
 /// Represents a resource route
 #[derive(Debug)]
@@ -21,8 +22,16 @@ impl Route {
         }
     }
 
+    pub fn ident(&self) -> &syn::Ident {
+        self.sig.ident()
+    }
+
     pub fn args(&self) -> &[Arg] {
         self.sig.args()
+    }
+
+    pub fn template(&self) -> Option<&str> {
+        self.attributes.template()
     }
 
     /// Route builder fn call to add the route definition.

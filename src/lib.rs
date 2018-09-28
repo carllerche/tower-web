@@ -474,6 +474,10 @@ extern crate tokio;
 extern crate tokio_fs;
 extern crate tokio_io;
 extern crate tower_service;
+extern crate void;
+
+#[cfg(feature = "handlebars")]
+extern crate handlebars;
 
 pub mod codegen;
 pub mod config;
@@ -484,6 +488,9 @@ pub mod response;
 pub mod routing;
 pub mod service;
 pub mod util;
+
+#[cfg(feature = "handlebars")]
+pub mod view;
 
 mod run;
 
@@ -591,6 +598,9 @@ macro_rules! impl_web_clean_nested {
         impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } { $($nested)* } $($rest)*);
     };
     (($($outer:tt)*) ($($done:tt)*) { #[catch $($attr:tt)*] $($nested:tt)* } $dup:tt $($rest:tt)*) => {
+        impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } { $($nested)* } $($rest)*);
+    };
+    (($($outer:tt)*) ($($done:tt)*) { #[web $($attr:tt)*] $($nested:tt)* } $dup:tt $($rest:tt)*) => {
         impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } { $($nested)* } $($rest)*);
     };
 

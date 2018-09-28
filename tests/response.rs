@@ -149,6 +149,13 @@ impl_web! {
                 x_bar: "not bar",
             })
         }
+
+        #[get("/no_content_type")]
+        fn no_content_type(&self) -> Result<HelloResponse, ()> {
+            Ok(HelloResponse {
+                msg: "hello world",
+            })
+        }
     }
 }
 
@@ -234,4 +241,12 @@ fn respond_dyn_header_2() {
     assert_ok!(response);
     assert_header!(response, "x-baz", "not bar");
     assert_body!(response, "{\"msg\":\"respond_dyn_header_2\"}");
+}
+
+#[test]
+fn no_content_type() {
+    let mut web = service(TestResponse);
+
+    let response = web.call_unwrap(get!("/no_content_type"));
+    assert_internal_error!(response);
 }

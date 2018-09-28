@@ -15,6 +15,7 @@ pub(crate) enum Kind {
         name: Option<HeaderName>,
         value: Option<HeaderValue>,
     },
+    Template(String),
     Either
 }
 
@@ -60,6 +61,14 @@ impl Attribute {
                                     Attribute::status_from_word(&source)
                                 } else if meta == "either" {
                                     Attribute::either_from_word(&source)
+                                } else if meta == "template" {
+                                    let actual = quote!(#meta);
+
+                                    return Err(format!("invalid struct level `template` annotation. The attribute must be formatted as:\n\n\
+
+                                                        `#[web(template = \"foo\")]`\n\n\
+
+                                                        Actual: {}", actual.to_string()));
                                 } else {
                                     unimplemented!("error handling");
                                 }
@@ -82,6 +91,8 @@ impl Attribute {
                             Meta::NameValue(meta) => {
                                 if meta.ident == "status" {
                                     Attribute::status_from_name_value(meta, &source)
+                                } else if meta.ident == "template" {
+                                    Attribute::template_from_name_value(meta, &source)
                                 } else if meta.ident == "header" {
                                     unimplemented!("unexpected attribute; {:?}", meta);
                                 } else {
@@ -141,6 +152,28 @@ impl Attribute {
                     .unwrap();
 
                 Kind::Status(Some(status))
+            }
+            ref meta => unimplemented!("unsupported meta: {:?}", meta),
+        };
+
+        Attribute {
+            kind,
+            source: source.clone(),
+        }
+    }
+
+    fn template_from_name_value(
+        meta: &syn::MetaNameValue,
+        source: &syn::Attribute,
+    ) -> Attribute
+    {
+        use syn::Lit;
+
+        let kind = match meta.lit {
+            Lit::Str(ref lit_str) => {
+                let lit_str = lit_str.value();
+
+                Kind::Template(lit_str)
             }
             ref meta => unimplemented!("unsupported meta: {:?}", meta),
         };

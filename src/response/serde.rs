@@ -26,15 +26,20 @@ where
     type Buf = <Self::Body as BufStream>::Item;
     type Body = error::Map<Bytes>;
 
-    fn into_http<S>(self, context: &Context<S>) -> http::Response<Self::Body>
+    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, ::Error>
     where
         S: Serializer,
     {
         let content_type = context.content_type_header()
             .expect("no content type specified for response");
 
-        // TODO: Improve and handle errors
-        let body = error::Map::new(context.serialize(&self.0).unwrap());
+        let serialize_context = context.serializer_context();
+
+        let serialized = context.serialize(&self.0, &serialize_context)
+            // TODO: Improve and handle errors
+            .unwrap();
+
+        let body = error::Map::new(serialized);
 
         let mut response = http::Response::builder()
             // Customize response
@@ -48,6 +53,6 @@ where
             .unwrap()
             .or_insert_with(|| content_type.clone());
 
-        response
+        Ok(response)
     }
 }

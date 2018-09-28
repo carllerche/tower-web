@@ -205,7 +205,7 @@ impl Resource {
                 type Buf = <Self::Body as __tw::util::BufStream>::Item;
 
                 // The reesponse body type
-                type Body = <Self::Future as __tw::util::http::HttpFuture>::Body;
+                type Body = <Self::Future as __tw::routing::ResourceFuture>::Body;
 
                 // Future representing processing the request.
                 type Future = ResponseFuture<S, B>;
@@ -265,14 +265,15 @@ impl Resource {
                 Invalid(::std::marker::PhantomData<B>),
             }
 
-            impl<S, B> __tw::codegen::futures::Future for ResponseFuture<S, B>
+            impl<S, B> __tw::routing::ResourceFuture for ResponseFuture<S, B>
             where S: __tw::response::Serializer,
                   B: __tw::util::BufStream,
             {
-                type Item = __tw::codegen::http::Response<ResponseBody>;
-                type Error = __tw::Error;
+                type Body = ResponseBody;
 
-                fn poll(&mut self) -> __tw::codegen::futures::Poll<Self::Item, Self::Error> {
+                fn poll_response(&mut self, request: &__tw::codegen::http::Request<()>)
+                    -> __tw::codegen::futures::Poll<__tw::codegen::http::Response<Self::Body>, __tw::Error>
+                {
                     loop {
                         // TODO: Clean this up!
                         let mut err = None;
@@ -282,11 +283,18 @@ impl Resource {
                                 try_ready!(__tw::codegen::futures::Future::poll(extract_future));
                             }
                             State::Response(ref mut response) => {
-                                let response = match response.poll() {
+                                let response = match __tw::codegen::futures::Future::poll(response) {
                                     Ok(__tw::codegen::futures::Async::Ready(response)) => {
-                                        return Ok(__tw::codegen::futures::Async::Ready(match response {
+                                        let response = match response {
                                             #match_into_response
-                                        }));
+                                        };
+
+                                        match response {
+                                            Ok(response) => return Ok(__tw::codegen::futures::Async::Ready(response)),
+                                            Err(e) => {
+                                                err = Some(e);
+                                            }
+                                        }
                                     }
                                     Ok(__tw::codegen::futures::Async::NotReady) => {
                                         return Ok(__tw::codegen::futures::Async::NotReady);
@@ -298,8 +306,10 @@ impl Resource {
                             }
                             State::Error(ref mut response) => {
                                 return Ok(__tw::codegen::futures::Async::Ready({
-                                    let response = try_ready!(response.poll());
-                                    #catch_into_response
+                                    let res = __tw::codegen::futures::Future::poll(response);
+                                    let response = try_ready!(res);
+                                    let response = #catch_into_response;
+                                    response?
                                 }));
                             }
                             State::Invalid(_) => unreachable!(),
@@ -428,6 +438,17 @@ impl Resource {
         }
     }
 
+    fn self_ident(&self) -> Option<&syn::Ident> {
+        match *self.self_ty {
+            syn::Type::Path(ref type_path) => {
+                let segments = &type_path.path.segments;
+                let len = segments.len();
+                Some(&segments[len-1].ident)
+            }
+            _ => None,
+        }
+    }
+
     fn dummy_const(&self) -> syn::Ident {
         // A (slightly) helpful string snippet to identify *which* service
         // implementation this scope is for
@@ -526,15 +547,29 @@ impl Resource {
         let init = self.routes.iter()
             .map(|route| {
                 if let Some(ref content_type) = route.attributes.content_type {
-                    quote!(Some(serializer.lookup(#content_type)))
+                    quote!({
+                        match serializer.lookup(#content_type) {
+                            Some(content_type) => ContentType::Serializable(content_type),
+                            None => {
+                                let value = __tw::codegen::http::header::HeaderValue::from_str(#content_type)
+                                    .unwrap();
+                                ContentType::Unknown(Some(value))
+                            }
+                        }
+                    })
                 } else {
-                    quote!(None)
+                    quote!(ContentType::Unknown(None))
                 }
             });
 
         quote! {
             struct ContentTypes<S: __tw::response::Serializer> {
-                content_types: [Option<__tw::response::ContentType<S::Format>>; #num],
+                content_types: [ContentType<S::Format>; #num],
+            }
+
+            enum ContentType<T> {
+                Serializable(__tw::response::ContentType<T>),
+                Unknown(Option<__tw::codegen::http::header::HeaderValue>),
             }
 
             impl<S> ContentTypes<S>
@@ -621,39 +656,70 @@ impl Resource {
     }
 
     fn match_into_response(&self) -> TokenStream {
+        let set_resource_name = match self.self_ident() {
+            Some(ident) => {
+                let name = ident.to_string();
+                quote!(context.set_resource_name(#name);)
+            }
+            None => quote!(),
+        };
+
         self.destination_syms(|route, destination| {
+            let fn_ident = route.ident().to_string();
             let left = destination.build(quote!(response));
             let map = destination.build(quote!(body));
             let idx = route.index;
 
+            let set_template = match route.template() {
+                Some(template) => {
+                    quote! {
+                        context.set_template(#template);
+                    }
+                }
+                None => quote!(),
+            };
+
             quote! {
                 #left => {
-                    let content_type = self.inner.content_types
-                        .content_types[#idx]
-                        .as_ref();
+                    let mut context = __tw::response::Context::new(
+                        request, &self.inner.serializer);
 
-                    let context = __tw::response::Context::new(
-                        &self.inner.serializer,
-                        content_type);
+                    #set_template
 
-                    __tw::response::Response::into_http(response, &context)
-                        .map(|body| ResponseBody(Ok(#map)))
+                    match self.inner.content_types.content_types[#idx] {
+                        ContentType::Serializable(ref v) => {
+                            context.set_default_format(v.format());
+                            context.set_content_type(v.header());
+                        }
+                        ContentType::Unknown(ref header) => {
+                            if let Some(ref header) = *header {
+                                context.set_content_type(header);
+                            }
+                        }
+                    }
+
+                    context.set_resource_mod(module_path!());
+                    #set_resource_name
+                    context.set_handler_name(#fn_ident);
+
+                    __tw::response::Response::into_http(response, &context).map(|response| {
+                        response.map(|body| ResponseBody(Ok(#map)))
+                    })
                 }
             }
         })
     }
 
     fn catch_into_response(&self) -> TokenStream {
-        quote! {
-            let content_type = None;
-
+        quote!({
             let context = __tw::response::Context::new(
-                &self.inner.serializer,
-                content_type);
+                request,
+                &self.inner.serializer);
 
-            __tw::response::Response::into_http(response, &context)
-                .map(|body| ResponseBody(Err(body)))
-        }
+            __tw::response::Response::into_http(response, &context).map(|response| {
+                response.map(|body| ResponseBody(Err(body)))
+            })
+        })
     }
 
     /// The resource's future type
