@@ -1,3 +1,9 @@
+# 0.3.0 (September 28, 2018)
+
+* Add experimental async/await support (#119).
+* Add template support (#115).
+* Fix potential int overflow when extracting numbers (#110).
+
 # 0.2.2 (September 7, 2018)
 
 * Add #[web(either)] to delegate Response to enum variants (#97)
