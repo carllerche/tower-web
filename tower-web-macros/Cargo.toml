@@ -1,12 +1,12 @@
 [package]
 name = "tower-web-macros"
-version = "0.2.1"
+version = "0.3.0"
 authors = ["Carl Lerche <me@carllerche.com>"]
 readme = "README.md"
 license = "MIT"
 repository = "https://github.com/carllerche/tower-web"
 homepage = "https://github.com/carllerche/tower-web"
-documentation = "http://rust-doc.s3-website-us-east-1.amazonaws.com/tower-web/v0.2.1/tower_web/"
+documentation = "http://rust-doc.s3-website-us-east-1.amazonaws.com/tower-web/v0.3.0/tower_web/"
 description = """
 Macros for tower-web
 """
