@@ -32,7 +32,7 @@ impl_web! {
     impl SelfServing {
         #[get("/")]
         #[content_type("plain")]
-        fn index(&self) -> impl Future<Item = File, Error = io::Error> + Send {
+        fn index(&self) -> impl Future<Item = File, Error = io::Error> {
             let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
             path.push(file!());
             File::open(path)
@@ -47,7 +47,7 @@ impl_web! {
         //
         #[get("/unsafe-files/*relative_path")]
         #[content_type("plain")]
-        fn unsafe_files(&self, relative_path: String) -> impl Future<Item = File, Error = io::Error> + Send {
+        fn unsafe_files(&self, relative_path: String) -> impl Future<Item = File, Error = io::Error> {
             let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
             // String does no checks for path traversal; do not use this in production!
             path.push(relative_path);
@@ -60,7 +60,7 @@ impl_web! {
         //
         #[get("/files/*relative_path")]
         #[content_type("plain")]
-        fn files(&self, relative_path: PathBuf) -> impl Future<Item = File, Error = io::Error> + Send {
+        fn files(&self, relative_path: PathBuf) -> impl Future<Item = File, Error = io::Error> {
             let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
             path.push(relative_path);
             File::open(path)

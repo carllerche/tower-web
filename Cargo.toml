@@ -27,6 +27,13 @@ members = [
 ]
 
 [features]
+# This feature comes with no promise of stability. Things will
+# break with each patch release. Use at your own risk.
+async-await-preview = [
+  "tokio/async-await-preview",
+  "tokio-async-await/async-await-preview",
+  "futures/nightly",
+]
 default = ["handlebars"]
 
 [dependencies]
@@ -60,7 +67,11 @@ proc-macro-hack = "0.4.0"
 # Deflate middleware
 flate2 = "1.0.2"
 
+# Handlebars support
 handlebars = { version = "1.0.3", optional = true }
+
+# async/await support
+tokio-async-await = { version = "0.1.4", optional = true }
 
 [dev-dependencies]
 env_logger = "0.5.12"

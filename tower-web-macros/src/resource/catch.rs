@@ -34,7 +34,7 @@ impl Catch {
         });
 
         self.sig.dispatch(
-            quote!(self.handler),
+            quote!(self.inner),
             args)
     }
 }
