@@ -31,3 +31,25 @@ order:
 
 * [`html_handlebars`](html_handlebars.rs) - Respond with HTML by rendering
   handlebars templates.
+
+Tower Web provides experimental support for Rust's `async` / `await`
+syntax. To use this syntax, the Rust nightly release channel is required
+and the crate must be set to the 2018 edition.
+
+The example in the [`async-await`] directory contains a [`Cargo.toml`]
+as well as code.
+
+1) Add [`edition = 2018`][2018] to your `Cargo.toml`.
+2) Add [`features = ["async-await-preview"]`][feature] to the
+`tower-web` dependency.
+3) Use the necessary [nightly features] in the application.
+4) Import Tokio's [`await!` macro][await].
+5) Define [`async`][async-handler] handlers.
+
+[`async-await`]: async-await
+[`Cargo.toml`]: async-await/Cargo.toml
+[2018]: async-await/Cargo.toml
+[feature]: async-await/Cargo.toml
+[nightly features]: async-await/src/hyper.rs#L22
+[await]: async-await/src/hyper.rs#L30
+[async-handler]: async-await/src/hyper.rs#L54

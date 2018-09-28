@@ -1,6 +1,11 @@
 #![doc(html_root_url = "https://docs.rs/tower-web/0.2.2")]
 #![deny(missing_debug_implementations, missing_docs)]
 #![cfg_attr(test, deny(warnings))]
+#![cfg_attr(feature = "async-await-preview", feature(
+        async_await,
+        await_macro,
+        futures_api,
+        ))]
 
 //! Tower Web is a fast web framework that aims to remove boilerplate.
 //!
@@ -478,6 +483,9 @@ extern crate void;
 
 #[cfg(feature = "handlebars")]
 extern crate handlebars;
+
+#[cfg(feature = "async-await-preview")]
+extern crate tokio_async_await;
 
 pub mod codegen;
 pub mod config;

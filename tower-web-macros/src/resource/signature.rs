@@ -15,16 +15,28 @@ pub(crate) struct Signature {
     /// True if the return value must be boxed
     box_ret: bool,
 
+    /// Function arguments
     args: Vec<Arg>,
+
+    /// True when an async function
+    is_async: bool,
 }
 
 impl Signature {
-    pub fn new(ident: syn::Ident, ret: syn::Type, args: Vec<Arg>) -> Signature {
-        let (ret, box_ret) = match ret {
-            syn::Type::ImplTrait(obj) => {
-                (box_impl_trait(obj), true)
+    pub fn new(ident: syn::Ident, ret: syn::Type, args: Vec<Arg>, is_async: bool) -> Signature {
+        let (ret, box_ret) = if is_async {
+            // TODO: Determine if `Send` or not
+            let tokens = quote! { Box<Future<Item = #ret, Error = __tw::Error> + Send> };
+            let ret = syn::parse2(tokens).unwrap();
+
+            (ret, true)
+        } else {
+            match ret {
+                syn::Type::ImplTrait(obj) => {
+                    (box_impl_trait(obj), true)
+                }
+                ret => (ret, false),
             }
-            ret => (ret, false),
         };
 
         Signature {
@@ -32,11 +44,8 @@ impl Signature {
             ret,
             box_ret,
             args,
+            is_async,
         }
-    }
-
-    pub fn is_box_ret(&self) -> bool {
-        self.box_ret
     }
 
     pub fn ident(&self) -> &syn::Ident {
@@ -51,11 +60,15 @@ impl Signature {
         &self.ret
     }
 
+    pub fn is_async(&self) -> bool {
+        self.is_async
+    }
+
     /// The response future type
     pub fn future_ty(&self) -> TokenStream {
         let ty = self.ret();
 
-        if self.is_box_ret() {
+        if self.box_ret {
             quote! { #ty }
         } else {
             quote! {
@@ -64,27 +77,39 @@ impl Signature {
         }
     }
 
-    pub fn dispatch<I>(&self, handler: TokenStream, args: I) -> TokenStream
+    pub fn dispatch<I>(&self, inner: TokenStream, args: I) -> TokenStream
     where I: Iterator<Item = TokenStream>,
     {
         let ident = self.ident();
 
-        let box_ret = if self.is_box_ret() {
+        if self.is_async {
             let ty = self.ret();
 
-            quote! { let ret: #ty = Box::new(ret); }
+            quote! {
+                let inner = #inner.clone();
+                let ret: #ty = __tw::codegen::async_await::async_to_box_future_send(async_move_hax! {
+                    await!(inner.handler.#ident(#(#args),*))
+                });
+                ret
+            }
         } else {
-            quote!()
-        };
+            let box_ret = if self.box_ret {
+                let ty = self.ret();
 
-        quote! {
-            let ret = __tw::error::Map::new(
-                __tw::codegen::futures::IntoFuture::into_future(#handler.#ident(#(#args),*)));
+                quote! { let ret: #ty = Box::new(ret); }
+            } else {
+                quote!()
+            };
 
-            // If the return type must be boxed, the boxing happens here.
-            #box_ret
+            quote! {
+                let ret = __tw::error::Map::new(
+                    __tw::codegen::futures::IntoFuture::into_future(#inner.handler.#ident(#(#args),*)));
 
-            ret
+                // If the return type must be boxed, the boxing happens here.
+                #box_ret
+
+                ret
+            }
         }
     }
 }
@@ -111,7 +136,6 @@ fn box_impl_trait(obj: syn::TypeImplTrait) -> syn::Type {
 
     // Try to identify the `Future` component
     let mut item = None;
-    let mut has_send = false;
 
     for bound in &obj.bounds {
         let bound = match bound {
@@ -144,19 +168,13 @@ fn box_impl_trait(obj: syn::TypeImplTrait) -> syn::Type {
                     break;
                 }
             }
-        } else if segments[len - 1].ident == "Send" {
-            has_send = true;
         }
     }
 
     // TODO: Better error message
     let item = item.expect("failed to identify `impl T` as `Future`");
 
-    let tokens = if has_send {
-        quote! { Box<Future<Item = #item, Error = __tw::Error> + Send> }
-    } else {
-        quote! { Box<Future<Item = #item, Error = __tw::Error>> }
-    };
-
-    syn::parse2(tokens).unwrap()
+    syn::parse2(quote! {
+        Box<Future<Item = #item, Error = __tw::Error> + Send>
+    }).unwrap()
 }

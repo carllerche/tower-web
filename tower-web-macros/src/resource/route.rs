@@ -1,7 +1,7 @@
 use resource::{Arg, Attributes, Signature, TyTree};
 
 use proc_macro2::{TokenStream, Span};
-use syn;
+use syn::{self, LitInt};
 
 /// Represents a resource route
 #[derive(Debug)]
@@ -30,6 +30,10 @@ impl Route {
         self.sig.args()
     }
 
+    pub fn is_async(&self) -> bool {
+        self.sig.is_async()
+    }
+
     pub fn template(&self) -> Option<&str> {
         self.attributes.template()
     }
@@ -54,19 +58,29 @@ impl Route {
     }
 
     pub fn dispatch(&self) -> TokenStream {
-        use syn::{LitInt, IntSuffix};
+        // Because the arguments *might* be closed over into a trait object that may or may not be
+        // send, the values must be extracted eagerly.
+        //
+        // To do this, the data is extracted from the futures into a tuple. The tuple is closed
+        // over, which no longer has the problem of being `Send`.
 
-        let args = self.sig.args().iter().map(|arg| {
-            let index = LitInt::new(arg.index as u64, IntSuffix::None, Span::call_site());
+        let args_outer = self.sig.args().iter().map(|arg| {
+            let index = lit_int(arg.index);
             quote! { __tw::extract::ExtractFuture::extract(args.#index) }
         });
 
+        let args_inner = self.sig.args().iter().map(|arg| {
+            let index = lit_int(arg.index);
+            quote! { args.#index }
+        });
+
         let body = self.sig.dispatch(
-            quote!(self.inner.handler),
-            args);
+            quote!(self.inner),
+            args_inner);
 
         quote! {
             let args = args.into_inner();
+            let args = (#(#args_outer,)*);
             #body
         }
     }
@@ -80,4 +94,9 @@ impl Route {
     pub fn future_ty(&self) -> TokenStream {
         self.sig.future_ty()
     }
+}
+
+fn lit_int(i: usize) -> LitInt {
+    use syn::IntSuffix;
+    LitInt::new(i as u64, IntSuffix::None, Span::call_site())
 }
