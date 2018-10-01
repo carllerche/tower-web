@@ -137,6 +137,28 @@ fn invalid_attributes_either() {
     assert!(err.contains("`#[web(either)]` cannot be used together with other `#[web]` attributes"), "actual={}", err)
 }
 
+#[test]
+fn template_attr_without_value() {
+    let err = expand! {
+        #[web(template)]
+        struct Foo {}
+    }.unwrap_err();
+
+    assert!(err.contains("`#[web(template = \"foo\")]`"), "actual={}", err)
+}
+
+#[test]
+fn template_attr_on_field() {
+    let err = expand! {
+        struct Foo {
+            #[web(template = "foo")]
+            foo: &'static str,
+        }
+    }.unwrap_err();
+
+    assert!(err.contains("`template` attribute must be at the struct level"), "actual={}", err)
+}
+
 /*
 
    # Invalid

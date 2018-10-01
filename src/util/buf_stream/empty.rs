@@ -3,14 +3,17 @@ use futures::{Async, Poll};
 use std::marker::PhantomData;
 use util::buf_stream::BufStream;
 
+/// A `BufStream` that contains no data.
 #[derive(Debug, Copy, Clone)]
 pub struct Empty<Item, Error>(PhantomData<(Item, Error)>);
 
+/// Create a new `Empty` instance.
 pub fn empty<Item, Error>() -> Empty<Item, Error> {
     Default::default()
 }
 
 impl<Item, Error> Empty<Item, Error> {
+    /// Create a new `Empty` instance.
     pub fn new() -> Self {
         Default::default()
     }

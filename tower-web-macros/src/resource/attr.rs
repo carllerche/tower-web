@@ -20,6 +20,9 @@ pub(crate) struct Attributes {
 
     /// Catch
     catch: Option<Catch>,
+
+    /// Template
+    template: Option<String>,
 }
 
 #[derive(Debug)]
@@ -45,6 +48,7 @@ impl Attributes {
             path_captures: vec![],
             content_type: None,
             catch: None,
+            template: None,
         }
     }
 
@@ -75,6 +79,11 @@ impl Attributes {
         self.path_lit.as_ref().unwrap().into_token_stream()
     }
 
+    pub fn template(&self) -> Option<&str> {
+        self.template.as_ref()
+            .map(|t| t.as_ref())
+    }
+
     /// Returns `true` if the attribute is processed
     pub fn process(&mut self, attr: &syn::Attribute) -> bool {
         let path = &attr.path;
@@ -101,7 +110,7 @@ impl Attributes {
 
                 self.process_doc_rule(&raw);
             }
-            "get" | "post" | "put" | "patch" | "delete" | "content_type" | "catch" => {
+            "get" | "post" | "put" | "patch" | "delete" | "content_type" | "catch" | "web" => {
                 self.process_attr2(attr);
             }
             _ => return false,
@@ -115,7 +124,7 @@ impl Attributes {
     }
 
     fn process_doc_rule(&mut self, doc: &str) {
-        use syn::buffer;
+        use syn::parse::Parser;
 
         // Wrap the doc rule (with @ extracted) in an attribute.
         let mut attr = "#[".to_string();
@@ -125,14 +134,10 @@ impl Attributes {
         // Convert that to a token stream
         let tokens: TokenStream = attr.parse().unwrap();
 
-        // Get a TokenBuffer cursor
-        let buffer = buffer::TokenBuffer::new2(tokens);
-        let cursor = buffer.begin();
-
         // Parse the attribute
-        let (attr, _) = syn::Attribute::parse_outer(cursor).unwrap();
+        let attr = syn::Attribute::parse_outer.parse2(tokens).unwrap();
 
-        self.process_attr2(&attr);
+        self.process_attr2(&attr[0]);
     }
 
     /// Returns `true` if the attribute is processed
@@ -164,6 +169,8 @@ impl Attributes {
                     self.process_content_type(&list);
                 } else if list.ident == "catch" {
                     self.process_catch(&list);
+                } else if list.ident == "web" {
+                    self.process_web(&list);
                 } else {
                     println!("LIST; {:?}", list);
                     unimplemented!("unimplemented: invalid route rule");
@@ -232,6 +239,31 @@ impl Attributes {
 
     fn process_catch(&mut self, _list: &syn::MetaList) {
         unimplemented!("`#[catch]` must not have any additional attributes");
+    }
+
+    fn process_web(&mut self, list: &syn::MetaList) {
+        use syn::{Lit, Meta, NestedMeta};
+
+        for meta in &list.nested {
+            match *meta {
+                NestedMeta::Meta(Meta::NameValue(ref name_value)) => {
+                    if name_value.ident == "template" {
+                        assert!(self.template.is_none(), "template already set");
+
+                        match name_value.lit {
+                            Lit::Str(ref lit_str) => {
+                                let lit_str = lit_str.value();
+                                self.template = Some(lit_str.to_string());
+                            }
+                            ref meta => unimplemented!("unsupported meta: {:?}", meta),
+                        }
+                    } else {
+                        unimplemented!("unimplemented: invalid route rule");
+                    }
+                }
+                _ => unimplemented!("unimplemented: invalid route rule"),
+            }
+        }
     }
 }
 

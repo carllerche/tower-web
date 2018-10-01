@@ -8,9 +8,19 @@ use std::{
     iter::FromIterator,
 };
 
+/// Specifies which origins are allowed to access this resource
 #[derive(Debug, Clone)]
 pub enum AllowedOrigins {
-    Any { allow_null: bool },
+    /// Any origin is allowed
+    Any {
+        /// Allowing a null origin is a separate setting, since it's
+        /// risky to trust sources with a null origin, see
+        /// https://tools.ietf.org/id/draft-abarth-origin-03.html#rfc.section.6
+        /// https://w3c.github.io/webappsec-cors-for-developers/
+        allow_null: bool,
+    },
+
+    /// Allow a specific set of origins
     Origins(BTreeSet<HeaderValue>),
 }
 

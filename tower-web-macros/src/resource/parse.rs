@@ -86,6 +86,9 @@ impl syn::fold::Fold for ImplWeb {
         // Get the method name
         let ident = item.sig.ident.clone();
 
+        // Track if an async function
+        let is_async = item.sig.asyncness.is_some();
+
         // Get the return type
         let ret = match item.sig.decl.output {
             ReturnType::Type(_, ref ty) => (**ty).clone(),
@@ -124,15 +127,15 @@ impl syn::fold::Fold for ImplWeb {
             }
         }
 
+        let sig = Signature::new(ident, ret, args, is_async);
+
         if attributes.is_route() {
             let index = self.resource().routes.len();
-            let sig = Signature::new(ident, ret, args);
             let route = Route::new(index, sig, attributes);
 
             self.resource().routes.push(route);
         } else {
             let index = self.resource().catches.len();
-            let sig = Signature::new(ident, ret, args);
             let catch = Catch::new(index, sig, attributes);
 
             self.resource().catches.push(catch);

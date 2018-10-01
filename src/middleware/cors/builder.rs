@@ -5,6 +5,7 @@ use http::{
 };
 use std::{collections::HashSet, time::Duration};
 
+/// Build a configured CORS middleware instance.
 #[derive(Debug, Default, Clone)]
 pub struct CorsBuilder {
     allowed_methods: HashSet<Method>,

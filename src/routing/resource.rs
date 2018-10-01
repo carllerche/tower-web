@@ -4,7 +4,7 @@ use routing::{RouteMatch, RouteSet};
 use util::BufStream;
 
 use bytes::Buf;
-use futures::Future;
+use futures::{Future, Poll};
 use futures::future::FutureResult;
 use http;
 
@@ -40,7 +40,7 @@ pub trait Resource: Clone {
     type Body: BufStream<Item = Self::Buf, Error = ::Error>;
 
     /// Response future
-    type Future: Future<Item = http::Response<Self::Body>, Error = ::Error>;
+    type Future: ResourceFuture<Body = Self::Body>;
 
     /// Process the HTTP request and return the response asynchronously.
     ///
@@ -56,9 +56,20 @@ pub trait Resource: Clone {
     ) -> Self::Future;
 }
 
+/// A specialized response future returned by resources.
+///
+/// The `ResourceFuture` allows passing the HTTP response into the future when
+/// polling.
+pub trait ResourceFuture {
+    /// HTTP response body type
+    type Body;
+
+    /// Attempt to resolve the response future to a final value.
+    fn poll_response(&mut self, request: &http::Request<()>)
+        -> Poll<http::Response<Self::Body>, ::Error>;
+}
+
 /// Convert a value into a `Resource`
-///
-///
 pub trait IntoResource<S, RequestBody>
 where S: Serializer,
       RequestBody: BufStream,
@@ -78,6 +89,17 @@ where S: Serializer,
 
     /// Convert `self` into a `Resource` value.
     fn into_resource(self, serializer: S) -> Self::Resource;
+}
+
+impl<T, B> ResourceFuture for T
+where
+    T: Future<Item = http::Response<B>, Error = ::Error>
+{
+    type Body = B;
+
+    fn poll_response(&mut self, _: &http::Request<()>) -> Poll<T::Item, ::Error> {
+        self.poll()
+    }
 }
 
 /// A resource with no methods.

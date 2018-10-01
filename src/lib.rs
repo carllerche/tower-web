@@ -1,6 +1,11 @@
-#![doc(html_root_url = "https://docs.rs/tower-web/0.2.2")]
-#![deny(missing_debug_implementations)]
+#![doc(html_root_url = "https://docs.rs/tower-web/0.3.0")]
+#![deny(missing_debug_implementations, missing_docs)]
 #![cfg_attr(test, deny(warnings))]
+#![cfg_attr(feature = "async-await-preview", feature(
+        async_await,
+        await_macro,
+        futures_api,
+        ))]
 
 //! Tower Web is a fast web framework that aims to remove boilerplate.
 //!
@@ -457,6 +462,7 @@
 //! [Serde]: http://serde.rs/
 extern crate atoi;
 extern crate bytes;
+extern crate checked;
 extern crate chrono;
 extern crate flate2;
 #[macro_use]
@@ -474,6 +480,13 @@ extern crate tokio;
 extern crate tokio_fs;
 extern crate tokio_io;
 extern crate tower_service;
+extern crate void;
+
+#[cfg(feature = "handlebars")]
+extern crate handlebars;
+
+#[cfg(feature = "async-await-preview")]
+extern crate tokio_async_await;
 
 pub mod codegen;
 pub mod config;
@@ -484,6 +497,9 @@ pub mod response;
 pub mod routing;
 pub mod service;
 pub mod util;
+
+#[cfg(feature = "handlebars")]
+pub mod view;
 
 mod run;
 
@@ -591,6 +607,9 @@ macro_rules! impl_web_clean_nested {
         impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } { $($nested)* } $($rest)*);
     };
     (($($outer:tt)*) ($($done:tt)*) { #[catch $($attr:tt)*] $($nested:tt)* } $dup:tt $($rest:tt)*) => {
+        impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } { $($nested)* } $($rest)*);
+    };
+    (($($outer:tt)*) ($($done:tt)*) { #[web $($attr:tt)*] $($nested:tt)* } $dup:tt $($rest:tt)*) => {
         impl_web_clean_nested!(($($outer)*) ($($done)*) { $($nested)* } { $($nested)* } $($rest)*);
     };
 
