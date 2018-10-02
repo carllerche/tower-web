@@ -86,13 +86,13 @@ where T: DeserializeOwned,
 
         match ctx.callsite().source() {
             Capture(_) => {
-                unimplemented!();
+                unimplemented!("Capture");
             }
             Header(_) => {
-                unimplemented!();
+                unimplemented!("Header");
             }
             QueryString => {
-                unimplemented!();
+                unimplemented!("QueryString");
             }
             Body => {
                 use http::header;
@@ -114,11 +114,11 @@ where T: DeserializeOwned,
                         _ => panic!("Unknown content type")
                     } 
                 } else {
-                    panic!()
+                    panic!("Content-Type header not present")
                 }
             }
             Unknown => {
-                unimplemented!();
+                unimplemented!("Unknown");
             }
         }
     }
