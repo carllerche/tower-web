@@ -138,6 +138,16 @@ fn extract_body_wrap_json_success() {
 }
 
 #[test]
+fn extract_body_wrap_json_no_content_type_header() {
+    let mut web = service(TestExtract);
+
+    let body = "";
+
+    let response = web.call_unwrap(post!("/extract_body", body));
+    assert_bad_request!(response);
+}
+
+#[test]
 fn extract_x_www_form_urlencoded() {
     let mut web = service(TestExtract);
 
