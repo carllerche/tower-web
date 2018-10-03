@@ -44,7 +44,7 @@ impl Error {
         }
     }
 
-    fn web(err: ::Error) -> Error {
+    pub(crate) fn web(err: ::Error) -> Error {
         Error { kind: Web(err) }
     }
 

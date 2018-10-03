@@ -111,10 +111,18 @@ where T: DeserializeOwned,
                             
                             SerdeFuture { state, is_json: false }   
                         }
-                        _ => panic!("Unknown content type")
+                        _ => {
+                            let err = Error::web(::Error::from(::error::ErrorKind::bad_request()));
+                            let state = State::Complete(Err(Some(err)));
+
+                            SerdeFuture { state, is_json: false }
+                        }
                     } 
                 } else {
-                    panic!("Content-Type header not present")
+                    let err = Error::web(::Error::from(::error::ErrorKind::bad_request()));
+                    let state = State::Complete(Err(Some(err)));
+
+                    SerdeFuture { state, is_json: false }
                 }
             }
             Unknown => {
