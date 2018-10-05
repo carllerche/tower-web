@@ -2,17 +2,11 @@ use extract::{Context, Error, Extract, Immediate};
 use percent_encoding;
 use std::borrow::Cow;
 use std::ffi::{OsStr, OsString};
+use std::str;
 use util::buf_stream::BufStream;
 
-#[cfg(not(any(target_os = "windows", target_arch = "wasm32")))]
 fn osstr_from_bytes(bytes: &[u8]) -> Result<&OsStr, Error> {
-    use std::os::unix::ffi::OsStrExt;
-    Ok(OsStr::from_bytes(bytes))
-}
-
-#[cfg(any(target_os = "windows", target_arch = "wasm32"))]
-fn osstr_from_bytes(bytes: &[u8]) -> Result<&OsStr, Error> {
-    use std::str;
+    // NOTE: this is too conservative, as we are rejecting valid paths on Unix
     str::from_utf8(bytes)
         .map_err(|e| Error::invalid_argument(&e))
         .map(|s| OsStr::new(s))
