@@ -54,7 +54,7 @@ macro_rules! assert_ok {
 
 macro_rules! assert_bad_request {
     ($response:expr) => {
-        assert_eq!($response.status(), ::http::StatusCode::OK)
+        assert_eq!($response.status(), ::http::StatusCode::BAD_REQUEST)
     }
 }
 
