@@ -20,6 +20,12 @@ pub struct Foo2 {
     foo: Option<String>,
 }
 
+#[derive(Debug, Extract, Default)]
+struct FooWithDefault {
+    #[serde(default)]
+    foo: String,
+}
+
 #[derive(Debug, Extract)]
 pub struct FooWrap(Inner);
 
@@ -74,6 +80,13 @@ impl_web! {
         fn extract_x_www_form_urlencoded(&self, body: Foo) -> Result<&'static str, ()> {
             assert_eq!(body.foo, "body bar");
             Ok("extract_x_www_form_urlencoded")
+        }
+
+        #[get("/extract_with_default")]
+        #[content_type("plain")]
+        fn extract_with_default(&self, query_string: FooWithDefault) -> Result<&'static str, ()> {
+            assert_eq!(query_string.foo, "");
+            Ok("extract_with_default")
         }
     }
 }
@@ -156,4 +169,13 @@ fn extract_x_www_form_urlencoded() {
     let response = web.call_unwrap(post!("/extract_x_www_form_urlencoded", body, "content-type": "application/x-www-form-urlencoded"));
     assert_ok!(response);
     assert_body!(response, "extract_x_www_form_urlencoded");
+}
+
+#[test]
+fn extract_with_default() {
+    let mut web = service(TestExtract);
+
+    let response = web.call_unwrap(get!("/extract_with_default"));
+    assert_ok!(response);
+    assert_body!(response, "extract_with_default");
 }

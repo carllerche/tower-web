@@ -32,6 +32,7 @@ impl Extract {
 
         // Fold thee shadow typee
         let mut output = fold_derive_input(&mut fold_shadow_ty, input);
+        output.attrs.retain(is_serde_attr);
 
         if let Some(err) = fold_shadow_ty.err {
             return Err(err);
@@ -208,12 +209,13 @@ impl syn::fold::Fold for FoldShadowTy {
 
         let named = mem::replace(&mut fields.named, Punctuated::new());
 
-        for field in named {
+        for mut field in named {
             assert!(field.ident.is_some(), "unimplemented: named fields with no name");
 
             let attrs = try!(Attribute::from_ast(&field.attrs));
 
             if attrs.is_empty() {
+                field.attrs.retain(is_serde_attr);
                 fields.named.push(field);
             } else {
                 unimplemented!();
@@ -246,12 +248,13 @@ impl syn::fold::Fold for FoldShadowTy {
 
         let unnamed = mem::replace(&mut fields.unnamed, Punctuated::new());
 
-        for field in unnamed {
+        for mut field in unnamed {
             assert!(field.ident.is_none(), "unimplemented: unnamed fields with name");
 
             let attrs = try!(Attribute::from_ast(&field.attrs));
 
             if attrs.is_empty() {
+                field.attrs.retain(is_serde_attr);
                 fields.unnamed.push(field);
             } else {
                 unimplemented!();
@@ -260,4 +263,19 @@ impl syn::fold::Fold for FoldShadowTy {
 
         fields
     }
+}
+
+fn is_serde_attr(attr: &syn::Attribute) -> bool {
+    use syn::Meta::*;
+
+    attr.interpret_meta()
+        .map(|meta| {
+            match meta {
+                List(ref list) => {
+                    list.ident == "serde"
+                }
+                _ => false,
+            }
+        })
+        .unwrap_or(false)
 }

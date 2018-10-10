@@ -30,7 +30,7 @@ proc_macro_item_impl! {
     }
 }
 
-#[proc_macro_derive(Extract, attributes(web))]
+#[proc_macro_derive(Extract, attributes(web, serde))]
 pub fn derive_extract(input: TokenStream) -> TokenStream {
     // Parse the input to `DeriveInput`
     let input = syn::parse(input).unwrap();
