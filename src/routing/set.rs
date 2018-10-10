@@ -22,13 +22,9 @@ impl<T> RouteSet<T> {
     pub(crate) fn map<F, U>(self, f: F) -> RouteSet<U>
     where F: Fn(T) -> U,
     {
-        let mut routes = vec![];
-
-        for route in self.routes.into_iter() {
-            routes.push(route.map(&f));
+        RouteSet {
+            routes: self.routes.into_iter().map(|r| r.map(&f)).collect()
         }
-
-        RouteSet { routes }
     }
 
     pub(crate) fn insert(&mut self, route: Route<T>) {

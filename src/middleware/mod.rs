@@ -23,6 +23,7 @@
 //! [log]: log/index.html
 
 pub mod cors;
+pub mod deflate;
 pub mod log;
 
 mod chain;

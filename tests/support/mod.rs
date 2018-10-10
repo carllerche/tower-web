@@ -6,7 +6,7 @@ extern crate tower_service;
 pub use tower_web::util::http::HttpService;
 
 use tower_web::ServiceBuilder;
-use tower_web::response::DefaultSerializer;
+use tower_web::response::{DefaultSerializer, Serializer};
 use tower_web::routing::IntoResource;
 
 pub use self::futures::Future;
@@ -54,7 +54,7 @@ macro_rules! assert_ok {
 
 macro_rules! assert_bad_request {
     ($response:expr) => {
-        assert_eq!($response.status(), ::http::StatusCode::OK)
+        assert_eq!($response.status(), ::http::StatusCode::BAD_REQUEST)
     }
 }
 
@@ -114,6 +114,22 @@ where U: IntoResource<DefaultSerializer, String>,
     use self::tower_service::NewService;
 
     ServiceBuilder::new()
+        .resource(resource)
+        .build_new_service()
+        .new_service()
+        .wait().unwrap()
+}
+
+pub fn service_with_serializer<U, S>(resource: U, serializer: S) -> impl TestHttpService<RequestBody = String>
+where
+    U: IntoResource<DefaultSerializer<((), S)>, String>,
+    S: Serializer,
+{
+    use self::futures::Future;
+    use self::tower_service::NewService;
+
+    ServiceBuilder::new()
+        .serializer(serializer)
         .resource(resource)
         .build_new_service()
         .new_service()

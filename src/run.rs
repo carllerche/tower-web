@@ -1,15 +1,18 @@
 use error::ErrorKind;
+use net::{self, ConnectionStream};
 use util::BufStream;
 use util::http::{HttpService, NewHttpService};
 
 use futures::Poll;
 use http;
+use hyper;
 use hyper::body::{Body, Chunk, Payload};
 use hyper::server::conn::Http;
 use hyper::service::Service as HyperService;
+use util::buf_stream::size_hint::{Builder, SizeHint};
 
 use tokio;
-use tokio::net::{TcpListener, TcpStream};
+use tokio::net::TcpListener;
 use tokio::prelude::*;
 
 use std::io;
@@ -58,7 +61,7 @@ impl BufStream for LiftReqBody {
     type Error = ::Error;
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, ::Error> {
-        self.body.poll().map_err(|_| ErrorKind::internal().into())
+        Stream::poll(&mut self.body).map_err(|_| ErrorKind::internal().into())
     }
 }
 
@@ -108,7 +111,8 @@ where
 /// A non-blocking version of `run`.
 pub fn serve<S, T>(incoming: S, new_service: T) -> impl Future<Item = (), Error = ()>
 where
-    S: Stream<Item = TcpStream, Error = io::Error>,
+    S: ConnectionStream,
+    S::Item: Send + 'static,
     T: NewHttpService<RequestBody = LiftReqBody> + Send + 'static,
     T::Future: Send,
     <T::ResponseBody as BufStream>::Item: Send,
@@ -117,7 +121,7 @@ where
     <T::Service as HttpService>::Future: Send,
 {
     let http = Arc::new(Http::new());
-    incoming
+    net::Lift(incoming)
         .map_err(|e| println!("failed to accept socket; err = {:?}", e))
         .for_each(move |socket| {
             let h = http.clone();
@@ -137,4 +141,26 @@ where
                     })
             })
         })
+}
+
+impl BufStream for Body {
+    type Item = Chunk;
+    type Error = hyper::Error;
+
+    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
+        Stream::poll(self)
+    }
+
+    fn size_hint(&self) -> SizeHint {
+        let mut builder = Builder::new();
+        if let Some(length) = self.content_length() {
+            if length < usize::max_value() as u64 {
+                let length = length as usize;
+                builder.lower(length).upper(length);
+            } else {
+                builder.lower(usize::max_value());
+            }
+        }
+        builder.build()
+    }
 }

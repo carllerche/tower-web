@@ -1,4 +1,5 @@
 use codegen::CallSite;
+use config::Config;
 use routing::{Captures, RouteMatch};
 
 use http::Request;
@@ -15,6 +16,8 @@ pub struct Context<'a> {
     request: &'a Request<()>,
 
     captures: &'a Captures,
+
+    config: &'a Config,
 }
 
 impl<'a> Context<'a> {
@@ -23,11 +26,13 @@ impl<'a> Context<'a> {
     pub fn new(route_match: &'a RouteMatch, callsite: &'a CallSite) -> Context<'a> {
         let request = route_match.request();
         let captures = route_match.captures();
+        let config = route_match.config();
 
         Context {
             callsite,
             request,
             captures,
+            config,
         }
     }
 
@@ -44,4 +49,7 @@ impl<'a> Context<'a> {
     pub fn request(&self) -> &Request<()> {
         &self.request
     }
+
+    /// Returns the stored configuration value of type `T`.
+    pub fn config<T: Send + Sync + 'static>(&self) -> Option<&T> { self.config.get::<T>() }
 }

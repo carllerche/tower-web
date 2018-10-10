@@ -16,6 +16,7 @@ use serde_urlencoded;
 #[derive(Debug)]
 pub struct SerdeFuture<T, B> {
     state: State<T, B>,
+    is_json: bool,
 }
 
 #[derive(Debug)]
@@ -68,7 +69,7 @@ where T: DeserializeOwned,
 
                 let state = State::Complete(res);
 
-                SerdeFuture { state }
+                SerdeFuture { state, is_json: false }
             }
             Body => {
                 unimplemented!();
@@ -85,33 +86,47 @@ where T: DeserializeOwned,
 
         match ctx.callsite().source() {
             Capture(_) => {
-                unimplemented!();
+                unimplemented!("Capture");
             }
             Header(_) => {
-                unimplemented!();
+                unimplemented!("Header");
             }
             QueryString => {
-                unimplemented!();
+                unimplemented!("QueryString");
             }
             Body => {
-                // TODO: Make content-types pluggable
-                assert!({
-                    use http::header;
+                use http::header;
 
-                    ctx.request().headers().get(header::CONTENT_TYPE)
-                        .map(|content_type| {
-                            content_type.as_bytes().to_ascii_lowercase() ==
-                                b"application/json"
-                        })
-                        .unwrap_or(false)
-                });
+                if let Some(value) = ctx.request().headers().get(header::CONTENT_TYPE) {
+                    let content_type = value.as_bytes().to_ascii_lowercase();
 
-                let state = State::Body(body.collect());
+                    match &content_type[..] {
+                        b"application/json" => {
+                            let state = State::Body(body.collect());
 
-                SerdeFuture { state }
+                            SerdeFuture { state, is_json: true }  
+                        }
+                        b"application/x-www-form-urlencoded" => {
+                            let state = State::Body(body.collect());
+                            
+                            SerdeFuture { state, is_json: false }   
+                        }
+                        _ => {
+                            let err = Error::web(::Error::from(::error::ErrorKind::bad_request()));
+                            let state = State::Complete(Err(Some(err)));
+
+                            SerdeFuture { state, is_json: false }
+                        }
+                    } 
+                } else {
+                    let err = Error::web(::Error::from(::error::ErrorKind::bad_request()));
+                    let state = State::Complete(Err(Some(err)));
+
+                    SerdeFuture { state, is_json: false }
+                }
             }
             Unknown => {
-                unimplemented!();
+                unimplemented!("Unknown");
             }
         }
     }
@@ -140,16 +155,20 @@ where T: DeserializeOwned,
                         .map_err(|_| Error::internal_error());
 
                     let res = try_ready!(res);
-
-                    // And here we deserialize, but we have not determined the
-                    // content type yet :(
-                    //
-                    // TODO: Make content type pluggable
-                    ::serde_json::from_slice(&res[..])
-                        .map_err(|_| {
-                            // TODO: Handle error better
-                            Some(Error::internal_error())
+                    
+                    if self.is_json == true {
+                        ::serde_json::from_slice(&res[..])
+                            .map_err(|_| {
+                                // TODO: Handle error better
+                                Some(Error::internal_error())
                         })
+                    } else {
+                        ::serde_urlencoded::from_bytes(&res[..])
+                            .map_err(|_| {
+                                // TODO: Handle error better
+                                Some(Error::internal_error())
+                        })
+                    }
                 }
             };
 

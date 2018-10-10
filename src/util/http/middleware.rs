@@ -12,7 +12,7 @@ use http::{Request, Response};
 /// Using `HttpMiddleware` in where bounds is easier than trying to use `Middleware`
 /// directly.
 pub trait HttpMiddleware<S>: sealed::Sealed<S> {
-    /// THe HTTP request body handled by the wrapped service.
+    /// The HTTP request body handled by the wrapped service.
     type RequestBody: BufStream;
 
     /// The HTTP response body returned by the wrapped service.

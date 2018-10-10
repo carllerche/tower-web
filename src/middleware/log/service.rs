@@ -1,5 +1,6 @@
 use futures::{Future, Poll};
 use http;
+use log::{logger, Level, Record};
 use tower_service::Service;
 
 use std::time::Instant;
@@ -15,6 +16,11 @@ pub struct LogService<S> {
 #[derive(Debug)]
 pub struct ResponseFuture<T> {
     inner: T,
+    context: Option<LogContext>,
+}
+
+#[derive(Debug)]
+struct LogContext {
     method: http::Method,
     path: Option<http::uri::PathAndQuery>,
     version: http::Version,
@@ -46,20 +52,23 @@ where S: Service<Request = http::Request<RequestBody>,
     }
 
     fn call(&mut self, request: Self::Request) -> Self::Future {
-        let method = request.method().clone();
-        let path = request.uri().path_and_query().map(|p| p.clone());
-        let version = request.version();
-        let start = Instant::now();
+        let context = if log_enabled!(target: self.target, Level::Info) {
+            Some(LogContext {
+                method: request.method().clone(),
+                path: request.uri().path_and_query().map(|p| p.clone()),
+                version: request.version(),
+                start: Instant::now(),
+                target: self.target,
+            })
+        } else {
+            None
+        };
 
         let inner = self.inner.call(request);
 
         ResponseFuture {
             inner,
-            method,
-            path,
-            version,
-            start,
-            target: self.target,
+            context,
         }
     }
 }
@@ -77,9 +86,9 @@ where
 
         let res = self.inner.poll();
 
-        match res {
-            Ok(Ready(ref response)) => {
-                let full_path = self.path.as_ref()
+        match (&res, &self.context) {
+            (Ok(Ready(ref response)), Some(ref context)) => {
+                let full_path = context.path.as_ref()
                     .map(|p| p.as_str())
                     .unwrap_or("/");
 
@@ -87,17 +96,23 @@ where
                 // - remote_addr
                 // - response content length
                 // - date
-                info!(
-                    target: self.target,
-                    "\"{} {} {:?}\" {} {:?}",
-                    self.method,
-                    full_path,
-                    self.version,
-                    response.status().as_u16(),
-                    self.start.elapsed(),
-                );
+                logger().log(&Record::builder()
+                    .args(format_args!(
+                        "\"{} {} {:?}\" {} {:?}",
+                        context.method,
+                        full_path,
+                        context.version,
+                        response.status().as_u16(),
+                        context.start.elapsed(),
+                    ))
+                    .level(Level::Info)
+                    .target(context.target)
+                    .module_path(Some(module_path!()))
+                    .file(Some(file!()))
+                    .line(Some(line!()))
+                    .build());
             }
-            Err(ref err) => {
+            (Err(ref err), ..) => {
                 warn!("ERROR: {}", err);
             }
             _ => {}

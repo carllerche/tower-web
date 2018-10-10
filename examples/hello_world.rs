@@ -72,7 +72,7 @@ impl_web! {
     impl HelloWorld {
 
         // `hello_world` is a plain old method on `HelloWorld`. However, note
-        // that there are some doc comments. `impl_web` looks at these comments
+        // that there are some attributes. `impl_web` looks at these attributes
         // and uses them to generate the glue code.
         //
         // Functions must take `&self` and return `T: IntoFuture`. Since
@@ -99,12 +99,11 @@ impl_web! {
         // Here a future is used to generate the response. This allows for
         // asynchronous processing of the request.
         //
-        // Note that `impl Future` is bound by `Send`. Currently, hyper
-        // requires everything to be `Send`. So, in order to run our service, we
-        // also have to guarantee that everything is Send.
+        // Note that the returned future must impl `Send`. Currently, hyper
+        // requires everything to be `Send`.
         //
         #[get("/hello-future")]
-        fn hello_future(&self) -> impl Future<Item = String, Error = ()> + Send {
+        fn hello_future(&self) -> impl Future<Item = String, Error = ()> {
             future::ok("Or return a future that resolves to the response".to_string())
         }
 

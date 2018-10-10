@@ -14,6 +14,7 @@ mod buf_stream;
 mod bytes;
 mod chain;
 mod collect;
+pub mod deflate;
 mod either;
 mod empty;
 mod file;

@@ -1,4 +1,6 @@
-use response::{ContentType, Serializer};
+use response::{ContentType, Serializer, SerializerContext};
+use util::Chain;
+use util::tuple::Either2;
 
 use bytes::Bytes;
 use http::header::HeaderValue;
@@ -8,7 +10,8 @@ use serde::Serialize;
 ///
 /// Serializes responses into one of a number of common HTTP formats.
 #[derive(Debug, Clone)]
-pub struct DefaultSerializer {
+pub struct DefaultSerializer<T = ()> {
+    custom: T,
     plain: HeaderValue,
     json: HeaderValue,
 }
@@ -28,56 +31,78 @@ enum Kind {
 const TEXT_PLAIN: &str = "text/plain";
 const APPLICATION_JSON: &str = "application/json";
 
-impl ::util::Sealed for DefaultSerializer {}
-
 impl DefaultSerializer {
     /// Return a new `DefaultSerializer` value.
     pub fn new() -> DefaultSerializer {
         DefaultSerializer {
+            custom: (),
             plain: HeaderValue::from_static(TEXT_PLAIN),
             json: HeaderValue::from_static(APPLICATION_JSON),
         }
     }
 }
 
-impl Serializer for DefaultSerializer {
-    type Format = Format;
+impl<T> Serializer for DefaultSerializer<T>
+where T: Serializer,
+{
+    type Format = Either2<T::Format, Format>;
 
-    fn lookup(&self, name: &str) -> ContentType<Self::Format> {
+    fn lookup(&self, name: &str) -> Option<ContentType<Self::Format>> {
+        if let Some(content_type) = self.custom.lookup(name) {
+            return Some(content_type.map(Either2::A));
+        }
+
         match name {
             "json" | APPLICATION_JSON => {
-                let format = Format::json();
-                ContentType::new(self.json.clone(), Some(format))
+                let format = Either2::B(Format::json());
+                Some(ContentType::new(self.json.clone(), format))
             }
             "plain" | TEXT_PLAIN => {
-                let format = Format::plain();
-                ContentType::new(self.plain.clone(), Some(format))
+                let format = Either2::B(Format::plain());
+                Some(ContentType::new(self.plain.clone(), format))
             }
             _ => {
-                let header = HeaderValue::from_str(name)
-                    .unwrap();
-
-                ContentType::new(header, None)
+                None
             }
         }
     }
 
-    fn serialize<T>(&self, value: &T, format: &Self::Format) -> Result<Bytes, ::Error>
+    fn serialize<V>(&self, value: &V, format: &Self::Format, ctx: &SerializerContext)
+        -> Result<Bytes, ::Error>
     where
-        T: Serialize,
+        V: Serialize,
     {
-        match format.kind {
-            Kind::Json => {
-                let body = ::serde_json::to_vec(&value).unwrap();
-                Ok(body.into())
-            }
-            Kind::Plain => {
-                let body = ::serde_plain::to_string(&value).unwrap();
-                Ok(body.into())
+        match format {
+            Either2::A(ref format) => self.custom.serialize(value, format, ctx),
+            Either2::B(ref format) => {
+                match format.kind {
+                    Kind::Json => {
+                        let body = ::serde_json::to_vec(&value).unwrap();
+                        Ok(body.into())
+                    }
+                    Kind::Plain => {
+                        let body = ::serde_plain::to_string(&value).unwrap();
+                        Ok(body.into())
+                    }
+                }
             }
         }
     }
 }
+
+impl<T, U> Chain<U> for DefaultSerializer<T> {
+    type Output = DefaultSerializer<(T, U)>;
+
+    fn chain(self, other: U) -> Self::Output {
+        DefaultSerializer {
+            custom: (self.custom, other),
+            plain: self.plain,
+            json: self.json,
+        }
+    }
+}
+
+impl<T> ::util::Sealed for DefaultSerializer<T> {}
 
 impl Format {
     /// Json

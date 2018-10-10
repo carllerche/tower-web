@@ -1,3 +1,4 @@
+use config::Config;
 use routing::Captures;
 
 use http::Request;
@@ -14,14 +15,18 @@ pub struct RouteMatch<'a> {
 
     /// Route captures
     captures: Captures,
+
+    /// Config
+    config: &'a Config,
 }
 
 impl<'a> RouteMatch<'a> {
     /// Create a new `RouteMatch`
-    pub(crate) fn new(request: &'a Request<()>, captures: Captures) -> Self {
+    pub(crate) fn new(request: &'a Request<()>, captures: Captures, config: &'a Config) -> Self {
         RouteMatch {
             request,
             captures,
+            config,
         }
     }
 
@@ -31,5 +36,9 @@ impl<'a> RouteMatch<'a> {
 
     pub(crate) fn captures(&self) -> &Captures {
         &self.captures
+    }
+
+    pub(crate) fn config(&self) -> &Config {
+        &self.config
     }
 }

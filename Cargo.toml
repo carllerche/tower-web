@@ -6,14 +6,14 @@ name = "tower-web"
 # - Update documentation URL
 #   - Cargo.toml
 #   - Readme.md
-# - Create "v0.2.x" git tag.
-version = "0.2.0"
+# - Create "v0.3.x" git tag.
+version = "0.3.0"
 license = "MIT"
 authors = ["Carl Lerche <me@carllerche.com>"]
 readme = "README.md"
 repository = "https://github.com/carllerche/tower-web"
 homepage = "https://github.com/carllerche/tower-web"
-documentation = "http://rust-doc.s3-website-us-east-1.amazonaws.com/tower-web/v0.2.0/tower_web/"
+documentation = "http://rust-doc.s3-website-us-east-1.amazonaws.com/tower-web/v0.3.0/tower_web/"
 description = """
 Web framework with a focus on removing boilerplate
 """
@@ -26,6 +26,16 @@ members = [
   "tower-web-macros",
 ]
 
+[features]
+# This feature comes with no promise of stability. Things will
+# break with each patch release. Use at your own risk.
+async-await-preview = [
+  "tokio/async-await-preview",
+  "tokio-async-await/async-await-preview",
+  "futures/nightly",
+]
+default = ["handlebars"]
+
 [dependencies]
 bytes = "0.4.7"
 futures = "0.1.21"
@@ -36,9 +46,11 @@ tokio = "0.1.6"
 tokio-fs = "0.1.2"
 tokio-io = "0.1.7"
 tower-service = "0.1.0"
+void = "1.0.2"
 
 # Parsing params
 atoi = "0.2.3"
+checked = "0.5.0"
 chrono = "0.4.4"
 
 # Serializing responses, deserializing requests
@@ -49,8 +61,18 @@ serde_plain = "0.3.0"
 serde_urlencoded = "0.5.1"
 
 # Code gen
-tower-web-macros = { version = "0.2.0", path = "tower-web-macros" }
+tower-web-macros = { version = "0.3.0", path = "tower-web-macros" }
 proc-macro-hack = "0.4.0"
+
+# Deflate middleware
+flate2 = "1.0.2"
+
+# Handlebars support
+handlebars = { version = "1.0.3", optional = true }
+
+# async/await support
+tokio-async-await = { version = "0.1.4", optional = true }
 
 [dev-dependencies]
 env_logger = "0.5.12"
+rand = "0.5.5"

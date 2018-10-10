@@ -1,0 +1,19 @@
+[package]
+name = "examples-async-await"
+edition = "2018"
+version = "0.1.0"
+authors = ["Carl Lerche <me@carllerche.com>"]
+
+# Used to escape the parent workspace. This crate uses edition 2018 and the
+# parent does not.
+[workspace]
+
+[[bin]]
+name = "hyper"
+path = "src/hyper.rs"
+
+[dependencies]
+tower-web = { version = "0.2.2", path = "../..", features = ["async-await-preview"] }
+tokio = "0.1.10"
+hyper = "0.12.10"
+futures = "0.1.18"

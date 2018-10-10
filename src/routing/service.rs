@@ -1,5 +1,6 @@
+use config::Config;
 use error::{self, Error, ErrorKind, Catch};
-use routing::{Resource, RouteSet, RouteMatch};
+use routing::{Resource, ResourceFuture, RouteSet, RouteMatch};
 use util::http::HttpFuture;
 use util::tuple::Either2;
 
@@ -20,6 +21,9 @@ where
 
     /// Error handler
     catch: U,
+
+    /// Config
+    config: Config,
 
     /// Route set. Processes request to determine how the resource will process
     /// it.
@@ -51,6 +55,7 @@ where
         RoutedService {
             resource: self.resource.clone(),
             catch: self.catch.clone(),
+            config: self.config.clone(),
             routes: self.routes.clone(),
         }
     }
@@ -77,12 +82,13 @@ impl<T, U> RoutedService<T, U>
 where T: Resource,
 {
     /// Create a new `RoutedService`
-    pub(crate) fn new(resource: T, catch: U, routes: RouteSet<T::Destination>) -> Self {
+    pub(crate) fn new(resource: T, catch: U, config: Config, routes: RouteSet<T::Destination>) -> Self {
         let routes = Arc::new(routes);
 
         RoutedService {
             resource,
             catch,
+            config,
             routes,
         }
     }
@@ -110,7 +116,7 @@ where T: Resource,
         let state = match self.routes.test(&request) {
             Some((destination, captures)) => {
                 // Create the `RouteMatch` for the routing result
-                let route_match = RouteMatch::new(&request, captures);
+                let route_match = RouteMatch::new(&request, captures, &self.config);
 
                 // Dispatch the requeest
                 let pending = self.resource
@@ -139,7 +145,7 @@ where T: Resource,
 // ===== impl RoutedResponse =====
 
 impl<T, U> Future for RoutedResponse<T, U>
-where T: HttpFuture,
+where T: ResourceFuture,
       U: Catch,
 {
     type Item = http::Response<Either2<T::Body, error::Map<U::Body>>>;
@@ -153,7 +159,7 @@ where T: HttpFuture,
         loop {
             let catching = match self.state {
                 Pending(ref mut fut) => {
-                    let error = match fut.poll_http() {
+                    let error = match fut.poll_response(&self.request) {
                         Ok(Ready(v)) => {
                             let v = v.map(A);
                             return Ok(Ready(v))

@@ -1,3 +1,5 @@
+//! CORS middleware.
+
 mod builder;
 mod config;
 mod middleware;
