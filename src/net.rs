@@ -10,7 +10,7 @@ use std::net::SocketAddr;
 /// A stream between a local and remote target.
 pub trait Connection: AsyncRead + AsyncWrite {
     /// Returns the socket address of the remote peer of this connection.
-    fn peer_addr(&self) -> io::Result<SocketAddr>;
+    fn peer_addr(&self) -> Option<SocketAddr>;
 }
 
 /// An asynchronous stream of connections.
@@ -24,8 +24,8 @@ pub trait ConnectionStream {
 }
 
 impl Connection for TcpStream {
-    fn peer_addr(&self) -> io::Result<SocketAddr> {
-        TcpStream::peer_addr(self)
+    fn peer_addr(&self) -> Option<SocketAddr> {
+        TcpStream::peer_addr(self).ok()
     }
 }
 
