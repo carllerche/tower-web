@@ -1,3 +1,11 @@
+# 0.3.1 (October 10, 2018)
+
+* Fix panic when content-type not provided (#123).
+* Implement `Extract` for all numeric types (#131).
+* Ignore attributes for other derives (#130).
+* Avoid clone when logging disabled (#126).
+* Add non-blocking `serve` method to run server (#76).
+
 # 0.3.0 (September 28, 2018)
 
 * Add experimental async/await support (#119).
