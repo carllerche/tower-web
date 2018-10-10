@@ -1,4 +1,5 @@
 use error::ErrorKind;
+use net::{self, ConnectionStream};
 use util::BufStream;
 use util::http::{HttpService, NewHttpService};
 
@@ -99,32 +100,47 @@ where
     <T::Service as HttpService>::Future: Send,
 {
     let listener = TcpListener::bind(addr)?;
-    let http = Arc::new(Http::new());
 
-    tokio::run({
-        listener
-            .incoming()
-            .map_err(|e| println!("failed to accept socket; err = {:?}", e))
-            .for_each(move |socket| {
-                let h = http.clone();
-
-                tokio::spawn({
-                    new_service.new_http_service()
-                        .map_err(|_| unimplemented!())
-                        .and_then(move |service| {
-                            let service = Lift::new(service);
-
-                            h.serve_connection(socket, service)
-                                .map(|_| ())
-                                .map_err(|e| {
-                                    println!("failed to serve connection; err={:?}", e);
-                                })
-                        })
-                })
-            })
-    });
+    tokio::run(serve(listener.incoming(), new_service));
 
     Ok(())
+}
+
+/// Returns a future that must be polled to process the incoming connections.
+///
+/// A non-blocking version of `run`.
+pub fn serve<S, T>(incoming: S, new_service: T) -> impl Future<Item = (), Error = ()>
+where
+    S: ConnectionStream,
+    S::Item: Send + 'static,
+    T: NewHttpService<RequestBody = LiftReqBody> + Send + 'static,
+    T::Future: Send,
+    <T::ResponseBody as BufStream>::Item: Send,
+    T::ResponseBody: Send,
+    T::Service: Send,
+    <T::Service as HttpService>::Future: Send,
+{
+    let http = Arc::new(Http::new());
+    net::Lift(incoming)
+        .map_err(|e| println!("failed to accept socket; err = {:?}", e))
+        .for_each(move |socket| {
+            let h = http.clone();
+
+            tokio::spawn({
+                new_service
+                    .new_http_service()
+                    .map_err(|_| unimplemented!())
+                    .and_then(move |service| {
+                        let service = Lift::new(service);
+
+                        h.serve_connection(socket, service)
+                            .map(|_| ())
+                            .map_err(|e| {
+                                println!("failed to serve connection; err={:?}", e);
+                            })
+                    })
+            })
+        })
 }
 
 impl BufStream for Body {

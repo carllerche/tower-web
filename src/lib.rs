@@ -492,6 +492,7 @@ pub mod config;
 pub mod error;
 pub mod extract;
 pub mod middleware;
+pub mod net;
 pub mod response;
 pub mod routing;
 pub mod service;
