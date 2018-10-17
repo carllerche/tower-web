@@ -65,8 +65,20 @@ impl syn::fold::Fold for ImplWeb {
             "trait impls must not be in impl_web! block"
         );
 
+        // The resource may only have type generics (for now at least).
+        for param in &item.generics.params {
+            use syn::GenericParam::Type;
+
+            match *param {
+                Type(_) => {}
+                ref actual => {
+                    panic!("Resources may only have generic type parameters. Actual = {:?}", actual);
+                }
+            }
+        }
+
         let index = self.resources.len();
-        self.resources.push(Resource::new(index, item.self_ty.clone()));
+        self.resources.push(Resource::new(index, &item));
 
         syn::fold::fold_item_impl(self, item)
     }
