@@ -67,11 +67,11 @@ impl<'a> TyTree<'a, Arg> {
                         &callsites.#index.0);
 
                     if callsites.#index.1 {
-                        <#ty as __tw::extract::Extract<B>>::extract_body(
+                        <#ty as __tw::extract::Extract<__B>>::extract_body(
                             &context,
                             body.take().unwrap())
                     } else {
-                        <#ty as __tw::extract::Extract<B>>::extract(&context)
+                        <#ty as __tw::extract::Extract<__B>>::extract(&context)
                     }
                 }}
             },

@@ -12,6 +12,9 @@ pub(crate) struct Resource {
     /// The type implementing `Resource`
     pub self_ty: Box<syn::Type>,
 
+    /// Resource generics
+    generics: syn::Generics,
+
     /// The route handlers implemented by `Resource`
     pub routes: Vec<Route>,
 
@@ -28,10 +31,14 @@ struct Destination {
 }
 
 impl Resource {
-    pub fn new(index: usize, self_ty: Box<syn::Type>) -> Resource {
+    pub fn new(index: usize, item: &syn::ItemImpl) -> Resource {
+        let self_ty = item.self_ty.clone();
+        let generics = item.generics.clone();
+
         Resource {
             index,
             self_ty,
+            generics,
             routes: vec![],
             catches: vec![],
             destinations: vec![],
@@ -51,6 +58,8 @@ impl Resource {
 
         let dummy_const = self.dummy_const();
         let ty = &self.self_ty;
+        let generics = self.resource_generics();
+        let where_predicates = self.where_predicates();
 
         quote! {
             #[allow(warnings)]
@@ -59,10 +68,13 @@ impl Resource {
 
                 #resource_impl
 
-                impl<U> __tw::util::Chain<U> for #ty {
-                    type Output = (Self, U);
+                impl<__U, #generics> __tw::util::Chain<__U> for #ty
+                where
+                    #where_predicates
+                {
+                    type Output = (Self, __U);
 
-                    fn chain(self, other: U) -> Self::Output {
+                    fn chain(self, other: __U) -> Self::Output {
                         (self, other)
                     }
                 }
@@ -72,6 +84,9 @@ impl Resource {
 
     fn gen_impl(&self) -> TokenStream {
         let ty = &self.self_ty;
+
+        let generics = self.resource_generics();
+        let where_predicates = self.where_predicates();
 
         // The destination type is `Either{N}` where `N` is the number of routes
         // or ::MAX_VARIANTS, which ever is smaller. In the latter case, some
@@ -120,18 +135,18 @@ impl Resource {
 
             #async_helper_macro
 
-            pub struct GeneratedResource<S, B>
+            pub struct GeneratedResource<S, B, T>
             where S: __tw::response::Serializer,
                   B: __tw::util::BufStream,
             {
-                inner: ::std::sync::Arc<Inner<S>>,
+                inner: ::std::sync::Arc<Inner<S, T>>,
                 _p: ::std::marker::PhantomData<B>,
             }
 
-            struct Inner<S>
+            struct Inner<S, T>
             where S: __tw::response::Serializer,
             {
-                handler: #ty,
+                handler: T,
                 callsites: CallSites,
                 content_types: ContentTypes<S>,
                 serializer: S,
@@ -140,11 +155,11 @@ impl Resource {
             #callsites_def
             #content_types_def
 
-            impl<S, B> GeneratedResource<S, B>
+            impl<S, B, T> GeneratedResource<S, B, T>
             where S: __tw::response::Serializer,
                   B: __tw::util::BufStream,
             {
-                fn new(handler: #ty, serializer: S) -> Self {
+                fn new(handler: T, serializer: S) -> Self {
                     let callsites = CallSites::new::<B>();
                     let content_types = ContentTypes::new(&serializer);
 
@@ -164,7 +179,7 @@ impl Resource {
                 }
             }
 
-            impl<S, B> Clone for GeneratedResource<S, B>
+            impl<S, B, T> Clone for GeneratedResource<S, B, T>
             where S: __tw::response::Serializer,
                   B: __tw::util::BufStream,
             {
@@ -177,12 +192,13 @@ impl Resource {
                 }
             }
 
-            impl<S, B> __tw::routing::IntoResource<S, B> for #ty
-            where S: __tw::response::Serializer,
-                  B: __tw::util::BufStream,
+            impl<__S, __B, #generics> __tw::routing::IntoResource<__S, __B> for #ty
+            where __S: __tw::response::Serializer,
+                  __B: __tw::util::BufStream,
+                  #where_predicates
             {
                 type Destination = #destination_ty;
-                type Resource = GeneratedResource<S, B>;
+                type Resource = GeneratedResource<__S, __B, #ty>;
 
                 fn routes(&self) -> __tw::routing::RouteSet<Self::Destination> {
                     __tw::routing::Builder::new()
@@ -190,20 +206,21 @@ impl Resource {
                     .build()
                 }
 
-                fn into_resource(self, serializer: S) -> Self::Resource {
+                fn into_resource(self, serializer: __S) -> Self::Resource {
                     GeneratedResource::new(self, serializer)
                 }
             }
 
-            impl<S, B> __tw::routing::Resource for GeneratedResource<S, B>
-            where S: __tw::response::Serializer,
-                  B: __tw::util::BufStream,
+            impl<__S, __B, #generics> __tw::routing::Resource for GeneratedResource<__S, __B, #ty>
+            where __S: __tw::response::Serializer,
+                  __B: __tw::util::BufStream,
+                  #where_predicates
             {
                 // The destination token is used to identify which action to
                 // call
                 type Destination = #destination_ty;
 
-                type RequestBody = B;
+                type RequestBody = __B;
 
                 // The response body's chunk type.
                 type Buf = <Self::Body as __tw::util::BufStream>::Item;
@@ -212,7 +229,7 @@ impl Resource {
                 type Body = <Self::Future as __tw::routing::ResourceFuture>::Body;
 
                 // Future representing processing the request.
-                type Future = ResponseFuture<S, B>;
+                type Future = ResponseFuture<__S, __B, #ty>;
 
                 fn dispatch(
                     &mut self,
@@ -228,13 +245,12 @@ impl Resource {
 
             #catch_impl
 
-            pub struct ResponseFuture<S, B>
+            pub struct ResponseFuture<S, B, T>
             where S: __tw::response::Serializer,
                   B: __tw::util::BufStream,
             {
                 state: State<B>,
-                inner: ::std::sync::Arc<Inner<S>>,
-                _p: ::std::marker::PhantomData<B>,
+                inner: ::std::sync::Arc<Inner<S, T>>,
             }
 
             // Tracks the resource's response state. At a high level, the steps
@@ -257,9 +273,10 @@ impl Resource {
                 Invalid(::std::marker::PhantomData<B>),
             }
 
-            impl<S, B> __tw::routing::ResourceFuture for ResponseFuture<S, B>
-            where S: __tw::response::Serializer,
-                  B: __tw::util::BufStream,
+            impl<__S, __B, #generics> __tw::routing::ResourceFuture for ResponseFuture<__S, __B, #ty>
+            where __S: __tw::response::Serializer,
+                  __B: __tw::util::BufStream,
+                  #where_predicates
             {
                 type Body = ResponseBody;
 
@@ -411,20 +428,23 @@ impl Resource {
     /// Generate code for a resource with no routes
     fn gen_empty_impl(&self) -> TokenStream {
         let ty = &self.self_ty;
+        let generics = self.resource_generics();
+        let where_predicates = self.where_predicates();
 
         quote! {
-            impl<S, B> __tw::routing::IntoResource<S, B> for #ty
-            where S: __tw::response::Serializer,
-                  B: __tw::util::BufStream,
+            impl<__S, __B, #generics> __tw::routing::IntoResource<__S, __B> for #ty
+            where __S: __tw::response::Serializer,
+                  __B: __tw::util::BufStream,
+                  #where_predicates
             {
                 type Destination = ();
-                type Resource = __tw::routing::Unit<B>;
+                type Resource = __tw::routing::Unit<__B>;
 
                 fn routes(&self) -> __tw::routing::RouteSet<Self::Destination> {
                     __tw::routing::RouteSet::new()
                 }
 
-                fn into_resource(self, serializer: S) -> Self::Resource {
+                fn into_resource(self, serializer: __S) -> Self::Resource {
                     __tw::routing::Unit::new()
                 }
             }
@@ -439,6 +459,27 @@ impl Resource {
                 Some(&segments[len-1].ident)
             }
             _ => None,
+        }
+    }
+
+    fn resource_generics(&self) -> TokenStream {
+        let generics = self.generics.params.iter();
+
+        quote! {
+            #(#generics),*
+        }
+    }
+
+    fn where_predicates(&self) -> TokenStream {
+        if let Some(ref clause) = self.generics.where_clause {
+            let predicates = clause.predicates.iter();
+
+            quote! {
+                #(#predicates),*
+            }
+        } else {
+            quote! {
+            }
         }
     }
 
@@ -606,7 +647,6 @@ impl Resource {
             ResponseFuture {
                 state,
                 inner,
-                _p: ::std::marker::PhantomData,
             }
         }
     }
