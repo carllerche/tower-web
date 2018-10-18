@@ -1,14 +1,24 @@
+#![recursion_limit="256"]
+
 extern crate futures;
 extern crate http;
+extern crate serde;
 #[macro_use]
 extern crate tower_web;
+
+use serde::Serialize;
 
 #[macro_use]
 mod support;
 use support::*;
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 struct TestResponse;
+
+#[derive(Debug)]
+struct GenericTestResponse<T> {
+    content: T,
+}
 
 #[derive(Debug, Response)]
 pub struct HelloResponse {
@@ -69,6 +79,11 @@ pub struct DynHeader2 {
 pub enum Either {
     Something(String),
     SomethingElse(String),
+}
+
+#[derive(Response)]
+struct GenResp<T> {
+    inner: T,
 }
 
 impl_web! {
@@ -154,6 +169,23 @@ impl_web! {
         fn no_content_type(&self) -> Result<HelloResponse, ()> {
             Ok(HelloResponse {
                 msg: "hello world",
+            })
+        }
+
+        #[get("/gen_response")]
+        #[content_type("json")]
+        fn gen_response(&self) -> Result<GenResp<String>, ()> {
+            Ok(GenResp {
+                inner: "gen_response".to_string(),
+            })
+        }
+    }
+
+    impl<T: Serialize + Clone> GenericTestResponse<T> {
+        #[get("/generic")]
+        fn generic(&self) -> Result<GenResp<T>, ()> {
+            Ok(GenResp {
+                inner: self.content.clone(),
             })
         }
     }
@@ -249,4 +281,13 @@ fn no_content_type() {
 
     let response = web.call_unwrap(get!("/no_content_type"));
     assert_internal_error!(response);
+}
+
+#[test]
+fn generic_response() {
+    let mut web = service(TestResponse);
+
+    let response = web.call_unwrap(get!("/gen_response"));
+    assert_ok!(response);
+    assert_body!(response, "{\"inner\":\"gen_response\"}");
 }
