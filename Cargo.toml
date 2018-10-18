@@ -8,13 +8,13 @@ name = "tower-web"
 #   - Readme.md
 # - Create "v0.3.x" git tag.
 # - Push documentation
-version = "0.3.1"
+version = "0.3.2"
 license = "MIT"
 authors = ["Carl Lerche <me@carllerche.com>"]
 readme = "README.md"
 repository = "https://github.com/carllerche/tower-web"
 homepage = "https://github.com/carllerche/tower-web"
-documentation = "http://rust-doc.s3-website-us-east-1.amazonaws.com/tower-web/v0.3.1/tower_web/"
+documentation = "http://rust-doc.s3-website-us-east-1.amazonaws.com/tower-web/v0.3.2/tower_web/"
 description = """
 Web framework with a focus on removing boilerplate
 """
