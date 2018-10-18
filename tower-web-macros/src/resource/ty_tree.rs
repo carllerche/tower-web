@@ -45,7 +45,7 @@ impl<'a> TyTree<'a, Arg> {
         self.map_reduce(
             |arg| {
                 let ty = &arg.ty;
-                quote! { <#ty as __tw::extract::Extract<B>>::Future }
+                quote! { <#ty as __tw::extract::Extract<__B>>::Future }
             },
             |tokens| {
                 let join_ty = join_ty(tokens.len());

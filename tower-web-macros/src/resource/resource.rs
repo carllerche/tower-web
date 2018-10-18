@@ -86,6 +86,7 @@ impl Resource {
         let ty = &self.self_ty;
 
         let generics = self.resource_generics();
+        let generic_idents = self.resource_generic_idents();
         let where_predicates = self.where_predicates();
 
         // The destination type is `Either{N}` where `N` is the number of routes
@@ -229,7 +230,7 @@ impl Resource {
                 type Body = <Self::Future as __tw::routing::ResourceFuture>::Body;
 
                 // Future representing processing the request.
-                type Future = ResponseFuture<__S, __B, #ty>;
+                type Future = ResponseFuture<__S, __B, #ty, #generic_idents>;
 
                 fn dispatch(
                     &mut self,
@@ -245,12 +246,13 @@ impl Resource {
 
             #catch_impl
 
-            pub struct ResponseFuture<S, B, T>
-            where S: __tw::response::Serializer,
-                  B: __tw::util::BufStream,
+            pub struct ResponseFuture<__S, __B, __T, #generics>
+            where __S: __tw::response::Serializer,
+                  __B: __tw::util::BufStream,
+                  #where_predicates
             {
-                state: State<B>,
-                inner: ::std::sync::Arc<Inner<S, T>>,
+                state: State<__B, #generic_idents>,
+                inner: ::std::sync::Arc<Inner<__S, __T>>,
             }
 
             // Tracks the resource's response state. At a high level, the steps
@@ -262,23 +264,25 @@ impl Resource {
             // 4) Serialize.
             //
             // Of these steps, 1) and 3) are asynchronous.
-            enum State<B>
-            where B: __tw::util::BufStream,
+            enum State<__B, #generics>
+            where
+                __B: __tw::util::BufStream,
+                #where_predicates
             {
                 Extract(#extract_future_ty),
                 Response(#handler_future_ty),
                 Error(#catch_future_ty),
                 // PhantomData is needed for when the resource has no routes
                 // that use the body component.
-                Invalid(::std::marker::PhantomData<B>),
+                Invalid(::std::marker::PhantomData<(__B, #generic_idents)>),
             }
 
-            impl<__S, __B, #generics> __tw::routing::ResourceFuture for ResponseFuture<__S, __B, #ty>
+            impl<__S, __B, #generics> __tw::routing::ResourceFuture for ResponseFuture<__S, __B, #ty, #generic_idents>
             where __S: __tw::response::Serializer,
                   __B: __tw::util::BufStream,
                   #where_predicates
             {
-                type Body = ResponseBody;
+                type Body = ResponseBody<#generic_idents>;
 
                 fn poll_response(&mut self, request: &__tw::codegen::http::Request<()>)
                     -> __tw::codegen::futures::Poll<__tw::codegen::http::Response<Self::Body>, __tw::Error>
@@ -343,21 +347,21 @@ impl Resource {
             }
 
             /// Response body
-            pub struct ResponseBody(
+            pub struct ResponseBody<#generics>(
                 ::std::result::Result<
                     <<#handler_future_ty as __tw::codegen::futures::Future>::Item as __tw::response::Response>::Body,
                     <<#catch_future_ty as __tw::codegen::futures::Future>::Item as __tw::response::Response>::Body,
-                >);
+                >, ::std::marker::PhantomData<(#generic_idents)>);
 
             /// Response buf
-            pub struct ResponseBuf(
+            pub struct ResponseBuf<#generics>(
                 ::std::result::Result<
                     <<#handler_future_ty as __tw::codegen::futures::Future>::Item as __tw::response::Response>::Buf,
                     <<#catch_future_ty as __tw::codegen::futures::Future>::Item as __tw::response::Response>::Buf,
-                >);
+                >, ::std::marker::PhantomData<(#generic_idents)>);
 
-            impl __tw::util::BufStream for ResponseBody {
-                type Item = ResponseBuf;
+            impl<#generics> __tw::util::BufStream for ResponseBody<#generic_idents> {
+                type Item = ResponseBuf<#generic_idents>;
                 type Error = __tw::Error;
 
                 fn poll(&mut self) -> __tw::codegen::futures::Poll<Option<Self::Item>, Self::Error> {
@@ -365,13 +369,13 @@ impl Resource {
                         Ok(ref mut b) => {
                             let buf = try_ready!(b.poll());
                             Ok(buf.map(|buf| {
-                                ResponseBuf(Ok(buf))
+                                ResponseBuf(Ok(buf), ::std::marker::PhantomData)
                             }).into())
                         }
                         Err(ref mut b) => {
                             let buf = try_ready!(b.poll());
                             Ok(buf.map(|buf| {
-                                ResponseBuf(Err(buf))
+                                ResponseBuf(Err(buf), ::std::marker::PhantomData)
                             }).into())
                         }
                     }
@@ -385,7 +389,7 @@ impl Resource {
                 }
             }
 
-            impl ::std::fmt::Debug for ResponseBody {
+            impl<#generics> ::std::fmt::Debug for ResponseBody<#generic_idents> {
                 fn fmt(&self, fmt: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                     fmt.debug_struct("ResponseBody")
                         .finish()
@@ -393,7 +397,7 @@ impl Resource {
             }
 
             // TODO: Implement default fns
-            impl __tw::codegen::bytes::Buf for ResponseBuf {
+            impl<#generics> __tw::codegen::bytes::Buf for ResponseBuf<#generic_idents> {
                 fn remaining(&self) -> usize {
                     match self.0 {
                         Ok(ref b) => b.remaining(),
@@ -416,7 +420,7 @@ impl Resource {
                 }
             }
 
-            impl ::std::fmt::Debug for ResponseBuf {
+            impl<#generics> ::std::fmt::Debug for ResponseBuf<#generic_idents> {
                 fn fmt(&self, fmt: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                     fmt.debug_struct("ResponseBuf")
                         .finish()
@@ -467,6 +471,24 @@ impl Resource {
 
         quote! {
             #(#generics),*
+        }
+    }
+
+    fn resource_generic_idents(&self) -> TokenStream {
+        use syn::GenericParam::Type;
+
+        let idents = self.generics.params.iter()
+            .map(|param| {
+                match *param {
+                    Type(ref type_param) => {
+                        &type_param.ident
+                    }
+                    _ => unimplemented!(),
+                }
+            });
+
+        quote! {
+            #(#idents),*
         }
     }
 
@@ -736,7 +758,7 @@ impl Resource {
                     context.set_handler_name(#fn_ident);
 
                     __tw::response::Response::into_http(response, &context).map(|response| {
-                        response.map(|body| ResponseBody(Ok(#map)))
+                        response.map(|body| ResponseBody(Ok(#map), ::std::marker::PhantomData))
                     })
                 }
             }
@@ -750,7 +772,7 @@ impl Resource {
                 &self.inner.serializer);
 
             __tw::response::Response::into_http(response, &context).map(|response| {
-                response.map(|body| ResponseBody(Err(body)))
+                response.map(|body| ResponseBody(Err(body), ::std::marker::PhantomData))
             })
         })
     }

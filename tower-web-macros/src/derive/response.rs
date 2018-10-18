@@ -11,6 +11,9 @@ pub(crate) struct Response {
     /// The response type identifier
     ty: Ident,
 
+    /// Any generics on the type
+    generics: syn::Generics,
+
     /// How to obtain the status code for the response
     status: Option<StatusCode>,
 
@@ -51,6 +54,9 @@ impl Response {
 
         // The type of the data having `Response` derived
         let ty = input.ident.clone();
+
+        // Any generics
+        let generics = input.generics.clone();
 
         let mut status = None;
         let mut static_headers = HeaderMap::new();
@@ -141,6 +147,7 @@ impl Response {
 
         Ok(Response {
             ty,
+            generics,
             status,
             static_headers,
             dyn_headers,
@@ -247,13 +254,21 @@ impl Response {
         let static_headers = self.static_headers();
         let dyn_headers = self.dyn_headers();
         let template = self.template();
+        let generics = self.generic_idents();
+
+        let generics_serialize = self.generics_bound_by(
+            quote!(__tw::codegen::serde::Serialize));
+
+        let generics_lt = self.generics_bound_by(
+            quote!('__a + __tw::codegen::serde::Serialize));
 
         Ok(quote! {
             #[allow(unused_variables, non_upper_case_globals)]
             const #dummy_const: () = {
                 extern crate tower_web as __tw;
 
-                impl __tw::response::Response for #ty {
+                impl<#generics_serialize> __tw::response::Response for #ty<#generics>
+                {
                     type Buf = <Self::Body as __tw::util::BufStream>::Item;
                     type Body = __tw::error::Map<__tw::codegen::bytes::Bytes>;
 
@@ -262,9 +277,10 @@ impl Response {
                         context: &__tw::response::Context<S>,
                     ) -> Result<__tw::codegen::http::Response<Self::Body>, __tw::Error>
                     {
-                        struct Lift<'a>(&'a #ty);
+                        struct Lift<'__a, #generics_lt>(&'__a #ty<#generics>);
 
-                        impl<'a> __tw::codegen::serde::Serialize for Lift<'a> {
+                        impl<'__a, #generics_lt> __tw::codegen::serde::Serialize for Lift<'__a, #generics>
+                        {
                             fn serialize<S>(&self, serializer: S) -> ::std::result::Result<S::Ok, S::Error>
                             where S: __tw::codegen::serde::Serializer
                             {
@@ -366,6 +382,54 @@ impl Response {
             #[derive(Serialize)]
             #[serde(remote = #ty)]
             #shadow_data
+        }
+    }
+
+    fn generic_idents(&self) -> TokenStream {
+        use syn::GenericParam::Type;
+
+        let generics = self.generics.params.iter()
+            .map(|param| {
+                match *param {
+                    Type(ref type_param) => {
+                        &type_param.ident
+                    }
+                    _ => unimplemented!(),
+                }
+            });
+
+        quote! {
+            #(#generics),*
+        }
+    }
+
+    fn generics_bound_by(&self, bound: TokenStream) -> TokenStream {
+        use syn::GenericParam::Type;
+
+        let generics = self.generics.params.iter()
+            .map(|param| {
+                match *param {
+                    Type(ref type_param) => {
+                        let ident = &type_param.ident;
+
+                        if type_param.bounds.is_empty() {
+                            quote! {
+                                #ident: #bound
+                            }
+                        } else {
+                            let existing = type_param.bounds.iter();
+
+                            quote! {
+                                #ident: #(#existing)+* + #bound
+                            }
+                        }
+                    }
+                    _ => unimplemented!(),
+                }
+            });
+
+        quote! {
+            #(#generics),*
         }
     }
 
