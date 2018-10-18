@@ -1,3 +1,9 @@
+# 0.3.2 (October 18, 2018)
+
+* Support generics on response types (#144)
+* Support generics on resource types (#143)
+* Percent-decode Strings and PathBufs (#108)
+
 # 0.3.1 (October 10, 2018)
 
 * Fix panic when content-type not provided (#123).
