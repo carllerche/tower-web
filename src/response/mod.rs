@@ -28,11 +28,13 @@ mod default_serializer;
 mod either;
 mod file;
 mod json;
+mod option;
 mod response;
 mod serde;
 mod serializer;
 mod serializer_context;
 mod str;
+mod vec;
 
 pub use self::content_type::ContentType;
 pub use self::context::Context;

@@ -86,6 +86,9 @@ struct GenResp<T> {
     inner: T,
 }
 
+// TODO: Fix the macro to avoid aliasing inner
+type Msg = Inner;
+
 impl_web! {
     impl TestResponse {
         #[get("/hello_world")]
@@ -178,6 +181,24 @@ impl_web! {
             Ok(GenResp {
                 inner: "gen_response".to_string(),
             })
+        }
+
+        #[get("/option_response/:foo")]
+        #[content_type("plain")]
+        fn option_response(&self, foo: u32) -> Result<Option<String>, ()> {
+            if foo == 1 {
+                Ok(Some("hello".to_string()))
+            } else {
+                Ok(None)
+            }
+        }
+
+        #[get("/vec_serialize")]
+        #[content_type("json")]
+        fn vec_serialize(&self) -> Result<Vec<Msg>, ()> {
+            Ok(vec![Inner {
+                msg: "vec_serialize",
+            }])
         }
     }
 
@@ -290,4 +311,25 @@ fn generic_response() {
     let response = web.call_unwrap(get!("/gen_response"));
     assert_ok!(response);
     assert_body!(response, "{\"inner\":\"gen_response\"}");
+}
+
+#[test]
+fn option_response() {
+    let mut web = service(TestResponse);
+
+    let response = web.call_unwrap(get!("/option_response/1"));
+    assert_ok!(response);
+    assert_body!(response, "hello");
+
+    let response = web.call_unwrap(get!("/option_response/0"));
+    assert_not_found!(response);
+}
+
+#[test]
+fn vec_serialize() {
+    let mut web = service(TestResponse);
+
+    let response = web.call_unwrap(get!("/vec_serialize"));
+    assert_ok!(response);
+    assert_body!(response, r#"[{"msg":"vec_serialize"}]"#);
 }
