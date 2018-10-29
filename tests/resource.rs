@@ -26,6 +26,17 @@ struct EmptyGeneric<S>(S);
 #[derive(Clone, Debug)]
 struct EmptyWhere<S>(S);
 
+#[derive(Response)]
+struct Inner<T>(T);
+
+#[derive(Serialize)]
+struct GeneratedResource<T>(T);
+
+#[derive(Serialize)]
+struct ResponseFuture {
+    msg: &'static str,
+}
+
 impl_web! {
     impl TestResource {
         #[get("/impl_future")]
@@ -33,6 +44,14 @@ impl_web! {
         fn impl_future(&self) -> impl Future<Item = &'static str, Error = ()> {
             use futures::IntoFuture;
             Ok("impl_future").into_future()
+        }
+
+        #[get("/inner")]
+        #[content_type("json")]
+        fn inner(&self) -> Result<Inner<GeneratedResource<ResponseFuture>>, ()> {
+            Ok(Inner(GeneratedResource(ResponseFuture {
+                msg: "hello",
+            })))
         }
     }
 
@@ -85,4 +104,13 @@ fn generic() {
     let response = web.call_unwrap(get!("/"));
     assert_ok!(response);
     assert_body!(response, "hello");
+}
+
+#[test]
+fn inner_type() {
+    let mut web = service(TestResource);
+
+    let response = web.call_unwrap(get!("/inner"));
+    assert_ok!(response);
+    assert_body!(response, r#"{"msg":"hello"}"#);
 }

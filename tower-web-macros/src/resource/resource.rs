@@ -136,15 +136,15 @@ impl Resource {
 
             #async_helper_macro
 
-            pub struct GeneratedResource<S, B, T>
+            pub struct __GeneratedResource<S, B, T>
             where S: __tw::response::Serializer,
                   B: __tw::util::BufStream,
             {
-                inner: ::std::sync::Arc<Inner<S, T>>,
+                inner: ::std::sync::Arc<__Inner<S, T>>,
                 _p: ::std::marker::PhantomData<B>,
             }
 
-            struct Inner<S, T>
+            struct __Inner<S, T>
             where S: __tw::response::Serializer,
             {
                 handler: T,
@@ -156,7 +156,7 @@ impl Resource {
             #callsites_def
             #content_types_def
 
-            impl<S, B, T> GeneratedResource<S, B, T>
+            impl<S, B, T> __GeneratedResource<S, B, T>
             where S: __tw::response::Serializer,
                   B: __tw::util::BufStream,
             {
@@ -166,27 +166,27 @@ impl Resource {
 
                     callsites.verify();
 
-                    let inner = ::std::sync::Arc::new(Inner {
+                    let inner = ::std::sync::Arc::new(__Inner {
                         handler,
                         callsites,
                         content_types,
                         serializer,
                     });
 
-                    GeneratedResource {
+                    __GeneratedResource {
                         inner,
                         _p: ::std::marker::PhantomData,
                     }
                 }
             }
 
-            impl<S, B, T> Clone for GeneratedResource<S, B, T>
+            impl<S, B, T> Clone for __GeneratedResource<S, B, T>
             where S: __tw::response::Serializer,
                   B: __tw::util::BufStream,
             {
                 fn clone(&self) -> Self {
                     let inner = self.inner.clone();
-                    GeneratedResource {
+                    __GeneratedResource {
                         inner,
                         _p: ::std::marker::PhantomData,
                     }
@@ -199,7 +199,7 @@ impl Resource {
                   #where_predicates
             {
                 type Destination = #destination_ty;
-                type Resource = GeneratedResource<__S, __B, #ty>;
+                type Resource = __GeneratedResource<__S, __B, #ty>;
 
                 fn routes(&self) -> __tw::routing::RouteSet<Self::Destination> {
                     __tw::routing::Builder::new()
@@ -208,11 +208,11 @@ impl Resource {
                 }
 
                 fn into_resource(self, serializer: __S) -> Self::Resource {
-                    GeneratedResource::new(self, serializer)
+                    __GeneratedResource::new(self, serializer)
                 }
             }
 
-            impl<__S, __B, #generics> __tw::routing::Resource for GeneratedResource<__S, __B, #ty>
+            impl<__S, __B, #generics> __tw::routing::Resource for __GeneratedResource<__S, __B, #ty>
             where __S: __tw::response::Serializer,
                   __B: __tw::util::BufStream,
                   #where_predicates
@@ -230,7 +230,7 @@ impl Resource {
                 type Body = <Self::Future as __tw::routing::ResourceFuture>::Body;
 
                 // Future representing processing the request.
-                type Future = ResponseFuture<__S, __B, #ty, #generic_idents>;
+                type Future = __ResponseFuture<__S, __B, #ty, #generic_idents>;
 
                 fn dispatch(
                     &mut self,
@@ -246,13 +246,13 @@ impl Resource {
 
             #catch_impl
 
-            pub struct ResponseFuture<__S, __B, __T, #generics>
+            pub struct __ResponseFuture<__S, __B, __T, #generics>
             where __S: __tw::response::Serializer,
                   __B: __tw::util::BufStream,
                   #where_predicates
             {
                 state: State<__B, #generic_idents>,
-                inner: ::std::sync::Arc<Inner<__S, __T>>,
+                inner: ::std::sync::Arc<__Inner<__S, __T>>,
             }
 
             // Tracks the resource's response state. At a high level, the steps
@@ -277,7 +277,7 @@ impl Resource {
                 Invalid(::std::marker::PhantomData<(__B, #generic_idents)>),
             }
 
-            impl<__S, __B, #generics> __tw::routing::ResourceFuture for ResponseFuture<__S, __B, #ty, #generic_idents>
+            impl<__S, __B, #generics> __tw::routing::ResourceFuture for __ResponseFuture<__S, __B, #ty, #generic_idents>
             where __S: __tw::response::Serializer,
                   __B: __tw::util::BufStream,
                   #where_predicates
@@ -666,7 +666,7 @@ impl Resource {
             let state = State::Extract(either);
             let inner = self.inner.clone();
 
-            ResponseFuture {
+            __ResponseFuture {
                 state,
                 inner,
             }
