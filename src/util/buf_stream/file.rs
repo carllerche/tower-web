@@ -12,7 +12,7 @@ impl BufStream for File {
     type Error = io::Error;
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        let mut v = BytesMut::new();
+        let mut v = BytesMut::with_capacity(8 * 1024);
 
         let len = try_ready!(self.read_buf(&mut v));
 
