@@ -312,7 +312,7 @@ impl Response {
                             .unwrap()
                             .or_insert_with(|| {
                                 context.content_type_header()
-                                    .map(|content_type| content_type.clone())
+                                    .cloned()
                                     .unwrap_or_else(|| {
                                         __tw::codegen::http::header::HeaderValue::from_static("application/octet-stream")
                                     })
