@@ -8,13 +8,13 @@ name = "tower-web"
 #   - Readme.md
 # - Create "v0.3.x" git tag.
 # - Push documentation
-version = "0.3.2"
+version = "0.3.3"
 license = "MIT"
 authors = ["Carl Lerche <me@carllerche.com>"]
 readme = "README.md"
 repository = "https://github.com/carllerche/tower-web"
 homepage = "https://github.com/carllerche/tower-web"
-documentation = "http://rust-doc.s3-website-us-east-1.amazonaws.com/tower-web/v0.3.2/tower_web/"
+documentation = "http://rust-doc.s3-website-us-east-1.amazonaws.com/tower-web/v0.3.3/tower_web/"
 description = """
 Web framework with a focus on removing boilerplate
 """
@@ -63,7 +63,7 @@ serde_plain = "0.3.0"
 serde_urlencoded = "0.5.1"
 
 # Code gen
-tower-web-macros = { version = "0.3.1", path = "tower-web-macros" }
+tower-web-macros = { version = "0.3.2", path = "tower-web-macros" }
 proc-macro-hack = "0.4.0"
 
 # Deflate middleware
