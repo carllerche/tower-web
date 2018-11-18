@@ -7,6 +7,9 @@ use tokio_io::{AsyncRead, AsyncWrite};
 use std::io;
 use std::net::SocketAddr;
 
+#[cfg(feature = "rustls")]
+use tokio_rustls::{TlsStream, rustls::ServerSession};
+
 /// A stream between a local and remote target.
 pub trait Connection: AsyncRead + AsyncWrite {
     /// Returns the socket address of the remote peer of this connection.
@@ -26,6 +29,13 @@ pub trait ConnectionStream {
 impl Connection for TcpStream {
     fn peer_addr(&self) -> Option<SocketAddr> {
         TcpStream::peer_addr(self).ok()
+    }
+}
+
+#[cfg(feature = "rustls")]
+impl Connection for TlsStream<TcpStream, ServerSession> {
+    fn peer_addr(&self) -> Option<SocketAddr> {
+        TcpStream::peer_addr(self.get_ref().0).ok()
     }
 }
 
