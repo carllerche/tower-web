@@ -5,7 +5,7 @@ use percent_encoding;
 use std::borrow::Cow;
 use util::BufStream;
 
-use futures::{Future, Poll, Async};
+use futures::{Poll, Async};
 
 #[derive(Debug)]
 pub struct ExtractString<B> {
@@ -78,7 +78,7 @@ where
         Ok(Async::Ready(()))
     }
 
-    fn extract(mut self) -> String {
+    fn extract(self) -> String {
         self.item.unwrap()
     }
 }
