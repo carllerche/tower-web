@@ -488,6 +488,9 @@ extern crate handlebars;
 #[cfg(feature = "async-await-preview")]
 extern crate tokio_async_await;
 
+#[cfg(feature = "rustls")]
+extern crate tokio_rustls;
+
 pub mod codegen;
 pub mod config;
 pub mod error;
