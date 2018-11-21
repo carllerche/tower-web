@@ -1,0 +1,11 @@
+[package]
+name = "rustls"
+version = "0.1.0"
+
+# Used to escape the parent workspace.
+[workspace]
+
+[dependencies]
+tokio = "0.1.10"
+tower-web = { path = "../..", features = ["rustls"] }
+tokio-rustls = "0.8.0"
