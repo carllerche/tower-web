@@ -46,6 +46,15 @@ as well as code.
 4) Import Tokio's [`await!` macro][await].
 5) Define [`async`][async-handler] handlers.
 
+Support for serving data over TLS is provided with the rustls feature.
+The [`rustls`](rustls) directory contains an example along with a
+[Cargo.toml](ruslts/Cargo.toml) file.
+
+1) Add [`features = ["rustls"]`](rustls/Cargo.toml) to the `tower-web` dependency.
+2) Import [tokio-rustls](https://crates.io/crates/tokio-rustls).
+3) Configure [TLSAccptor](rustls/src/main.rs#L47).
+4) Wrap [incomming TcpStream](ruslts/src/main.rs#66) and handle errors
+
 [`async-await`]: async-await
 [`Cargo.toml`]: async-await/Cargo.toml
 [2018]: async-await/Cargo.toml
