@@ -53,7 +53,7 @@ The [`rustls`](rustls) directory contains an example along with a
 1) Add [`features = ["rustls"]`](rustls/Cargo.toml) to the `tower-web` dependency.
 2) Import [tokio-rustls](https://crates.io/crates/tokio-rustls).
 3) Configure [TLSAcceptor](rustls/src/main.rs#L47).
-4) Wrap [incoming TcpStream](rustls/src/main.rs#66) and handle errors
+4) Wrap [incoming TcpStream](rustls/src/main.rs#L66) and handle errors
 
 [`async-await`]: async-await
 [`Cargo.toml`]: async-await/Cargo.toml
