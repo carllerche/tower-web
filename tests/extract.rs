@@ -75,6 +75,14 @@ impl_web! {
             Ok("extract_body_wrap")
         }
 
+        #[post("/extract_body_str")]
+        #[content_type("plain")]
+        fn extract_body_str(&self, body: String) -> Result<String, ()> {
+            let mut out = "extract_body_str\n".to_string();
+            out.push_str(&body);
+            Ok(out)
+        }
+
         #[post("/extract_x_www_form_urlencoded")]
         #[content_type("plain")]
         fn extract_x_www_form_urlencoded(&self, body: Foo) -> Result<&'static str, ()> {
@@ -178,4 +186,29 @@ fn extract_with_default() {
     let response = web.call_unwrap(get!("/extract_with_default"));
     assert_ok!(response);
     assert_body!(response, "extract_with_default");
+}
+
+#[test]
+fn extract_str() {
+    let mut web = service(TestExtract);
+
+    let body = "zomg a body";
+
+    let response = web.call_unwrap(
+        post!("/extract_body_str", body, "content-type": "text/plain"));
+
+    assert_ok!(response);
+    assert_body!(response, "extract_body_str\nzomg a body");
+
+    // ensure the body is *not* decoded
+
+    let mut web = service(TestExtract);
+
+    let body = "zomg %20 body";
+
+    let response = web.call_unwrap(
+        post!("/extract_body_str", body, "content-type": "text/plain"));
+
+    assert_ok!(response);
+    assert_body!(response, "extract_body_str\nzomg %20 body");
 }
