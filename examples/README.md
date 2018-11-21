@@ -48,7 +48,7 @@ as well as code.
 
 Support for serving data over TLS is provided with the rustls feature.
 The [`rustls`](rustls) directory contains an example along with a
-[Cargo.toml](ruslts/Cargo.toml) file.
+[Cargo.toml](rustls/Cargo.toml) file.
 
 1) Add [`features = ["rustls"]`](rustls/Cargo.toml) to the `tower-web` dependency.
 2) Import [tokio-rustls](https://crates.io/crates/tokio-rustls).
