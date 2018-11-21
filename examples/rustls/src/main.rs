@@ -44,7 +44,7 @@ pub fn main() {
         Err(_)  => "127.0.0.1:8443".parse().unwrap(),
     };
 
-    // wrap_with_tls is a TlsAcceptor that can be used to wrap the TCP socket with TLS
+    // tls_config is a TlsAcceptor that can be used to wrap the TCP socket with TLS
     //
     // To generate self signed certs for testing on localhost you can use the
     // following command:
