@@ -16,6 +16,7 @@ pub struct ErrorKind {
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 enum KindPriv {
     BadRequest,
+    Unauthorized,
     NotFound,
     Internal,
 }
@@ -33,6 +34,7 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match self.kind.kind {
             BadRequest => "Bad request",
+            Unauthorized => "Unauthorized",
             NotFound => "Not found",
             Internal => "Internal error",
         }
@@ -80,6 +82,11 @@ impl ErrorKind {
         self.kind == BadRequest
     }
 
+    /// Returns a new `ErrorKind` value representing a 401 -- unauthorized error.
+    pub fn unauthorized() -> ErrorKind {
+        ErrorKind { kind: Unauthorized }
+    }
+
     /// Returns a new `ErrorKind` value representing a 404 -- not found error
     pub fn not_found() -> ErrorKind {
         ErrorKind { kind: NotFound }
@@ -106,6 +113,7 @@ impl fmt::Debug for ErrorKind {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         match self.kind {
             BadRequest => "ErrorKind::BadRequest",
+            Unauthorized => "ErrorKind::Unauthorized",
             NotFound => "ErrorKind::NotFound",
             Internal => "ErrorKind::Internal",
         }.fmt(fmt)
