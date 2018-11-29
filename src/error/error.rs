@@ -20,6 +20,7 @@ enum KindPriv {
     Unauthorized,
     Fordidden,
     NotFound,
+    UnprocessableEntity,
     Internal,
 }
 
@@ -38,6 +39,7 @@ impl Error {
             Unauthorized => StatusCode::UNAUTHORIZED,
             Fordidden => StatusCode::FORBIDDEN,
             NotFound => StatusCode::NOT_FOUND,
+            UnprocessableEntity => StatusCode::UNPROCESSABLE_ENTITY,
             Internal => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
@@ -110,6 +112,11 @@ impl ErrorKind {
         self.kind == NotFound
     }
 
+    /// Returns a new `ErrorKind` value representing a 422 -- unprocessable entity error
+    pub fn unprocessable_entity() -> ErrorKind {
+        ErrorKind { kind: UnprocessableEntity }
+    }
+
     /// Returns a new `ErrorKind` value representing 500 -- internal server
     /// error.
     pub fn internal() -> ErrorKind {
@@ -129,6 +136,7 @@ impl fmt::Debug for ErrorKind {
             Unauthorized => "ErrorKind::Unauthorized",
             Fordidden => "ErrorKind::Forbidden",
             NotFound => "ErrorKind::NotFound",
+            UnprocessableEntity => "ErrorKind::UnprocessableEntity",
             Internal => "ErrorKind::Internal",
         }.fmt(fmt)
     }
