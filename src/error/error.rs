@@ -2,6 +2,7 @@ use self::KindPriv::*;
 
 use std::error;
 use std::fmt;
+use http::status::StatusCode;
 
 /// Errors that can happen inside Tower Web.
 pub struct Error {
@@ -28,16 +29,21 @@ impl Error {
     pub fn kind(&self) -> &ErrorKind {
         &self.kind
     }
+
+    /// Returns a status code for this error.
+    pub fn status_code(&self) -> StatusCode {
+        match self.kind.kind {
+            BadRequest => StatusCode::BAD_REQUEST,
+            Unauthorized => StatusCode::UNAUTHORIZED,
+            NotFound => StatusCode::NOT_FOUND,
+            Internal => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
 }
 
 impl error::Error for Error {
     fn description(&self) -> &str {
-        match self.kind.kind {
-            BadRequest => "Bad request",
-            Unauthorized => "Unauthorized",
-            NotFound => "Not found",
-            Internal => "Internal error",
-        }
+        self.status_code().canonical_reason().unwrap_or("Unknown status code")
     }
 }
 

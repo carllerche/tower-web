@@ -385,7 +385,7 @@ impl<T, S, C, M> ServiceBuilder<T, S, C, M> {
     /// ServiceBuilder::new()
     ///     .resource(MyResource)
     ///     .catch(|_: &http::Request<()>, error: tower_web::Error| {
-    ///         assert!(error.kind().is_not_found());
+    ///         assert!(error.status_code() == http::StatusCode::NOT_FOUND);
     ///
     ///         let response = http::response::Builder::new()
     ///             .status(404)
