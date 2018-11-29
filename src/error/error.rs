@@ -18,6 +18,7 @@ pub struct ErrorKind {
 enum KindPriv {
     BadRequest,
     Unauthorized,
+    Fordidden,
     NotFound,
     Internal,
 }
@@ -35,6 +36,7 @@ impl Error {
         match self.kind.kind {
             BadRequest => StatusCode::BAD_REQUEST,
             Unauthorized => StatusCode::UNAUTHORIZED,
+            Fordidden => StatusCode::FORBIDDEN,
             NotFound => StatusCode::NOT_FOUND,
             Internal => StatusCode::INTERNAL_SERVER_ERROR,
         }
@@ -93,6 +95,11 @@ impl ErrorKind {
         ErrorKind { kind: Unauthorized }
     }
 
+    /// Returns a new `ErrorKind` value representing a 403 -- forbidden error.
+    pub fn forbidden() -> ErrorKind {
+        ErrorKind { kind: Fordidden }
+    }
+
     /// Returns a new `ErrorKind` value representing a 404 -- not found error
     pub fn not_found() -> ErrorKind {
         ErrorKind { kind: NotFound }
@@ -120,6 +127,7 @@ impl fmt::Debug for ErrorKind {
         match self.kind {
             BadRequest => "ErrorKind::BadRequest",
             Unauthorized => "ErrorKind::Unauthorized",
+            Fordidden => "ErrorKind::Forbidden",
             NotFound => "ErrorKind::NotFound",
             Internal => "ErrorKind::Internal",
         }.fmt(fmt)
