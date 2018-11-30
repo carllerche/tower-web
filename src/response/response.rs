@@ -44,3 +44,15 @@ where T: BufStream,
         Ok(self.map(error::Map::new))
     }
 }
+
+impl<R, E> Response for Result<R, E>
+where R: Response,
+      E: Into<::Error>,
+{
+    type Buf = R::Buf;
+    type Body = R::Body;
+
+    fn into_http<S: Serializer>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, ::Error> {
+        self.map_err(|err| err.into()).and_then(|resp| resp.into_http(context))
+    }
+}
