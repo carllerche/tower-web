@@ -91,15 +91,10 @@ impl Catch for DefaultCatch {
     type Future = future::FutureResult<http::Response<Self::Body>, Error>;
 
     fn catch(&mut self, _request: &http::Request<()>, error: Error) -> Self::Future {
-        // TODO: Improve the default errors
-        let (status, msg) = if error.kind().is_not_found() {
-            (404, "not found")
-        } else if error.kind().is_bad_request() {
-            (400, "bad request")
-        } else {
-            (500, "internal server error")
-        };
+        let status = error.status_code().as_u16();
+        let msg = error.status_code().canonical_reason().unwrap_or("Unknown status code");
 
+        // TODO: Improve the default errors
         let response = http::response::Builder::new()
             .status(status)
             .header("content-type", "text/plain")

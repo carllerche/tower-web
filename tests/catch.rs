@@ -63,7 +63,7 @@ fn default_catch_internal() {
 
     let response = web.call_unwrap(get!("/buggy"));
     assert_internal_error!(response);
-    assert_body!(response, "internal server error");
+    assert_body!(response, "Internal Server Error");
 }
 
 #[test]
@@ -72,7 +72,7 @@ fn default_catch_not_found() {
 
     let response = web.call_unwrap(get!("/missing"));
     assert_not_found!(response);
-    assert_body!(response, "not found");
+    assert_body!(response, "Not Found");
 }
 
 #[test]
@@ -82,10 +82,10 @@ fn custom_global_catch() {
     let mut web = ::tower_web::ServiceBuilder::new()
         .resource(TestDefaultCatch)
         .catch(|_: &http::Request<()>, error: ::tower_web::Error| {
-            assert!(error.kind().is_not_found());
+            assert!(error.status_code() == http::StatusCode::NOT_FOUND);
 
             let response = http::response::Builder::new()
-                .status(404)
+                .status(http::StatusCode::NOT_FOUND)
                 .header("content-type", "text/plain")
                 .body("where you at?")
                 .unwrap();

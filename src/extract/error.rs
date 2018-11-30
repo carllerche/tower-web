@@ -44,7 +44,8 @@ impl Error {
         }
     }
 
-    pub(crate) fn web(err: ::Error) -> Error {
+    /// Extraction cannot be processed because of a web error.
+    pub fn web(err: ::Error) -> Error {
         Error { kind: Web(err) }
     }
 

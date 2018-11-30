@@ -2,6 +2,7 @@ use self::KindPriv::*;
 
 use std::error;
 use std::fmt;
+use http::status::StatusCode;
 
 /// Errors that can happen inside Tower Web.
 pub struct Error {
@@ -16,7 +17,10 @@ pub struct ErrorKind {
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 enum KindPriv {
     BadRequest,
+    Unauthorized,
+    Fordidden,
     NotFound,
+    UnprocessableEntity,
     Internal,
 }
 
@@ -27,15 +31,23 @@ impl Error {
     pub fn kind(&self) -> &ErrorKind {
         &self.kind
     }
+
+    /// Returns a status code for this error.
+    pub fn status_code(&self) -> StatusCode {
+        match self.kind.kind {
+            BadRequest => StatusCode::BAD_REQUEST,
+            Unauthorized => StatusCode::UNAUTHORIZED,
+            Fordidden => StatusCode::FORBIDDEN,
+            NotFound => StatusCode::NOT_FOUND,
+            UnprocessableEntity => StatusCode::UNPROCESSABLE_ENTITY,
+            Internal => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
 }
 
 impl error::Error for Error {
     fn description(&self) -> &str {
-        match self.kind.kind {
-            BadRequest => "Bad request",
-            NotFound => "Not found",
-            Internal => "Internal error",
-        }
+        self.status_code().canonical_reason().unwrap_or("Unknown status code")
     }
 }
 
@@ -80,6 +92,16 @@ impl ErrorKind {
         self.kind == BadRequest
     }
 
+    /// Returns a new `ErrorKind` value representing a 401 -- unauthorized error.
+    pub fn unauthorized() -> ErrorKind {
+        ErrorKind { kind: Unauthorized }
+    }
+
+    /// Returns a new `ErrorKind` value representing a 403 -- forbidden error.
+    pub fn forbidden() -> ErrorKind {
+        ErrorKind { kind: Fordidden }
+    }
+
     /// Returns a new `ErrorKind` value representing a 404 -- not found error
     pub fn not_found() -> ErrorKind {
         ErrorKind { kind: NotFound }
@@ -88,6 +110,11 @@ impl ErrorKind {
     /// Returns `true` if `self` represents a 404 -- not found error
     pub fn is_not_found(&self) -> bool {
         self.kind == NotFound
+    }
+
+    /// Returns a new `ErrorKind` value representing a 422 -- unprocessable entity error
+    pub fn unprocessable_entity() -> ErrorKind {
+        ErrorKind { kind: UnprocessableEntity }
     }
 
     /// Returns a new `ErrorKind` value representing 500 -- internal server
@@ -106,7 +133,10 @@ impl fmt::Debug for ErrorKind {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         match self.kind {
             BadRequest => "ErrorKind::BadRequest",
+            Unauthorized => "ErrorKind::Unauthorized",
+            Fordidden => "ErrorKind::Forbidden",
             NotFound => "ErrorKind::NotFound",
+            UnprocessableEntity => "ErrorKind::UnprocessableEntity",
             Internal => "ErrorKind::Internal",
         }.fmt(fmt)
     }
