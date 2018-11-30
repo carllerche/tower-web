@@ -96,16 +96,21 @@ where
                 // - remote_addr
                 // - response content length
                 // - date
+                let status_code = response.status().as_u16();
+                let level = match status_code {
+                    400...500 => Level::Error,
+                    _ => Level::Info,
+                };
                 logger().log(&Record::builder()
                     .args(format_args!(
                         "\"{} {} {:?}\" {} {:?}",
                         context.method,
                         full_path,
                         context.version,
-                        response.status().as_u16(),
+                        status_code,
                         context.start.elapsed(),
                     ))
-                    .level(Level::Info)
+                    .level(level)
                     .target(context.target)
                     .module_path(Some(module_path!()))
                     .file(Some(file!()))
