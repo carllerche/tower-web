@@ -888,6 +888,15 @@ fn variant(index: usize, max: usize) -> TokenStream {
         0 => quote! { #either::A },
         1 => quote! { #either::B },
         2 => quote! { #either::C },
+        3 => quote! { #either::D },
+        4 => quote! { #either::E },
+        5 => quote! { #either::F },
+        6 => quote! { #either::G },
+        7 => quote! { #either::H },
+        8 => quote! { #either::I },
+        9 => quote! { #either::J },
+        10 => quote! { #either::K },
+        11 => quote! { #either::L },
         n => panic!("unimplemented; variant {}", n),
     }
 }
