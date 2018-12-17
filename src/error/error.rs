@@ -71,6 +71,7 @@ impl fmt::Display for Error {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         use std::error::Error;
 
+        #[allow(deprecated)] // .cause() is deprecated on nightly
         if let Some(cause) = self.cause() {
             write!(fmt, "{}: {}", self.description(), cause)
         } else {
