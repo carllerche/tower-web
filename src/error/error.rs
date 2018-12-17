@@ -68,10 +68,10 @@ impl fmt::Debug for Error {
 }
 
 impl fmt::Display for Error {
+    #[allow(deprecated)] // .cause() is deprecated on nightly
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         use std::error::Error;
 
-        #[allow(deprecated)] // .cause() is deprecated on nightly
         if let Some(cause) = self.cause() {
             write!(fmt, "{}: {}", self.description(), cause)
         } else {
