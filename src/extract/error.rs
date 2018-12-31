@@ -1,6 +1,6 @@
 use self::Kind::*;
 
-use error::ErrorKind;
+use http::status::StatusCode;
 
 /// Errors that can happen while extracting data from an HTTP request.
 #[derive(Debug)]
@@ -50,14 +50,14 @@ impl Error {
     }
 
     pub(crate) fn internal_error() -> Error {
-        Error::web(ErrorKind::internal().into())
+        ::Error::from(StatusCode::BAD_REQUEST).into()
     }
 }
 
 impl From<Error> for ::Error {
-    fn from(err: Error) -> ::Error {
+    fn from(err: Error) -> Self {
         match err.kind {
-            Missing | Invalid(_) => ErrorKind::bad_request().into(),
+            Missing | Invalid(_) => ::Error::from(StatusCode::BAD_REQUEST),
             Web(err) => err,
         }
     }

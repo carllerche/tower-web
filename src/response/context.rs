@@ -3,6 +3,7 @@ use response::{Serializer, SerializerContext};
 use bytes::Bytes;
 use http;
 use http::header::HeaderValue;
+use http::status::StatusCode;
 use serde::Serialize;
 
 /// Context available when serializing the response.
@@ -105,7 +106,7 @@ where
             Some(format) => format,
             None => {
                 warn!("no default serialization format associated with action");
-                return Err(::error::ErrorKind::internal().into());
+                return Err(::Error::from(StatusCode::INTERNAL_SERVER_ERROR));
             }
         };
 

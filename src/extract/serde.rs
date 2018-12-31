@@ -2,6 +2,7 @@
 
 use codegen::CallSite;
 use extract::{Context, Error, ExtractFuture};
+use http::status::StatusCode;
 use util::buf_stream::{self, BufStream};
 
 use futures::{Future, Poll};
@@ -112,14 +113,14 @@ where T: DeserializeOwned,
                             SerdeFuture { state, is_json: false }   
                         }
                         _ => {
-                            let err = Error::web(::Error::from(::error::ErrorKind::bad_request()));
+                            let err = ::Error::from(StatusCode::BAD_REQUEST).into();
                             let state = State::Complete(Err(Some(err)));
 
                             SerdeFuture { state, is_json: false }
                         }
                     } 
                 } else {
-                    let err = Error::web(::Error::from(::error::ErrorKind::bad_request()));
+                    let err = ::Error::from(StatusCode::BAD_REQUEST).into();
                     let state = State::Complete(Err(Some(err)));
 
                     SerdeFuture { state, is_json: false }
