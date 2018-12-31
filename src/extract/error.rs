@@ -62,3 +62,9 @@ impl From<Error> for ::Error {
         }
     }
 }
+
+impl From<::Error> for Error {
+    fn from(err: ::Error) -> Self {
+        Self::web(err)
+    }
+}
