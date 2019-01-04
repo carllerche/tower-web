@@ -15,7 +15,7 @@ mod resource;
 
 use proc_macro::TokenStream;
 
-const MAX_VARIANTS: usize = 3;
+const MAX_VARIANTS: usize = 12;
 
 proc_macro_item_impl! {
     /// Implement a Web Service
