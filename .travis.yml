@@ -9,6 +9,9 @@ matrix:
     - rust: 1.29.0
       script: cargo build
 
+  allow_failures:
+    - rust: nightly
+
 script:
   - cargo check --no-default-features
   - cargo test --lib --no-default-features
