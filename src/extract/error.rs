@@ -44,11 +44,6 @@ impl Error {
         }
     }
 
-    /// Extraction cannot be processed because of a web error.
-    pub fn web(err: ::Error) -> Error {
-        Error { kind: Web(err) }
-    }
-
     pub(crate) fn internal_error() -> Error {
         ::Error::from(StatusCode::BAD_REQUEST).into()
     }
@@ -65,6 +60,6 @@ impl From<Error> for ::Error {
 
 impl From<::Error> for Error {
     fn from(err: ::Error) -> Self {
-        Self::web(err)
+        Error { kind: Web(err) }
     }
 }
