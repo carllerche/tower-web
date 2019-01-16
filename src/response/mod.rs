@@ -9,7 +9,7 @@
 //!
 //! * [`String`](https://doc.rust-lang.org/std/string/struct.String.html)
 //! * [`&'static str`](https://doc.rust-lang.org/std/primitive.str.html)
-//! * [`http::Response`](https://docs.rs/http/0.1http/response/struct.Response.html)
+//! * [`http::Response`](https://docs.rs/http/0.1/http/response/struct.Response.html)
 //! * [`serde_json::Value`](https://docs.rs/serde_json/1/serde_json/enum.Value.html)
 //! * [`tokio::fs::File`](https://docs.rs/tokio-fs/0.1/tokio_fs/file/struct.File.html)
 //!
