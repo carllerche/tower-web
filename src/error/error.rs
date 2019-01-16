@@ -4,6 +4,12 @@ use std::error;
 use std::fmt;
 use http::StatusCode;
 
+/// Builder for Error objects.
+#[derive(Debug)]
+pub struct Builder {
+    error: Error,
+}
+
 /// Errors that can happen inside Tower Web.
 /// The object of this type is serializable into "Problem Detail" as defined in RFC7807.
 #[derive(Serialize)]
@@ -23,6 +29,35 @@ pub struct Error {
     error_kind: ErrorKind,
 }
 
+// ===== impl Builder =====
+
+impl Builder {
+    fn new (status: StatusCode) -> Self {
+        Self {
+            error: Error::from(status),
+        }
+    }
+
+    /// Set kind and title of the error.
+    pub fn kind(self, kind: &str, title: &str) -> Self {
+        Self {
+            error: Error::new(kind, title, self.error.status),
+        }
+    }
+
+    /// Set detailed information about the error.
+    pub fn detail(self, detail: &str) -> Self {
+        let mut error = Error::new(&self.error.kind, &self.error.title, self.error.status);
+        error.set_detail(detail);
+        Self { error }
+    }
+
+    /// Create an error object.
+    pub fn build(self) -> Error {
+        self.error
+    }
+}
+
 // ===== impl Error =====
 
 impl Error {
@@ -34,7 +69,7 @@ impl Error {
         &self.error_kind
     }
 
-    /// Creates an error object.
+    /// Create an error object.
     pub fn new(kind: &str, title: &str, status: StatusCode) -> Self {
         Self {
             kind: kind.to_owned(),
@@ -47,24 +82,20 @@ impl Error {
         }
     }
 
-    // NOTE: type of this property might be changed in the future.
-    // Nevertheless, String type should be accepted.
-    /// Provides detailed information about the error.
-    pub fn detail(self, detail: &str) -> Self {
-        Self {
-            kind: self.kind,
-            title: self.title,
-            detail: Some(detail.to_owned()),
-            status: self.status,
-
-            // TODO: this property isn't used and should be removed
-            error_kind: self.error_kind,
-        }
+    /// Set detailed information about the error.
+    pub fn set_detail(&mut self, value: &str) -> &mut Self {
+        self.detail = Some(value.to_owned());
+        self
     }
 
-    /// Returns a status code for this error.
+    /// Return a status code for this error.
     pub fn status_code(&self) -> StatusCode {
         self.status
+    }
+
+    /// Create an error builder object.
+    pub fn builder(status: StatusCode) -> Builder {
+        Builder::new(status)
     }
 }
 
