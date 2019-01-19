@@ -7,7 +7,9 @@ use http::StatusCode;
 /// Builder for Error objects.
 #[derive(Debug)]
 pub struct Builder {
-    error: Error,
+    kind: Option<(String, String)>,
+    detail: Option<String>,
+    status: Option<StatusCode>,
 }
 
 /// Errors that can happen inside Tower Web.
@@ -32,29 +34,59 @@ pub struct Error {
 // ===== impl Builder =====
 
 impl Builder {
-    fn new (status: StatusCode) -> Self {
+    fn new() -> Self {
         Self {
-            error: Error::from(status),
+            kind: None,
+            detail: None,
+            status: None,
+        }
+    }
+
+    /// Set status of the error.
+    pub fn status(self, status: StatusCode) -> Self {
+        Self {
+            kind: self.kind,
+            detail: self.detail,
+            status: Some(status),
+
         }
     }
 
     /// Set kind and title of the error.
     pub fn kind(self, kind: &str, title: &str) -> Self {
         Self {
-            error: Error::new(kind, title, self.error.status),
+            kind: Some((kind.to_owned(), title.to_owned())),
+            detail: self.detail,
+            status: self.status,
         }
     }
 
     /// Set detailed information about the error.
     pub fn detail(self, detail: &str) -> Self {
-        let mut error = Error::new(&self.error.kind, &self.error.title, self.error.status);
-        error.set_detail(detail);
-        Self { error }
+        Self {
+            kind: self.kind,
+            detail: Some(detail.to_owned()),
+            status: self.status,
+        }
     }
 
     /// Create an error object.
     pub fn build(self) -> Error {
-        self.error
+        let mut err =
+            match (self.kind, self.status) {
+                (Some((ref kind, ref title)), Some(status)) => Error::new(kind, title, status),
+                (Some(_), None) => Error::from(StatusCode::INTERNAL_SERVER_ERROR),
+                (None, Some(status)) => Error::from(status),
+                (None, None) => Error::from(StatusCode::INTERNAL_SERVER_ERROR),
+            };
+
+        match self.detail {
+            Some(ref detail) => {
+                err.set_detail(detail);
+                err
+            },
+            None => err,
+        }
     }
 }
 
@@ -94,8 +126,8 @@ impl Error {
     }
 
     /// Create an error builder object.
-    pub fn builder(status: StatusCode) -> Builder {
-        Builder::new(status)
+    pub fn builder() -> Builder {
+        Builder::new()
     }
 }
 
