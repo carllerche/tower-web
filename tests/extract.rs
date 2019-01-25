@@ -148,6 +148,17 @@ fn extract_body_json_success() {
 }
 
 #[test]
+fn extract_body_json_success_charset() {
+    let mut web = service(TestExtract);
+
+    let body = r#"{"foo":"body bar"}"#;
+
+    let response = web.call_unwrap(post!("/extract_body", body, "content-type": "application/json;charset=utf-8"));
+    assert_ok!(response);
+    assert_body!(response, "extract_body");
+}
+
+#[test]
 fn extract_body_wrap_json_success() {
     let mut web = service(TestExtract);
 
