@@ -41,9 +41,11 @@ default = ["handlebars"]
 [dependencies]
 bytes = "0.4.7"
 futures = "0.1.21"
+headers = "0.2.0"
 http = "0.1.7"
 hyper = "0.12.1"
 log = "0.4.1"
+mime = "0.3.13"
 percent-encoding = "1.0.1"
 tokio = "0.1.6"
 tokio-fs = "0.1.2"

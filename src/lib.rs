@@ -467,10 +467,12 @@ extern crate chrono;
 extern crate flate2;
 #[macro_use]
 extern crate futures;
+extern crate headers;
 extern crate http;
 extern crate hyper;
 #[macro_use]
 extern crate log;
+extern crate mime;
 extern crate percent_encoding;
 extern crate serde;
 extern crate serde_json;

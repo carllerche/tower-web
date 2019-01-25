@@ -5,6 +5,8 @@ use extract::{Context, Error, ExtractFuture};
 use util::buf_stream::{self, BufStream};
 
 use futures::{Future, Poll};
+use headers::{ContentType, HeaderMapExt};
+use mime::Mime;
 use serde::de::DeserializeOwned;
 use serde_urlencoded;
 
@@ -95,21 +97,19 @@ where T: DeserializeOwned,
                 unimplemented!("QueryString");
             }
             Body => {
-                use http::header;
+                if let Some(value) = ctx.request().headers().typed_get::<ContentType>() {
+                    let mime = Mime::from(value);
 
-                if let Some(value) = ctx.request().headers().get(header::CONTENT_TYPE) {
-                    let content_type = value.as_bytes().to_ascii_lowercase();
-
-                    match &content_type[..] {
-                        b"application/json" => {
+                    match (mime.type_().as_str(), mime.subtype().as_str()) {
+                        ("application", "json") => {
                             let state = State::Body(body.collect());
 
-                            SerdeFuture { state, is_json: true }  
+                            SerdeFuture { state, is_json: true }
                         }
-                        b"application/x-www-form-urlencoded" => {
+                        ("application", "x-www-form-urlencoded") => {
                             let state = State::Body(body.collect());
-                            
-                            SerdeFuture { state, is_json: false }   
+
+                            SerdeFuture { state, is_json: false }
                         }
                         _ => {
                             let err = Error::web(::Error::from(::error::ErrorKind::bad_request()));
@@ -117,7 +117,7 @@ where T: DeserializeOwned,
 
                             SerdeFuture { state, is_json: false }
                         }
-                    } 
+                    }
                 } else {
                     let err = Error::web(::Error::from(::error::ErrorKind::bad_request()));
                     let state = State::Complete(Err(Some(err)));
