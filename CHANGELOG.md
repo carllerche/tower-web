@@ -1,3 +1,17 @@
+# 0.3.4 (January 25, 2019)
+
+### Added
+- Support extracting a string from a body (#158).
+- `rustls` optional support (#160).
+- Log 4xx responses (#164).
+- `Response` implementation for `Result` (#163).
+- Support handlers with large numbers of arguments (#170).
+-  RFC7807: Problem details for HTTP APIs (#171).
+
+### Fixed
+- Fix build on older Rust versions (#169, #172).
+- Parse `Content-Type` header correctly (#179).
+
 # 0.3.3 (November 17, 2018)
 
 * Allow template directory to be specified with env var (#139).
