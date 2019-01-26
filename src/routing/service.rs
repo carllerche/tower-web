@@ -1,5 +1,6 @@
 use config::Config;
-use error::{self, Error, ErrorKind, Catch};
+use error::{self, Error, Catch};
+use http::status::StatusCode;
 use routing::{Resource, ResourceFuture, RouteSet, RouteMatch};
 use util::http::HttpFuture;
 use util::tuple::Either2;
@@ -125,7 +126,7 @@ where T: Resource,
                 State::Pending(pending)
             }
             None => {
-                let error = ErrorKind::not_found().into();
+                let error = Error::from(StatusCode::NOT_FOUND);
                 let catching = self.catch.catch(&request, error);
 
                 State::Catching(catching)

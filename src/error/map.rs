@@ -1,4 +1,4 @@
-use error::ErrorKind;
+use http::status::StatusCode;
 use util::BufStream;
 
 use futures::{Future, Poll};
@@ -50,7 +50,7 @@ impl<T: Future> Future for Map<T> {
         use self::State::*;
 
         match self.inner {
-            Inner(ref mut f) => f.poll().map_err(|_| ErrorKind::internal().into()),
+            Inner(ref mut f) => f.poll().map_err(|_| ::Error::from(StatusCode::INTERNAL_SERVER_ERROR)),
             Immediate(ref mut e) => Err(e.take().unwrap()),
         }
     }
@@ -64,7 +64,7 @@ impl<T: BufStream> BufStream for Map<T> {
         use self::State::*;
 
         match self.inner {
-            Inner(ref mut f) => f.poll().map_err(|_| ErrorKind::internal().into()),
+            Inner(ref mut f) => f.poll().map_err(|_| ::Error::from(StatusCode::INTERNAL_SERVER_ERROR)),
             Immediate(ref mut e) => Err(e.take().unwrap()),
         }
     }

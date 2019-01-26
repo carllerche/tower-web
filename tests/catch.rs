@@ -63,7 +63,7 @@ fn default_catch_internal() {
 
     let response = web.call_unwrap(get!("/buggy"));
     assert_internal_error!(response);
-    assert_body!(response, "Internal Server Error");
+    assert_body!(response, r#"{"type":"about:blank","title":"Internal Server Error"}"#);
 }
 
 #[test]
@@ -72,7 +72,7 @@ fn default_catch_not_found() {
 
     let response = web.call_unwrap(get!("/missing"));
     assert_not_found!(response);
-    assert_body!(response, "Not Found");
+    assert_body!(response, r#"{"type":"about:blank","title":"Not Found"}"#);
 }
 
 #[test]

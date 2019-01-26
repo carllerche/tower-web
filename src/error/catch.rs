@@ -1,4 +1,5 @@
 use error::Error;
+use serde_json;
 use response::Serializer;
 use util::BufStream;
 
@@ -87,18 +88,22 @@ where S: Serializer,
 ///
 /// The HTTP response will include a basic error message in the response body.
 impl Catch for DefaultCatch {
-    type Body = &'static str;
+    type Body = String;
     type Future = future::FutureResult<http::Response<Self::Body>, Error>;
 
     fn catch(&mut self, _request: &http::Request<()>, error: Error) -> Self::Future {
         let status = error.status_code().as_u16();
-        let msg = error.status_code().canonical_reason().unwrap_or("Unknown status code");
+        let problem = serde_json::to_string(&error)
+            .unwrap_or_else(|_| {
+                serde_json::to_string(&Error::from(http::status::StatusCode::INTERNAL_SERVER_ERROR))
+                    .expect("Error serializing a blank error to JSON")
+            });
 
         // TODO: Improve the default errors
         let response = http::response::Builder::new()
             .status(status)
-            .header("content-type", "text/plain")
-            .body(msg)
+            .header("content-type", "application/problem+json")
+            .body(problem)
             .unwrap();
 
         future::ok(response)

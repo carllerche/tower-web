@@ -3,6 +3,7 @@ use response::{Serializer, SerializerContext, ContentType};
 use bytes::Bytes;
 use handlebars::Handlebars as Registry;
 use http::header::HeaderValue;
+use http::status::StatusCode;
 use serde::Serialize;
 
 use std::env;
@@ -125,7 +126,7 @@ impl Serializer for Handlebars {
                 }
                 Err(err) => {
                     error!("error rendering template; err={:?}", err);
-                    return Err(::error::ErrorKind::internal().into())
+                    return Err(::Error::from(StatusCode::INTERNAL_SERVER_ERROR))
                 }
             }
         }
@@ -136,7 +137,7 @@ impl Serializer for Handlebars {
                context.resource_mod().unwrap_or("???"),
                context.resource_name().unwrap_or("???"),
                context.handler_name().unwrap_or("???"));
-        Err(::error::ErrorKind::internal().into())
+        Err(::error::Error::from(StatusCode::INTERNAL_SERVER_ERROR))
     }
 }
 

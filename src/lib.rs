@@ -510,6 +510,7 @@ pub mod view;
 mod run;
 
 pub use error::Error;
+pub use error::Builder as ErrorBuilder;
 pub use service::ServiceBuilder;
 
 // ===== serde_derive re-export =====

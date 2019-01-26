@@ -1,10 +1,10 @@
-use error::ErrorKind;
 use net::{self, ConnectionStream};
 use util::BufStream;
 use util::http::{HttpService, NewHttpService};
 
 use futures::Poll;
 use http;
+use http::status::StatusCode;
 use hyper;
 use hyper::body::{Body, Chunk, Payload};
 use hyper::server::conn::Http;
@@ -61,7 +61,7 @@ impl BufStream for LiftReqBody {
     type Error = ::Error;
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, ::Error> {
-        Stream::poll(&mut self.body).map_err(|_| ErrorKind::internal().into())
+        Stream::poll(&mut self.body).map_err(|_| ::Error::from(StatusCode::INTERNAL_SERVER_ERROR))
     }
 }
 
