@@ -17,7 +17,7 @@ script:
   - cargo test --lib --no-default-features
   - cargo test --tests --no-default-features
   - cargo test
-  - if [ "$TRAVIS_RUST_VERSION" == "stable" ]; then cargo test -p test_suite; fi
+  - if [ "$TRAVIS_RUST_VERSION" == "stable" ]; then cd test_suite && cargo test; fi
 
 notifications:
   email:
