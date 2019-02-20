@@ -17,6 +17,7 @@ script:
   - cargo test --lib --no-default-features
   - cargo test --tests --no-default-features
   - cargo test
+  - cargo test -p test_suite
 
 notifications:
   email:

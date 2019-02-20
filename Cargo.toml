@@ -25,6 +25,7 @@ categories = ["asynchronous", "web-programming::http-server"]
 members = [
   "./",
   "tower-web-macros",
+  "test_suite",
 ]
 
 [features]
