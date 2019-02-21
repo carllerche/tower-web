@@ -1,6 +1,6 @@
 [package]
 name = "tower-web-macros"
-version = "0.3.3"
+version = "0.3.4"
 authors = ["Carl Lerche <me@carllerche.com>"]
 readme = "README.md"
 license = "MIT"
