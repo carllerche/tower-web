@@ -294,7 +294,7 @@ impl Response {
 
                         // TODO: Improve and handle errors
                         let body: __tw::codegen::bytes::Bytes = context.serialize(&Lift(&self), &serializer_context)
-                            .map_err(|_| __tw::Error::from(http::status::StatusCode::INTERNAL_SERVER_ERROR))?;
+                            .map_err(|_| __tw::Error::from(__tw::codegen::http::status::StatusCode::INTERNAL_SERVER_ERROR))?;
 
                         let body = __tw::error::Map::new(body);
 
