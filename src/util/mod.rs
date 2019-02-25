@@ -7,6 +7,8 @@ pub mod http;
 pub mod tuple;
 
 mod chain;
+#[doc(hidden)]
+pub mod mime_types;
 mod never;
 mod sealed;
 

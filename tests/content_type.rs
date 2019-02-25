@@ -26,6 +26,11 @@ impl_web! {
             Ok("str_no_content_type")
         }
 
+        #[get("/str_no_content_type.html")]
+        fn str_no_content_type_html(&self) -> Result<&'static str, ()> {
+            Ok("<html></html>")
+        }
+
         #[get("/str_with_content_type")]
         #[content_type("foo/bar")]
         fn str_with_content_type(&self) -> Result<&'static str, ()> {
@@ -63,6 +68,16 @@ fn str_no_content_type() {
     assert_ok!(response);
     assert_header!(response, "content-type", "text/plain");
     assert_body!(response, "str_no_content_type");
+}
+
+#[test]
+fn str_no_content_type_html() {
+    let mut web = service(TestContentType);
+
+    let response = web.call_unwrap(get!("/str_no_content_type.html"));
+    assert_ok!(response);
+    assert_header!(response, "content-type", "text/html");
+    assert_body!(response, "<html></html>");
 }
 
 #[test]
