@@ -1,3 +1,8 @@
+# 0.3.5 (February 25, 2019)
+
+### Added
+- Try to detect response content-type (#187).
+
 # 0.3.4 (January 25, 2019)
 
 ### Added
