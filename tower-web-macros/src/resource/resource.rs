@@ -749,6 +749,12 @@ impl Resource {
                         ContentType::Unknown(ref header) => {
                             if let Some(ref header) = *header {
                                 context.set_content_type(header);
+                            } else {
+                                if let Some(extension) = request.uri().path().split(".").last() {
+                                    if let Some(content_type) = __tw::util::mime_types::BY_EXTENSION.get(extension) {
+                                        context.set_content_type(content_type);
+                                    }
+                                }
                             }
                         }
                     }
