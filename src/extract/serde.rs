@@ -1,7 +1,7 @@
 //! Types used to extract Serde values from an HTTP request.
 
 use codegen::CallSite;
-use extract::{Context, Error, ExtractFuture};
+use extract::{Context, Error, Extract, ExtractFuture};
 use http::status::StatusCode;
 use util::buf_stream::{self, BufStream};
 
@@ -10,6 +10,7 @@ use headers::{ContentType, HeaderMapExt};
 use mime::Mime;
 use serde::de::DeserializeOwned;
 use serde_urlencoded;
+use serde_json;
 
 /*
  * # TODO: Move this module to `codegen`?
@@ -26,6 +27,22 @@ pub struct SerdeFuture<T, B> {
 enum State<T, B> {
     Complete(Result<T, Option<Error>>),
     Body(buf_stream::Collect<B, Vec<u8>>),
+}
+
+impl<B: BufStream> Extract<B> for serde_json::Value {
+    type Future = SerdeFuture<Self, B>;
+
+    fn extract(ctx: &Context) -> Self::Future {
+        Self::Future::new_extract(ctx)
+    }
+
+    fn extract_body(ctx: &Context, body: B) -> Self::Future {
+        Self::Future::new_extract_body(ctx, body)
+    }
+
+    fn requires_body(callsite: &CallSite) -> bool {
+        self::requires_body(callsite)
+    }
 }
 
 #[doc(hidden)]

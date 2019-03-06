@@ -1,5 +1,6 @@
 extern crate futures;
 extern crate http;
+extern crate serde_json;
 #[macro_use]
 extern crate tower_web;
 
@@ -95,6 +96,30 @@ impl_web! {
         fn extract_with_default(&self, query_string: FooWithDefault) -> Result<&'static str, ()> {
             assert_eq!(query_string.foo, "");
             Ok("extract_with_default")
+        }
+
+        #[post("/extract_json")]
+        fn extract_json(&self, body: serde_json::Value) -> Result<&'static str, ()> {
+            assert_eq!(body, serde_json::from_str::<serde_json::Value>(r#"{
+                "name": "John Doe",
+                "description": "Lorem ipsum",
+                "schedule": ["12:00", "6:00"],
+                "location": {
+                    "city": "San andreas",
+                    "country": "United States"
+                },
+                "reviews": [
+                    {
+                        "user": "OG loc",
+                        "review": "Hot fire!"
+                    },
+                    {
+                        "user": "Big smoke",
+                        "review": "2 No. 9's"
+                    }
+                ]
+            }"#).unwrap());
+            Ok("extract_json")
         }
     }
 }
@@ -222,4 +247,35 @@ fn extract_str() {
 
     assert_ok!(response);
     assert_body!(response, "extract_body_str\nzomg %20 body");
+}
+
+#[test]
+fn extract_json() {
+    let mut web = service(TestExtract);
+
+    let body = r#"{
+        "name": "John Doe",
+        "description": "Lorem ipsum",
+        "schedule": ["12:00", "6:00"],
+        "location": {
+            "city": "San andreas",
+            "country": "United States"
+        },
+        "reviews": [
+            {
+                "user": "OG loc",
+                "review": "Hot fire!"
+            },
+            {
+                "user": "Big smoke",
+                "review": "2 No. 9's"
+            }
+        ]
+    }"#;
+
+    let response = web.call_unwrap(
+    post!("/extract_json", body, "content-type": "application/json"));
+
+    assert_ok!(response);
+    assert_body!(response, "extract_json");
 }
