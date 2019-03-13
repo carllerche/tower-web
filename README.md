@@ -18,7 +18,7 @@ Tower Web is:
 
 [Tokio]: https://github.com/tokio-rs/tokio
 [Hyper]: http://github.com/hyperium/hyper
-[dox]: https://docs.rs/tower-web/0.3.5/tower_web/
+[dox]: https://docs.rs/tower-web/0.3.6/tower_web/
 
 ## Hello World
 

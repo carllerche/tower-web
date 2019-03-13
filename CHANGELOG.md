@@ -1,3 +1,11 @@
+# 0.3.6 (March 13, 2019)
+
+### Fixed
+- fix build on newer rustc versions (#193).
+
+### Added
+- `Extract` implementation for `serde_json::Value` (#191).
+
 # 0.3.5 (February 25, 2019)
 
 ### Added
