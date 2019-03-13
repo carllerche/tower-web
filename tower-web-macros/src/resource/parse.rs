@@ -141,16 +141,27 @@ impl syn::fold::Fold for ImplWeb {
 
         let sig = Signature::new(ident, ret, args, is_async);
 
+        let resource = self.resource();
+        let index = resource.routes.len();
         if attributes.is_route() {
-            let index = self.resource().routes.len();
+            // Prevent duplicate routes
+            // It is possible path captures can conflict, such as '/:id' & '/12'
+            if let Some(_) = resource.routes.iter().map(|r| &r.attributes)
+                .position(|a| a.path == attributes.path &&
+                            a.method == attributes.method &&
+                            a.content_type == attributes.content_type) {
+                    // TODO: improve panic message via spans
+                    panic!("duplicate routes with method {:?}, path {:?}, content type {:?}:\n{:?}",
+                           attributes.method, attributes.path, attributes.content_type, item.sig.ident);
+            }
+
             let route = Route::new(index, sig, attributes);
 
-            self.resource().routes.push(route);
+            resource.routes.push(route);
         } else {
-            let index = self.resource().catches.len();
             let catch = Catch::new(index, sig, attributes);
 
-            self.resource().catches.push(catch);
+            resource.catches.push(catch);
         }
 
         item

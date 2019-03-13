@@ -6,6 +6,8 @@ mod signature;
 mod resource;
 mod route;
 mod ty_tree;
+#[cfg(test)]
+mod test;
 
 use self::arg::Arg;
 use self::attr::Attributes;

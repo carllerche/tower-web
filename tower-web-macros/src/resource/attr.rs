@@ -4,7 +4,7 @@ use quote::ToTokens;
 
 #[derive(Debug)]
 pub(crate) struct Attributes {
-    method: Option<Method>,
+    pub method: Option<Method>,
 
     /// HTTP path
     pub path: Option<String>,
@@ -25,8 +25,8 @@ pub(crate) struct Attributes {
     template: Option<String>,
 }
 
-#[derive(Debug)]
-enum Method {
+#[derive(Debug, PartialEq)]
+pub(crate) enum Method {
     Get,
     Post,
     Put,
