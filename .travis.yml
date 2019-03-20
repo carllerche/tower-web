@@ -1,6 +1,9 @@
 language: rust
 sudo: false
 
+env:
+  - PKGS='-p tower-web -p tower-web-macros'
+
 matrix:
   include:
     - rust: stable
@@ -13,10 +16,10 @@ matrix:
     - rust: nightly
 
 script:
-  - cargo check --no-default-features
-  - cargo test --lib --no-default-features
-  - cargo test --tests --no-default-features
-  - cargo test
+  - cargo check --no-default-features $PKGS
+  - cargo test --lib --no-default-features $PKGS
+  - cargo test --tests --no-default-features $PKGS
+  - cargo test $PKGS
   - if [ "$TRAVIS_RUST_VERSION" == "stable" ]; then cd test_suite && cargo test; fi
 
 notifications:
