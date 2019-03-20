@@ -544,7 +544,7 @@ proc_macro_item_decl! {
 
 // ===== end proc_macro_hack junk =====
 
-/// Generate a `Resource` implemeentation based on the methods defined in the
+/// Generate a `Resource` implementation based on the methods defined in the
 /// macro block.
 ///
 /// See [library level documentation](index.html) for more details.
