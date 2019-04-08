@@ -164,10 +164,7 @@ fn from_shadow_struct(
         Fields::Unnamed(ref fields) => {
             let fields = fields.unnamed.iter().enumerate()
                 .map(|(i, _)| {
-                    syn::LitInt::new(
-                        i as u64,
-                        syn::IntSuffix::None,
-                        Span::call_site())
+                    syn::Index::from(i)
                 });
 
             quote! {
