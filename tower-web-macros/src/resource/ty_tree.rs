@@ -3,7 +3,7 @@
 use resource::Arg;
 
 use syn;
-use proc_macro2::{Span, TokenStream};
+use proc_macro2::TokenStream;
 
 use std::cmp;
 
@@ -54,12 +54,10 @@ impl<'a> TyTree<'a, Arg> {
     }
 
     pub fn extract_args(&self) -> TokenStream {
-        use syn::{LitInt, IntSuffix};
-
         self.map_reduce(
             |arg| {
                 let ty = &arg.ty;
-                let index = LitInt::new(arg.index as u64, IntSuffix::None, Span::call_site());
+                let index = syn::Index::from(arg.index);
 
                 quote! {{
                     let context = __tw::extract::Context::new(

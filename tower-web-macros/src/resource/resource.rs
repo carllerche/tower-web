@@ -558,7 +558,7 @@ impl Resource {
                 let name = route_n(route.index);
                 let verify = route.args().iter()
                     .map(|arg| {
-                        let index = arg.index;
+                        let index = syn::Index::from(arg.index);
 
                         quote! {
                             match (used_body, self.#name.#index.1) {

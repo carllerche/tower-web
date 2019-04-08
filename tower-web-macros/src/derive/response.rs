@@ -454,7 +454,7 @@ impl Fields {
     /// # Panics
     ///
     /// Panics if `self` represents named fields
-    fn unnamed(&mut self) -> &mut Vec<syn::LitInt> {
+    fn unnamed(&mut self) -> &mut Vec<syn::Index> {
         match *self {
             Fields::Unnamed(ref mut s) => s,
             _ => panic!(),
@@ -479,7 +479,7 @@ struct FoldShadowTy {
 
 enum Fields {
     Named(Vec<Ident>),
-    Unnamed(Vec<syn::LitInt>),
+    Unnamed(Vec<syn::Index>),
 }
 
 impl syn::fold::Fold for FoldShadowTy {
@@ -602,10 +602,7 @@ impl syn::fold::Fold for FoldShadowTy {
             let attrs = try!(Attribute::from_ast(&field.attrs));
 
             if attrs.is_empty() {
-                let index = syn::LitInt::new(
-                    i as u64,
-                    syn::IntSuffix::None,
-                    Span::call_site());
+                let index = syn::Index::from(i);
 
                 self.src_fields
                     .get_or_insert_with(|| Fields::Unnamed(vec![]))

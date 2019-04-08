@@ -1,7 +1,7 @@
 use resource::{Arg, Attributes, Signature, TyTree};
 
-use proc_macro2::{TokenStream, Span};
-use syn::{self, LitInt};
+use proc_macro2::TokenStream;
+use syn;
 
 /// Represents a resource route
 #[derive(Debug)]
@@ -65,12 +65,12 @@ impl Route {
         // over, which no longer has the problem of being `Send`.
 
         let args_outer = self.sig.args().iter().map(|arg| {
-            let index = lit_int(arg.index);
+            let index = syn::Index::from(arg.index);
             quote! { __tw::extract::ExtractFuture::extract(args.#index) }
         });
 
         let args_inner = self.sig.args().iter().map(|arg| {
-            let index = lit_int(arg.index);
+            let index = syn::Index::from(arg.index);
             quote! { args.#index }
         });
 
@@ -94,9 +94,4 @@ impl Route {
     pub fn future_ty(&self) -> TokenStream {
         self.sig.future_ty()
     }
-}
-
-fn lit_int(i: usize) -> LitInt {
-    use syn::IntSuffix;
-    LitInt::new(i as u64, IntSuffix::None, Span::call_site())
 }
