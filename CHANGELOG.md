@@ -1,3 +1,12 @@
+# 0.3.7 (April 10, 2019)
+
+### Fixed
+- fix panics with non-ASCII characters in routes (#206).
+- fix build on newer rustc versions (#205).
+
+### Changed
+- duplicate routes are now detected at compile-time (#195).
+
 # 0.3.6 (March 13, 2019)
 
 ### Fixed
