@@ -15,7 +15,7 @@ enum Segment {
 impl Path {
     /// Create a new path condition
     pub fn new(mut path: &str) -> Path {
-        if !path.is_empty() && &path[path.len() - 1..path.len()] == "/" {
+        if path.ends_with("/") {
             path = &path[0..path.len() - 1];
         }
 
@@ -97,6 +97,12 @@ fn test_segments() {
     assert!(one_lit.test("/").is_none());
     assert!(one_lit.test("/bar").is_none());
     assert!(one_lit.test("/foo/bar").is_none());
+
+    let non_ascii = Path::new("/£");
+
+    assert!(non_ascii.test("/£").is_some());
+    assert!(non_ascii.test("/").is_none());
+    assert!(non_ascii.test("/bar").is_none());
 
     let capture = Path::new("/:id");
     let captures = capture.test("/foo").unwrap();
