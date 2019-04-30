@@ -25,15 +25,16 @@
 mod bytes;
 mod context;
 mod error;
+pub mod http_date_time;
+mod http;
 mod immediate;
 mod num;
 pub mod option;
+mod osstring;
 mod pathbuf;
 #[doc(hidden)]
 pub mod serde;
 mod str;
-mod osstring;
-pub mod http_date_time;
 
 pub use self::error::Error;
 pub use self::context::Context;
