@@ -121,6 +121,16 @@ impl_web! {
             }"#).unwrap());
             Ok("extract_json")
         }
+
+        #[get("/extract_http_request")]
+        fn extract_http_request(&self, request: http::Request<()>) -> Result<&'static str, ()> {
+            assert_eq!(request.method(), http::Method::GET);
+            assert_eq!(request.body(), &());
+            let mut headers = http::HeaderMap::new();
+            headers.insert(http::header::CONTENT_TYPE, "text/plain".parse().unwrap());
+            assert_eq!(request.headers(), &headers);
+            Ok("extract_http_request")
+        }
     }
 }
 
@@ -278,4 +288,13 @@ fn extract_json() {
 
     assert_ok!(response);
     assert_body!(response, "extract_json");
+}
+
+#[test]
+fn extract_http_request() {
+    let mut web = service(TestExtract);
+
+    let response = web.call_unwrap(get!("/extract_http_request", "content-type": "text/plain"));
+    assert_ok!(response);
+    assert_body!(response, "extract_http_request");
 }
