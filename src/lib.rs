@@ -466,9 +466,6 @@ extern crate lazy_static;
 #[macro_use]
 extern crate log;
 
-#[cfg(feature = "async-await-preview")]
-extern crate tokio_async_await;
-
 #[cfg(feature = "rustls")]
 extern crate tokio_rustls;
 
