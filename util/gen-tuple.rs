@@ -191,7 +191,7 @@ impl Either {
         println!("{{");
         println!("    type Body = Either{}<{}>;", self.level, body_gens);
         println!("");
-        println!("    fn poll_response(&mut self, request: &http::Request<()>) -> Poll<http::Response<Self::Body>, ::Error> {{");
+        println!("    fn poll_response(&mut self, request: &http::Request<()>) -> Poll<http::Response<Self::Body>, crate::Error> {{");
         println!("        use self::Either{}::*;", self.level);
         println!("");
         println!("        let response = match *self {{");
@@ -243,7 +243,7 @@ impl Either {
         println!("{{");
         println!("    type Body = Either{}<{}>;", self.level, body_gens);
         println!("");
-        println!("    fn poll_http(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {{");
+        println!("    fn poll_http(&mut self) -> Poll<http::Response<Self::Body>, crate::Error> {{");
         println!("        use self::Either{}::*;", self.level);
         println!("");
         println!("        match *self {{");
@@ -381,7 +381,7 @@ impl Either {
         println!("    type Buf = Either{}<{}>;", self.level, buf_gens);
         println!("    type Body = Either{}<{}>;", self.level, body_gens);
         println!("");
-        println!("    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, ::Error>");
+        println!("    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, crate::Error>");
         println!("    where S: Serializer");
         println!("    {{");
         println!("        use self::Either{}::*;", self.level);
