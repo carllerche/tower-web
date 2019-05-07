@@ -19,7 +19,7 @@
 //!
 //!     curl -v http://localhost:8080/
 
-#![feature(await_macro, async_await, futures_api)]
+#![feature(await_macro, async_await)]
 
 #[macro_use]
 extern crate tower_web;
