@@ -1,4 +1,5 @@
 #![recursion_limit = "512"]
+#[deny(rust_2018_idioms)]
 
 #[macro_use]
 extern crate proc_macro_hack;

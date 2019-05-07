@@ -1,5 +1,5 @@
 #![doc(html_root_url = "https://docs.rs/tower-web/0.3.7")]
-#![deny(missing_debug_implementations, missing_docs)]
+#![deny(missing_debug_implementations, missing_docs, rust_2018_idioms)]
 #![cfg_attr(test, deny(warnings))]
 #![cfg_attr(feature = "async-await-preview", feature(
         async_await,
