@@ -1,9 +1,9 @@
-use extract::{Context, Error, Extract, Immediate};
+use crate::extract::{Context, Error, Extract, Immediate};
 use percent_encoding;
 use std::borrow::Cow;
 use std::ffi::{OsStr, OsString};
 use std::str;
-use util::buf_stream::BufStream;
+use crate::util::buf_stream::BufStream;
 
 fn osstr_from_bytes(bytes: &[u8]) -> Result<&OsStr, Error> {
     // NOTE: this is too conservative, as we are rejecting valid paths on Unix
@@ -21,7 +21,7 @@ impl<B: BufStream> Extract<B> for OsString {
     type Future = Immediate<Self>;
 
     fn extract(ctx: &Context) -> Self::Future {
-        use codegen::Source::*;
+        use crate::codegen::Source::*;
 
         match ctx.callsite().source() {
             Capture(idx) => {

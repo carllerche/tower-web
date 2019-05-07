@@ -13,7 +13,7 @@ pub trait HttpFuture: sealed::Sealed {
 
     /// Attempt to resolve the future to a final value, registering the current
     /// task for wakeup if the value is not yet available.
-    fn poll_http(&mut self) -> Poll<http::Response<Self::Body>, ::Error>;
+    fn poll_http(&mut self) -> Poll<http::Response<Self::Body>, crate::Error>;
 
     /// Wraps `self` with `LiftFuture`. This provides an implementation of
     /// `Future` for `Self`.
@@ -31,25 +31,25 @@ pub struct LiftFuture<T> {
 }
 
 impl<T, B> HttpFuture for T
-where T: Future<Item = http::Response<B>, Error = ::Error>
+where T: Future<Item = http::Response<B>, Error = crate::Error>
 {
     type Body = B;
 
-    fn poll_http(&mut self) -> Poll<http::Response<Self::Body>, ::Error> {
+    fn poll_http(&mut self) -> Poll<http::Response<Self::Body>, crate::Error> {
         Future::poll(self)
     }
 }
 
 impl<T, B> sealed::Sealed for T
-where T: Future<Item = http::Response<B>, Error = ::Error>
+where T: Future<Item = http::Response<B>, Error = crate::Error>
 {
 }
 
 impl<T: HttpFuture> Future for LiftFuture<T> {
     type Item = http::Response<T::Body>;
-    type Error = ::Error;
+    type Error = crate::Error;
 
-    fn poll(&mut self) -> Poll<Self::Item, ::Error> {
+    fn poll(&mut self) -> Poll<Self::Item, crate::Error> {
         self.inner.poll_http()
     }
 }

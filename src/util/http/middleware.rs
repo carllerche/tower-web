@@ -1,6 +1,6 @@
-use middleware::Middleware;
-use util::buf_stream::BufStream;
-use util::http::HttpService;
+use crate::middleware::Middleware;
+use crate::util::buf_stream::BufStream;
+use crate::util::http::HttpService;
 
 use http::{Request, Response};
 

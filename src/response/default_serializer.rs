@@ -1,6 +1,6 @@
-use response::{ContentType, Serializer, SerializerContext};
-use util::Chain;
-use util::tuple::Either2;
+use crate::response::{ContentType, Serializer, SerializerContext};
+use crate::util::Chain;
+use crate::util::tuple::Either2;
 
 use bytes::Bytes;
 use http::header::HeaderValue;
@@ -68,7 +68,7 @@ where T: Serializer,
     }
 
     fn serialize<V>(&self, value: &V, format: &Self::Format, ctx: &SerializerContext)
-        -> Result<Bytes, ::Error>
+        -> Result<Bytes, crate::Error>
     where
         V: Serialize,
     {
@@ -102,7 +102,7 @@ impl<T, U> Chain<U> for DefaultSerializer<T> {
     }
 }
 
-impl<T> ::util::Sealed for DefaultSerializer<T> {}
+impl<T> crate::util::Sealed for DefaultSerializer<T> {}
 
 impl Format {
     /// Json

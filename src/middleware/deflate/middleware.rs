@@ -1,7 +1,7 @@
 use super::DeflateService;
-use middleware::Middleware;
-use util::buf_stream::BufStream;
-use util::buf_stream::deflate::CompressStream;
+use crate::middleware::Middleware;
+use crate::util::buf_stream::BufStream;
+use crate::util::buf_stream::deflate::CompressStream;
 
 use flate2::Compression;
 use http;

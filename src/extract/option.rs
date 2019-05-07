@@ -1,7 +1,7 @@
 //! Types used to extract `Option` values from an HTTP request.
 
-use extract::{Extract, ExtractFuture, Error, Context};
-use util::BufStream;
+use crate::extract::{Extract, ExtractFuture, Error, Context};
+use crate::util::BufStream;
 
 use futures::{Async, Poll};
 

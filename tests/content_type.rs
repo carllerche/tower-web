@@ -7,7 +7,7 @@ extern crate tower_web;
 
 #[macro_use]
 mod support;
-use support::*;
+use crate::support::*;
 
 use serde_json::Value;
 

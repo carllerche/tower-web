@@ -1,4 +1,4 @@
-use response::{Serializer, SerializerContext, ContentType};
+use crate::response::{Serializer, SerializerContext, ContentType};
 
 use bytes::Bytes;
 use handlebars::Handlebars as Registry;
@@ -115,7 +115,7 @@ impl Serializer for Handlebars {
     }
 
     fn serialize<T>(&self, value: &T, _: &Self::Format, context: &SerializerContext)
-        -> Result<Bytes, ::Error>
+        -> Result<Bytes, crate::Error>
     where
         T: Serialize
     {
@@ -126,7 +126,7 @@ impl Serializer for Handlebars {
                 }
                 Err(err) => {
                     error!("error rendering template; err={:?}", err);
-                    return Err(::Error::from(StatusCode::INTERNAL_SERVER_ERROR))
+                    return Err(crate::Error::from(StatusCode::INTERNAL_SERVER_ERROR))
                 }
             }
         }
@@ -137,8 +137,8 @@ impl Serializer for Handlebars {
                context.resource_mod().unwrap_or("???"),
                context.resource_name().unwrap_or("???"),
                context.handler_name().unwrap_or("???"));
-        Err(::error::Error::from(StatusCode::INTERNAL_SERVER_ERROR))
+        Err(crate::error::Error::from(StatusCode::INTERNAL_SERVER_ERROR))
     }
 }
 
-impl ::util::Sealed for Handlebars {}
+impl crate::util::Sealed for Handlebars {}

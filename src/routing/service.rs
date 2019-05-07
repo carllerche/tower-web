@@ -1,9 +1,9 @@
-use config::Config;
-use error::{self, Error, Catch};
+use crate::config::Config;
+use crate::error::{self, Error, Catch};
 use http::status::StatusCode;
-use routing::{Resource, ResourceFuture, RouteSet, RouteMatch};
-use util::http::HttpFuture;
-use util::tuple::Either2;
+use crate::routing::{Resource, ResourceFuture, RouteSet, RouteMatch};
+use crate::util::http::HttpFuture;
+use crate::util::tuple::Either2;
 
 use futures::{Future, Poll};
 use http;
@@ -154,7 +154,7 @@ where T: ResourceFuture,
 
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
         use self::State::*;
-        use util::tuple::Either2::*;
+        use crate::util::tuple::Either2::*;
         use futures::Async::*;
 
         loop {

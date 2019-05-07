@@ -2,8 +2,8 @@
 
 use http::Request;
 
-use extract::{Context, Error, Extract, Immediate};
-use util::BufStream;
+use crate::extract::{Context, Error, Extract, Immediate};
+use crate::util::BufStream;
 
 impl<B: BufStream> Extract<B> for Request<()> {
     type Future = Immediate<Self>;

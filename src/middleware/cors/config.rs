@@ -107,7 +107,7 @@ impl Config {
         match (origin, request.method(), requested_method) {
             (None, _, _) => {
                 // Without an origin, this cannot be a CORS request
-                let mut headers = self.basic_headers();
+                let headers = self.basic_headers();
                 Ok(CorsResource::Simple(headers))
             }
             (Some(origin), &Method::OPTIONS, Some(requested_method)) => {
@@ -221,7 +221,7 @@ mod test {
     use http;
     use std::time::Duration;
 
-    use middleware::cors::CorsBuilder;
+    use crate::middleware::cors::CorsBuilder;
 
     use self::InvalidRequest::*;
     use super::*;

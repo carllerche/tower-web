@@ -1,6 +1,6 @@
-use error::Catch;
-use routing::{Resource, RoutedService};
-use util::http::{HttpMiddleware, HttpService};
+use crate::error::Catch;
+use crate::routing::{Resource, RoutedService};
+use crate::util::http::{HttpMiddleware, HttpService};
 
 use futures::Poll;
 use http;

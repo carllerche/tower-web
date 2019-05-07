@@ -1,9 +1,9 @@
 //! Types used to extract Serde values from an HTTP request.
 
-use codegen::CallSite;
-use extract::{Context, Error, Extract, ExtractFuture};
+use crate::codegen::CallSite;
+use crate::extract::{Context, Error, Extract, ExtractFuture};
 use http::status::StatusCode;
-use util::buf_stream::{self, BufStream};
+use crate::util::buf_stream::{self, BufStream};
 
 use futures::{Future, Poll};
 use headers::{ContentType, HeaderMapExt};
@@ -47,7 +47,7 @@ impl<B: BufStream> Extract<B> for serde_json::Value {
 
 #[doc(hidden)]
 pub fn requires_body(callsite: &CallSite) -> bool {
-    use codegen::Source::Body;
+    use crate::codegen::Source::Body;
 
     match callsite.source() {
         Body => true,
@@ -61,7 +61,7 @@ where T: DeserializeOwned,
 {
     /// Immediately extract a value using only the HTTP request head
     pub fn new_extract(ctx: &Context) -> Self {
-        use codegen::Source::*;
+        use crate::codegen::Source::*;
 
         match ctx.callsite().source() {
             Capture(_) => {
@@ -102,7 +102,7 @@ where T: DeserializeOwned,
 
     /// Extract a value using the HTTP request head and body
     pub fn new_extract_body(ctx: &Context, body: B) -> Self {
-        use codegen::Source::*;
+        use crate::codegen::Source::*;
 
         match ctx.callsite().source() {
             Capture(_) => {
@@ -130,14 +130,14 @@ where T: DeserializeOwned,
                             SerdeFuture { state, is_json: false }
                         }
                         _ => {
-                            let err = ::Error::from(StatusCode::BAD_REQUEST).into();
+                            let err = crate::Error::from(StatusCode::BAD_REQUEST).into();
                             let state = State::Complete(Err(Some(err)));
 
                             SerdeFuture { state, is_json: false }
                         }
                     }
                 } else {
-                    let err = ::Error::from(StatusCode::BAD_REQUEST).into();
+                    let err = crate::Error::from(StatusCode::BAD_REQUEST).into();
                     let state = State::Complete(Err(Some(err)));
 
                     SerdeFuture { state, is_json: false }

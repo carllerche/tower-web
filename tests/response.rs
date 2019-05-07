@@ -10,7 +10,7 @@ use serde::Serialize;
 
 #[macro_use]
 mod support;
-use support::*;
+use crate::support::*;
 
 #[derive(Debug)]
 struct TestResponse;

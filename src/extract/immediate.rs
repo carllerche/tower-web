@@ -1,4 +1,4 @@
-use extract::{ExtractFuture, Error};
+use crate::extract::{ExtractFuture, Error};
 
 use futures::{Poll};
 

@@ -9,7 +9,7 @@ extern crate tower_web;
 
 #[macro_use]
 mod support;
-use support::*;
+use crate::support::*;
 
 use handlebars::Handlebars as Registry;
 use tower_web::view::Handlebars;

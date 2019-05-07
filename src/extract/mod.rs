@@ -40,8 +40,8 @@ pub use self::error::Error;
 pub use self::context::Context;
 pub use self::immediate::Immediate;
 
-use codegen::CallSite;
-use util::BufStream;
+use crate::codegen::CallSite;
+use crate::util::BufStream;
 
 use futures::Poll;
 

@@ -1,4 +1,4 @@
-use response::{Serializer, SerializerContext};
+use crate::response::{Serializer, SerializerContext};
 
 use bytes::Bytes;
 use http;
@@ -98,7 +98,7 @@ where
     ///
     /// Returns an error when a default content type is not set.
     pub fn serialize<T>(&self, value: &T, context: &SerializerContext)
-        -> Result<Bytes, ::Error>
+        -> Result<Bytes, crate::Error>
     where
         T: Serialize,
     {
@@ -106,7 +106,7 @@ where
             Some(format) => format,
             None => {
                 warn!("no default serialization format associated with action");
-                return Err(::Error::from(StatusCode::INTERNAL_SERVER_ERROR));
+                return Err(crate::Error::from(StatusCode::INTERNAL_SERVER_ERROR));
             }
         };
 
@@ -115,7 +115,7 @@ where
 
     /// Serialize a value as the specified content type.
     pub fn serialize_as<T>(&self, _value: &T, _content_type: &str)
-        -> Result<Bytes, ::Error>
+        -> Result<Bytes, crate::Error>
     where
         T: Serialize,
     {

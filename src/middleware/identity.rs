@@ -30,7 +30,7 @@ impl<S: Service> Middleware<S> for Identity {
     }
 }
 
-impl<T> ::util::Chain<T> for Identity {
+impl<T> crate::util::Chain<T> for Identity {
     type Output = Chain<Self, T>;
 
     fn chain(self, other: T) -> Self::Output {

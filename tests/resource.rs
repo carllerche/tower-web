@@ -9,7 +9,7 @@ use std::fmt::Display;
 
 #[macro_use]
 mod support;
-use support::*;
+use crate::support::*;
 
 #[derive(Clone, Debug)]
 struct TestResource;

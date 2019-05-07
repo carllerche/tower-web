@@ -1,6 +1,6 @@
-use error;
-use response::{Response, Serializer, Context};
-use util::BufStream;
+use crate::error;
+use crate::response::{Response, Serializer, Context};
+use crate::util::BufStream;
 
 use bytes::Bytes;
 use http::{self, header};
@@ -26,7 +26,7 @@ where
     type Buf = <Self::Body as BufStream>::Item;
     type Body = error::Map<Bytes>;
 
-    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, ::Error>
+    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, crate::Error>
     where
         S: Serializer,
     {

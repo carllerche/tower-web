@@ -1,5 +1,5 @@
 use super::HttpService;
-use util::buf_stream::BufStream;
+use crate::util::buf_stream::BufStream;
 
 use futures::Future;
 use http::{Request, Response};

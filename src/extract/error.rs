@@ -12,7 +12,7 @@ pub struct Error {
 enum Kind {
     Missing,
     Invalid(String),
-    Web(::Error),
+    Web(crate::Error),
 }
 
 impl Error {
@@ -45,21 +45,21 @@ impl Error {
     }
 
     pub(crate) fn internal_error() -> Error {
-        ::Error::from(StatusCode::BAD_REQUEST).into()
+        crate::Error::from(StatusCode::BAD_REQUEST).into()
     }
 }
 
-impl From<Error> for ::Error {
+impl From<Error> for crate::Error {
     fn from(err: Error) -> Self {
         match err.kind {
-            Missing | Invalid(_) => ::Error::from(StatusCode::BAD_REQUEST),
+            Missing | Invalid(_) => crate::Error::from(StatusCode::BAD_REQUEST),
             Web(err) => err,
         }
     }
 }
 
-impl From<::Error> for Error {
-    fn from(err: ::Error) -> Self {
+impl From<crate::Error> for Error {
+    fn from(err: crate::Error) -> Self {
         Error { kind: Web(err) }
     }
 }

@@ -1,4 +1,4 @@
-use util::BufStream;
+use crate::util::BufStream;
 
 use futures::{Future, Poll};
 use http::{Request, Response};

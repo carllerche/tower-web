@@ -1,7 +1,7 @@
-use error;
-use response::Serializer;
-use routing::{RouteMatch, RouteSet};
-use util::BufStream;
+use crate::error;
+use crate::response::Serializer;
+use crate::routing::{RouteMatch, RouteSet};
+use crate::util::BufStream;
 
 use bytes::Buf;
 use futures::{Future, Poll};
@@ -37,7 +37,7 @@ pub trait Resource: Clone {
     /// The HTTP response body type.
     ///
     /// This value will yield one or more `Self::Buf` values.
-    type Body: BufStream<Item = Self::Buf, Error = ::Error>;
+    type Body: BufStream<Item = Self::Buf, Error = crate::Error>;
 
     /// Response future
     type Future: ResourceFuture<Body = Self::Body>;
@@ -66,7 +66,7 @@ pub trait ResourceFuture {
 
     /// Attempt to resolve the response future to a final value.
     fn poll_response(&mut self, request: &http::Request<()>)
-        -> Poll<http::Response<Self::Body>, ::Error>;
+        -> Poll<http::Response<Self::Body>, crate::Error>;
 }
 
 /// Convert a value into a `Resource`
@@ -93,11 +93,11 @@ where S: Serializer,
 
 impl<T, B> ResourceFuture for T
 where
-    T: Future<Item = http::Response<B>, Error = ::Error>
+    T: Future<Item = http::Response<B>, Error = crate::Error>
 {
     type Body = B;
 
-    fn poll_response(&mut self, _: &http::Request<()>) -> Poll<T::Item, ::Error> {
+    fn poll_response(&mut self, _: &http::Request<()>) -> Poll<T::Item, crate::Error> {
         self.poll()
     }
 }
@@ -124,7 +124,7 @@ where B: BufStream,
     type RequestBody = B;
     type Buf = <Self::Body as BufStream>::Item;
     type Body = error::Map<String>;
-    type Future = FutureResult<http::Response<Self::Body>, ::Error>;
+    type Future = FutureResult<http::Response<Self::Body>, crate::Error>;
 
     fn dispatch(&mut self, _: (), _: &RouteMatch, _: Self::RequestBody) -> Self::Future {
         unreachable!();

@@ -1,8 +1,8 @@
-use error::Catch;
-use routing::{Resource, RoutedService};
-use service::WebService;
-use util::Never;
-use util::http::{HttpMiddleware};
+use crate::error::Catch;
+use crate::routing::{Resource, RoutedService};
+use crate::service::WebService;
+use crate::util::Never;
+use crate::util::http::{HttpMiddleware};
 
 use futures::future::{self, FutureResult};
 use http;

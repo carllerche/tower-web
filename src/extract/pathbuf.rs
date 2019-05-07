@@ -1,7 +1,7 @@
-use extract::{Context, Error, Extract, Immediate};
+use crate::extract::{Context, Error, Extract, Immediate};
 use std::ffi::{OsStr, OsString};
 use std::path::{self, Path, PathBuf};
-use util::buf_stream::BufStream;
+use crate::util::buf_stream::BufStream;
 
 // https://www.owasp.org/index.php/Path_Traversal
 fn check_for_path_traversal(path: &Path) -> Result<(), Error> {
@@ -44,7 +44,7 @@ impl<B: BufStream> Extract<B> for PathBuf {
     type Future = Immediate<Self>;
 
     fn extract(ctx: &Context) -> Self::Future {
-        use extract::ExtractFuture;
+        use crate::extract::ExtractFuture;
 
         let s = <OsString as Extract<B>>::extract(ctx).extract();
         Immediate::result(decode(&s))

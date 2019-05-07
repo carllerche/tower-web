@@ -1,5 +1,5 @@
-use extract::{Extract, Error, Context, Immediate};
-use util::BufStream;
+use crate::extract::{Extract, Error, Context, Immediate};
+use crate::util::BufStream;
 
 use atoi::atoi;
 use checked::Checked;
@@ -14,7 +14,7 @@ macro_rules! num_extract_impls {
                 type Future = Immediate<$num>;
 
                 fn extract(ctx: &Context) -> Self::Future {
-                    use codegen::Source::*;
+                    use crate::codegen::Source::*;
 
                     match ctx.callsite().source() {
                         Capture(idx) => {

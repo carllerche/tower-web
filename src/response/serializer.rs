@@ -1,5 +1,5 @@
-use response::{ContentType, SerializerContext};
-use util::tuple::Either2;
+use crate::response::{ContentType, SerializerContext};
+use crate::util::tuple::Either2;
 
 use bytes::Bytes;
 use serde::Serialize;
@@ -14,7 +14,7 @@ use void::Void;
 /// to Serde serializers.
 ///
 /// [serde]: https://docs.rs/serde/1.0.71/serde/trait.Serializer.html
-pub trait Serializer: Clone + Send + Sync + 'static + ::util::Sealed {
+pub trait Serializer: Clone + Send + Sync + 'static + crate::util::Sealed {
     /// A token used by `Serializer` implementations to identify the specific
     /// serialization format to use when encoding a value.
     type Format: Clone + Send + Sync + 'static;
@@ -25,7 +25,7 @@ pub trait Serializer: Clone + Send + Sync + 'static + ::util::Sealed {
 
     /// Serialize the value using the specified format.
     fn serialize<T>(&self, value: &T, format: &Self::Format, context: &SerializerContext)
-        -> Result<Bytes, ::Error>
+        -> Result<Bytes, crate::Error>
     where
         T: Serialize;
 }
@@ -38,7 +38,7 @@ impl Serializer for () {
     }
 
     fn serialize<T>(&self, _: &T, _: &Self::Format, _: &SerializerContext)
-        -> Result<Bytes, ::Error>
+        -> Result<Bytes, crate::Error>
     where
         T: Serialize
     {
@@ -63,7 +63,7 @@ where
     }
 
     fn serialize<V>(&self, value: &V, format: &Self::Format, context: &SerializerContext)
-        -> Result<Bytes, ::Error>
+        -> Result<Bytes, crate::Error>
     where
         V: Serialize
     {

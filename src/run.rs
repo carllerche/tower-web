@@ -1,6 +1,6 @@
-use net::{self, ConnectionStream};
-use util::BufStream;
-use util::http::{HttpService, NewHttpService};
+use crate::net::{self, ConnectionStream};
+use crate::util::BufStream;
+use crate::util::http::{HttpService, NewHttpService};
 
 use futures::Poll;
 use http;
@@ -9,7 +9,7 @@ use hyper;
 use hyper::body::{Body, Chunk, Payload};
 use hyper::server::conn::Http;
 use hyper::service::Service as HyperService;
-use util::buf_stream::size_hint::{Builder, SizeHint};
+use crate::util::buf_stream::size_hint::{Builder, SizeHint};
 
 use tokio;
 use tokio::net::TcpListener;
@@ -48,7 +48,7 @@ where
     T::ResponseBody: Send,
 {
     type Data = <T::ResponseBody as BufStream>::Item;
-    type Error = ::Error;
+    type Error = crate::Error;
 
     fn poll_data(&mut self) -> Poll<Option<Self::Data>, Self::Error> {
         self.body.poll()
@@ -58,10 +58,10 @@ where
 
 impl BufStream for LiftReqBody {
     type Item = Chunk;
-    type Error = ::Error;
+    type Error = crate::Error;
 
-    fn poll(&mut self) -> Poll<Option<Self::Item>, ::Error> {
-        Stream::poll(&mut self.body).map_err(|_| ::Error::from(StatusCode::INTERNAL_SERVER_ERROR))
+    fn poll(&mut self) -> Poll<Option<Self::Item>, crate::Error> {
+        Stream::poll(&mut self.body).map_err(|_| crate::Error::from(StatusCode::INTERNAL_SERVER_ERROR))
     }
 }
 
@@ -74,7 +74,7 @@ where
 {
     type ReqBody = Body;
     type ResBody = LiftBody<T>;
-    type Error = ::Error;
+    type Error = crate::Error;
     type Future = Box<Future<Item = http::Response<Self::ResBody>, Error = Self::Error> + Send>;
 
     fn call(&mut self, request: http::Request<Self::ReqBody>) -> Self::Future {
