@@ -115,7 +115,7 @@ impl Signature {
 }
 
 impl fmt::Debug for Signature {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         use quote::ToTokens;
 
         // TODO: Avoid escaping

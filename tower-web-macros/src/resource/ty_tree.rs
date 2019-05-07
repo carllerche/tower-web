@@ -7,7 +7,7 @@ use proc_macro2::TokenStream;
 
 use std::cmp;
 
-pub(crate) struct TyTree<'a, T: 'a> {
+pub(crate) struct TyTree<'a, T> {
     data: &'a [T],
 }
 
