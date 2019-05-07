@@ -23,7 +23,7 @@ pub struct Context<'a> {
 impl<'a> Context<'a> {
     // Used as part of codegen, but not part of the public API.
     #[doc(hidden)]
-    pub fn new(route_match: &'a RouteMatch, callsite: &'a CallSite) -> Context<'a> {
+    pub fn new(route_match: &'a RouteMatch<'_>, callsite: &'a CallSite) -> Context<'a> {
         let request = route_match.request();
         let captures = route_match.captures();
         let config = route_match.config();

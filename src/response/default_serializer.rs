@@ -67,7 +67,7 @@ where T: Serializer,
         }
     }
 
-    fn serialize<V>(&self, value: &V, format: &Self::Format, ctx: &SerializerContext)
+    fn serialize<V>(&self, value: &V, format: &Self::Format, ctx: &SerializerContext<'_>)
         -> Result<Bytes, crate::Error>
     where
         V: Serialize,

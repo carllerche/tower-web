@@ -38,7 +38,7 @@ impl http::HttpTryFrom<HttpDateTime> for header::HeaderValue {
 impl<B: BufStream> Extract<B> for HttpDateTime {
     type Future = Immediate<HttpDateTime>;
 
-    fn extract(ctx: &Context) -> Self::Future {
+    fn extract(ctx: &Context<'_>) -> Self::Future {
         use crate::codegen::Source::*;
 
         match ctx.callsite().source() {

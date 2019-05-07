@@ -20,7 +20,7 @@ fn decode(s: &str) -> Result<OsString, Error> {
 impl<B: BufStream> Extract<B> for OsString {
     type Future = Immediate<Self>;
 
-    fn extract(ctx: &Context) -> Self::Future {
+    fn extract(ctx: &Context<'_>) -> Self::Future {
         use crate::codegen::Source::*;
 
         match ctx.callsite().source() {

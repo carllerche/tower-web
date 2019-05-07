@@ -1,7 +1,7 @@
 #![allow(unused_macros, dead_code)]
 
-pub extern crate futures;
-extern crate tower_service;
+pub use futures;
+use tower_service;
 
 pub use tower_web::util::http::HttpService;
 

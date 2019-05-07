@@ -17,7 +17,7 @@ pub struct ExtractString<B> {
 impl<B: BufStream> Extract<B> for String {
     type Future = ExtractString<B>;
 
-    fn extract(ctx: &Context) -> Self::Future {
+    fn extract(ctx: &Context<'_>) -> Self::Future {
         use crate::codegen::Source::*;
 
         let inner = Vec::extract(ctx);
@@ -40,7 +40,7 @@ impl<B: BufStream> Extract<B> for String {
         }
     }
 
-    fn extract_body(ctx: &Context, body: B) -> Self::Future {
+    fn extract_body(ctx: &Context<'_>, body: B) -> Self::Future {
         ExtractString {
             inner: Some(Vec::extract_body(ctx, body)),
             decode: false,

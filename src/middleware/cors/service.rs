@@ -115,7 +115,7 @@ mod test {
 
     use super::*;
 
-    type TestError = Box<::std::error::Error>;
+    type TestError = Box<dyn (::std::error::Error)>;
     type TestResult = ::std::result::Result<(), TestError>;
 
     type DontCare = Empty<Option<[u8; 1]>, ()>;

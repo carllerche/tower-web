@@ -32,11 +32,11 @@ enum State<T, B> {
 impl<B: BufStream> Extract<B> for serde_json::Value {
     type Future = SerdeFuture<Self, B>;
 
-    fn extract(ctx: &Context) -> Self::Future {
+    fn extract(ctx: &Context<'_>) -> Self::Future {
         Self::Future::new_extract(ctx)
     }
 
-    fn extract_body(ctx: &Context, body: B) -> Self::Future {
+    fn extract_body(ctx: &Context<'_>, body: B) -> Self::Future {
         Self::Future::new_extract_body(ctx, body)
     }
 
@@ -60,7 +60,7 @@ where T: DeserializeOwned,
       B: BufStream,
 {
     /// Immediately extract a value using only the HTTP request head
-    pub fn new_extract(ctx: &Context) -> Self {
+    pub fn new_extract(ctx: &Context<'_>) -> Self {
         use crate::codegen::Source::*;
 
         match ctx.callsite().source() {
@@ -101,7 +101,7 @@ where T: DeserializeOwned,
     }
 
     /// Extract a value using the HTTP request head and body
-    pub fn new_extract_body(ctx: &Context, body: B) -> Self {
+    pub fn new_extract_body(ctx: &Context<'_>, body: B) -> Self {
         use crate::codegen::Source::*;
 
         match ctx.callsite().source() {

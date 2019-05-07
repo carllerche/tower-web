@@ -16,13 +16,13 @@ impl From<Never> for Error {
 }
 
 impl fmt::Debug for Never {
-    fn fmt(&self, _f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {}
     }
 }
 
 impl fmt::Display for Never {
-    fn fmt(&self, _f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {}
     }
 }

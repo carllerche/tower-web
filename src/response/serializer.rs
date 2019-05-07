@@ -24,7 +24,7 @@ pub trait Serializer: Clone + Send + Sync + 'static + crate::util::Sealed {
     fn lookup(&self, name: &str) -> Option<ContentType<Self::Format>>;
 
     /// Serialize the value using the specified format.
-    fn serialize<T>(&self, value: &T, format: &Self::Format, context: &SerializerContext)
+    fn serialize<T>(&self, value: &T, format: &Self::Format, context: &SerializerContext<'_>)
         -> Result<Bytes, crate::Error>
     where
         T: Serialize;
@@ -37,7 +37,7 @@ impl Serializer for () {
         None
     }
 
-    fn serialize<T>(&self, _: &T, _: &Self::Format, _: &SerializerContext)
+    fn serialize<T>(&self, _: &T, _: &Self::Format, _: &SerializerContext<'_>)
         -> Result<Bytes, crate::Error>
     where
         T: Serialize
@@ -62,7 +62,7 @@ where
             .map(|content_type| content_type.map(Either2::B))
     }
 
-    fn serialize<V>(&self, value: &V, format: &Self::Format, context: &SerializerContext)
+    fn serialize<V>(&self, value: &V, format: &Self::Format, context: &SerializerContext<'_>)
         -> Result<Bytes, crate::Error>
     where
         V: Serialize

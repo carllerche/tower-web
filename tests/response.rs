@@ -1,8 +1,6 @@
 #![recursion_limit="256"]
 
-extern crate futures;
-extern crate http;
-extern crate serde;
+use http;
 #[macro_use]
 extern crate tower_web;
 

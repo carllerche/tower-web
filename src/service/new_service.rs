@@ -67,7 +67,7 @@ where
     U: fmt::Debug,
     M: fmt::Debug,
 {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt.debug_struct("NewService")
             .field("service", &self.service)
             .field("middleware", &self.middleware)

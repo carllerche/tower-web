@@ -19,7 +19,7 @@ enum State<T, B> {
 impl<B: BufStream> Extract<B> for Vec<u8> {
     type Future = ExtractBytes<Self, B>;
 
-    fn extract(ctx: &Context) -> Self::Future {
+    fn extract(ctx: &Context<'_>) -> Self::Future {
         use crate::codegen::Source::*;
 
         match ctx.callsite().source() {
@@ -58,7 +58,7 @@ impl<B: BufStream> Extract<B> for Vec<u8> {
         }
     }
 
-    fn extract_body(ctx: &Context, body: B) -> Self::Future {
+    fn extract_body(ctx: &Context<'_>, body: B) -> Self::Future {
         use crate::codegen::Source::*;
 
         match ctx.callsite().source() {

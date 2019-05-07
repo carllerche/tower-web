@@ -1,6 +1,5 @@
-extern crate futures;
-extern crate http;
-extern crate serde_json;
+use http;
+use serde_json;
 #[macro_use]
 extern crate tower_web;
 

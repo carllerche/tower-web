@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use std::hash::{BuildHasherDefault, Hasher};
 use std::fmt;
 
-type AnyMap = HashMap<TypeId, Box<Any + Send + Sync>, BuildHasherDefault<IdHasher>>;
+type AnyMap = HashMap<TypeId, Box<dyn Any + Send + Sync>, BuildHasherDefault<IdHasher>>;
 
 #[derive(Debug, Default)]
 struct IdHasher(u64);
@@ -50,7 +50,7 @@ impl ConfigBuilder {
 }
 
 impl fmt::Debug for ConfigBuilder {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("ConfigBuilder")
             .finish()
     }
@@ -71,13 +71,13 @@ impl Config {
         self.inner
             .get(&TypeId::of::<T>())
             .and_then(|boxed| {
-                (&**boxed as &Any).downcast_ref()
+                (&**boxed as &dyn Any).downcast_ref()
             })
     }
 }
 
 impl fmt::Debug for Config {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Config")
             .finish()
     }

@@ -68,7 +68,7 @@ where
     T::Destination: fmt::Debug,
     U: fmt::Debug,
 {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt.debug_struct("RoutedService")
             .field("resource", &self.resource)
             .field("catch", &self.catch)

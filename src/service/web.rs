@@ -63,7 +63,7 @@ where T: Resource + fmt::Debug,
       M::ResponseBody: fmt::Debug,
       M::Error: fmt::Debug,
 {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt.debug_struct("WebService")
             .field("inner", &self.inner)
             .finish()

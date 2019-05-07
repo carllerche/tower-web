@@ -192,7 +192,7 @@ where
     type Buf = Either1<A::Buf>;
     type Body = Either1<A::Body>;
 
-    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, crate::Error>
+    fn into_http<S>(self, context: &Context<'_, S>) -> Result<http::Response<Self::Body>, crate::Error>
     where S: Serializer
     {
         use self::Either1::*;
@@ -215,7 +215,7 @@ where
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
-                route_match: &RouteMatch,
+                route_match: &RouteMatch<'_>,
                 body: Self::RequestBody)
         -> Self::Future
     {
@@ -389,7 +389,7 @@ where
     type Buf = Either2<A::Buf, B::Buf>;
     type Body = Either2<A::Body, B::Body>;
 
-    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, crate::Error>
+    fn into_http<S>(self, context: &Context<'_, S>) -> Result<http::Response<Self::Body>, crate::Error>
     where S: Serializer
     {
         use self::Either2::*;
@@ -414,7 +414,7 @@ where
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
-                route_match: &RouteMatch,
+                route_match: &RouteMatch<'_>,
                 body: Self::RequestBody)
         -> Self::Future
     {
@@ -610,7 +610,7 @@ where
     type Buf = Either3<A::Buf, B::Buf, C::Buf>;
     type Body = Either3<A::Body, B::Body, C::Body>;
 
-    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, crate::Error>
+    fn into_http<S>(self, context: &Context<'_, S>) -> Result<http::Response<Self::Body>, crate::Error>
     where S: Serializer
     {
         use self::Either3::*;
@@ -637,7 +637,7 @@ where
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
-                route_match: &RouteMatch,
+                route_match: &RouteMatch<'_>,
                 body: Self::RequestBody)
         -> Self::Future
     {
@@ -855,7 +855,7 @@ where
     type Buf = Either4<A::Buf, B::Buf, C::Buf, D::Buf>;
     type Body = Either4<A::Body, B::Body, C::Body, D::Body>;
 
-    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, crate::Error>
+    fn into_http<S>(self, context: &Context<'_, S>) -> Result<http::Response<Self::Body>, crate::Error>
     where S: Serializer
     {
         use self::Either4::*;
@@ -884,7 +884,7 @@ where
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
-                route_match: &RouteMatch,
+                route_match: &RouteMatch<'_>,
                 body: Self::RequestBody)
         -> Self::Future
     {
@@ -1124,7 +1124,7 @@ where
     type Buf = Either5<A::Buf, B::Buf, C::Buf, D::Buf, E::Buf>;
     type Body = Either5<A::Body, B::Body, C::Body, D::Body, E::Body>;
 
-    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, crate::Error>
+    fn into_http<S>(self, context: &Context<'_, S>) -> Result<http::Response<Self::Body>, crate::Error>
     where S: Serializer
     {
         use self::Either5::*;
@@ -1155,7 +1155,7 @@ where
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
-                route_match: &RouteMatch,
+                route_match: &RouteMatch<'_>,
                 body: Self::RequestBody)
         -> Self::Future
     {
@@ -1417,7 +1417,7 @@ where
     type Buf = Either6<A::Buf, B::Buf, C::Buf, D::Buf, E::Buf, F::Buf>;
     type Body = Either6<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body>;
 
-    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, crate::Error>
+    fn into_http<S>(self, context: &Context<'_, S>) -> Result<http::Response<Self::Body>, crate::Error>
     where S: Serializer
     {
         use self::Either6::*;
@@ -1450,7 +1450,7 @@ where
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
-                route_match: &RouteMatch,
+                route_match: &RouteMatch<'_>,
                 body: Self::RequestBody)
         -> Self::Future
     {
@@ -1734,7 +1734,7 @@ where
     type Buf = Either7<A::Buf, B::Buf, C::Buf, D::Buf, E::Buf, F::Buf, G::Buf>;
     type Body = Either7<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body, G::Body>;
 
-    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, crate::Error>
+    fn into_http<S>(self, context: &Context<'_, S>) -> Result<http::Response<Self::Body>, crate::Error>
     where S: Serializer
     {
         use self::Either7::*;
@@ -1769,7 +1769,7 @@ where
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
-                route_match: &RouteMatch,
+                route_match: &RouteMatch<'_>,
                 body: Self::RequestBody)
         -> Self::Future
     {
@@ -2075,7 +2075,7 @@ where
     type Buf = Either8<A::Buf, B::Buf, C::Buf, D::Buf, E::Buf, F::Buf, G::Buf, H::Buf>;
     type Body = Either8<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body, G::Body, H::Body>;
 
-    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, crate::Error>
+    fn into_http<S>(self, context: &Context<'_, S>) -> Result<http::Response<Self::Body>, crate::Error>
     where S: Serializer
     {
         use self::Either8::*;
@@ -2112,7 +2112,7 @@ where
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
-                route_match: &RouteMatch,
+                route_match: &RouteMatch<'_>,
                 body: Self::RequestBody)
         -> Self::Future
     {
@@ -2440,7 +2440,7 @@ where
     type Buf = Either9<A::Buf, B::Buf, C::Buf, D::Buf, E::Buf, F::Buf, G::Buf, H::Buf, I::Buf>;
     type Body = Either9<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body, G::Body, H::Body, I::Body>;
 
-    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, crate::Error>
+    fn into_http<S>(self, context: &Context<'_, S>) -> Result<http::Response<Self::Body>, crate::Error>
     where S: Serializer
     {
         use self::Either9::*;
@@ -2479,7 +2479,7 @@ where
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
-                route_match: &RouteMatch,
+                route_match: &RouteMatch<'_>,
                 body: Self::RequestBody)
         -> Self::Future
     {
@@ -2829,7 +2829,7 @@ where
     type Buf = Either10<A::Buf, B::Buf, C::Buf, D::Buf, E::Buf, F::Buf, G::Buf, H::Buf, I::Buf, J::Buf>;
     type Body = Either10<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body, G::Body, H::Body, I::Body, J::Body>;
 
-    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, crate::Error>
+    fn into_http<S>(self, context: &Context<'_, S>) -> Result<http::Response<Self::Body>, crate::Error>
     where S: Serializer
     {
         use self::Either10::*;
@@ -2870,7 +2870,7 @@ where
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
-                route_match: &RouteMatch,
+                route_match: &RouteMatch<'_>,
                 body: Self::RequestBody)
         -> Self::Future
     {
@@ -3242,7 +3242,7 @@ where
     type Buf = Either11<A::Buf, B::Buf, C::Buf, D::Buf, E::Buf, F::Buf, G::Buf, H::Buf, I::Buf, J::Buf, K::Buf>;
     type Body = Either11<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body, G::Body, H::Body, I::Body, J::Body, K::Body>;
 
-    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, crate::Error>
+    fn into_http<S>(self, context: &Context<'_, S>) -> Result<http::Response<Self::Body>, crate::Error>
     where S: Serializer
     {
         use self::Either11::*;
@@ -3285,7 +3285,7 @@ where
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
-                route_match: &RouteMatch,
+                route_match: &RouteMatch<'_>,
                 body: Self::RequestBody)
         -> Self::Future
     {
@@ -3679,7 +3679,7 @@ where
     type Buf = Either12<A::Buf, B::Buf, C::Buf, D::Buf, E::Buf, F::Buf, G::Buf, H::Buf, I::Buf, J::Buf, K::Buf, L::Buf>;
     type Body = Either12<A::Body, B::Body, C::Body, D::Body, E::Body, F::Body, G::Body, H::Body, I::Body, J::Body, K::Body, L::Body>;
 
-    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, crate::Error>
+    fn into_http<S>(self, context: &Context<'_, S>) -> Result<http::Response<Self::Body>, crate::Error>
     where S: Serializer
     {
         use self::Either12::*;
@@ -3724,7 +3724,7 @@ where
 
     fn dispatch(&mut self,
                 destination: Self::Destination,
-                route_match: &RouteMatch,
+                route_match: &RouteMatch<'_>,
                 body: Self::RequestBody)
         -> Self::Future
     {

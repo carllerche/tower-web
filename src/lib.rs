@@ -459,35 +459,12 @@
 //! [`ServiceBuilder`]: struct.ServiceBuilder.html
 //! [`ServiceBuilder::resource`]: struct.ServiceBuilder.html#method.resource
 //! [Serde]: http://serde.rs/
-extern crate atoi;
-extern crate bytes;
-extern crate checked;
-extern crate chrono;
-extern crate flate2;
 #[macro_use]
 extern crate futures;
-extern crate headers;
-extern crate http;
-extern crate hyper;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate log;
-extern crate mime;
-extern crate mime_guess;
-extern crate percent_encoding;
-extern crate serde;
-extern crate serde_json;
-extern crate serde_plain;
-extern crate serde_urlencoded;
-extern crate tokio;
-extern crate tokio_fs;
-extern crate tokio_io;
-extern crate tower_service;
-extern crate void;
-
-#[cfg(feature = "handlebars")]
-extern crate handlebars;
 
 #[cfg(feature = "async-await-preview")]
 extern crate tokio_async_await;

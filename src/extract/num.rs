@@ -13,7 +13,7 @@ macro_rules! num_extract_impls {
             impl<B: BufStream> Extract<B> for $num {
                 type Future = Immediate<$num>;
 
-                fn extract(ctx: &Context) -> Self::Future {
+                fn extract(ctx: &Context<'_>) -> Self::Future {
                     use crate::codegen::Source::*;
 
                     match ctx.callsite().source() {

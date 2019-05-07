@@ -114,7 +114,7 @@ impl Serializer for Handlebars {
         }
     }
 
-    fn serialize<T>(&self, value: &T, _: &Self::Format, context: &SerializerContext)
+    fn serialize<T>(&self, value: &T, _: &Self::Format, context: &SerializerContext<'_>)
         -> Result<Bytes, crate::Error>
     where
         T: Serialize

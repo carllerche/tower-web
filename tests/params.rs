@@ -1,5 +1,3 @@
-extern crate futures;
-extern crate http;
 #[macro_use]
 extern crate tower_web;
 

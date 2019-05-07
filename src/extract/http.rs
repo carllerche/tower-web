@@ -8,7 +8,7 @@ use crate::util::BufStream;
 impl<B: BufStream> Extract<B> for Request<()> {
     type Future = Immediate<Self>;
 
-    fn extract(ctx: &Context) -> Self::Future {
+    fn extract(ctx: &Context<'_>) -> Self::Future {
         let request = Request::builder()
             .version(ctx.request().version())
             .method(ctx.request().method())

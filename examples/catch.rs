@@ -1,7 +1,5 @@
-extern crate futures;
 #[macro_use]
 extern crate tower_web;
-extern crate tokio;
 
 use futures::{Future, IntoFuture};
 use tower_web::ServiceBuilder;

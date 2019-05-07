@@ -11,7 +11,7 @@ impl Response for Value {
     type Buf = <Self::Body as BufStream>::Item;
     type Body = error::Map<Bytes>;
 
-    fn into_http<S>(self, context: &Context<S>) -> Result<http::Response<Self::Body>, crate::Error>
+    fn into_http<S>(self, context: &Context<'_, S>) -> Result<http::Response<Self::Body>, crate::Error>
     where
         S: Serializer,
     {

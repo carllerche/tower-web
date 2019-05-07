@@ -75,7 +75,7 @@ where
     type ReqBody = Body;
     type ResBody = LiftBody<T>;
     type Error = crate::Error;
-    type Future = Box<Future<Item = http::Response<Self::ResBody>, Error = Self::Error> + Send>;
+    type Future = Box<dyn Future<Item = http::Response<Self::ResBody>, Error = Self::Error> + Send>;
 
     fn call(&mut self, request: http::Request<Self::ReqBody>) -> Self::Future {
         let request = request.map(|body| LiftReqBody { body });

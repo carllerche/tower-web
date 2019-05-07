@@ -71,7 +71,7 @@ impl error::Error for InvalidRequest {
 }
 
 impl fmt::Display for InvalidRequest {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Debug::fmt(self, f)
     }
 }
@@ -226,7 +226,7 @@ mod test {
     use self::InvalidRequest::*;
     use super::*;
 
-    type TestError = Box<::std::error::Error>;
+    type TestError = Box<dyn (::std::error::Error)>;
     type TestResult<T = ()> = ::std::result::Result<T, TestError>;
 
     macro_rules! assert_variant {

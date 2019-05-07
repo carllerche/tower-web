@@ -43,7 +43,7 @@ fn decode(s: &OsStr) -> Result<PathBuf, Error> {
 impl<B: BufStream> Extract<B> for PathBuf {
     type Future = Immediate<Self>;
 
-    fn extract(ctx: &Context) -> Self::Future {
+    fn extract(ctx: &Context<'_>) -> Self::Future {
         use crate::extract::ExtractFuture;
 
         let s = <OsString as Extract<B>>::extract(ctx).extract();

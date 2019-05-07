@@ -8,7 +8,7 @@ use serde::Serialize;
 
 /// Context available when serializing the response.
 #[derive(Debug)]
-pub struct Context<'a, S: Serializer + 'a> {
+pub struct Context<'a, S: Serializer> {
     request: &'a http::Request<()>,
     serializer: &'a S,
     default_format: Option<&'a S::Format>,
@@ -59,7 +59,7 @@ where
     }
 
     #[doc(hidden)]
-    pub fn serializer_context(&self) -> SerializerContext {
+    pub fn serializer_context(&self) -> SerializerContext<'_> {
         let mut ret = SerializerContext::new(self.request);
         ret.set_resource_mod(self.resource_mod);
         ret.set_resource_name(self.resource_name);
@@ -97,7 +97,7 @@ where
     /// This uses the default content type for the action.
     ///
     /// Returns an error when a default content type is not set.
-    pub fn serialize<T>(&self, value: &T, context: &SerializerContext)
+    pub fn serialize<T>(&self, value: &T, context: &SerializerContext<'_>)
         -> Result<Bytes, crate::Error>
     where
         T: Serialize,
