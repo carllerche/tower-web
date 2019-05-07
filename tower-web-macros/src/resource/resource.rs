@@ -789,7 +789,7 @@ impl Resource {
             quote! {
                 macro_rules! async_move_hax {
                     ($e:expr) => {
-                        r#async move { $e }
+                        async move { $e }
                     }
                 }
             }
