@@ -1,6 +1,6 @@
 //! Distribute a collection into a tree
 
-use resource::Arg;
+use crate::resource::Arg;
 
 use syn;
 use proc_macro2::TokenStream;
@@ -93,11 +93,11 @@ fn reduce<F, R>(mut src: &[R], f: &mut F) -> R
 where F: FnMut(&[R]) -> R,
       R: Clone,
 {
-    let per_slot = cmp::max(1, src.len() / ::MAX_VARIANTS);
+    let per_slot = cmp::max(1, src.len() / crate::MAX_VARIANTS);
     let mut rem = 0;
 
-    if src.len() > ::MAX_VARIANTS {
-        rem = src.len() % ::MAX_VARIANTS;
+    if src.len() > crate::MAX_VARIANTS {
+        rem = src.len() % crate::MAX_VARIANTS;
     }
 
     let mut reduced = vec![];

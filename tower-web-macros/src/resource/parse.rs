@@ -1,4 +1,4 @@
-use resource::{Arg, Attributes, Catch, Signature, Route, Resource};
+use crate::resource::{Arg, Attributes, Catch, Signature, Route, Resource};
 
 use proc_macro2::TokenStream;
 use syn;

@@ -2,7 +2,7 @@
 macro_rules! expand {
     ($($tt:tt)*) => {{
         let input: ::syn::DeriveInput = ::syn::parse2(quote!($($tt)*)).unwrap();
-        ::derive::expand_derive_response(input)
+        crate::derive::expand_derive_response(input)
     }}
 }
 

@@ -1,7 +1,7 @@
 
 macro_rules! expand {
     ($($tt:tt)*) => {{
-        ::resource::expand_derive_resource(quote!($($tt)*))
+        crate::resource::expand_derive_resource(quote!($($tt)*))
     }}
 }
 

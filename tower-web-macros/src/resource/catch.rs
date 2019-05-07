@@ -1,4 +1,4 @@
-use resource::{Attributes, Signature};
+use crate::resource::{Attributes, Signature};
 
 use proc_macro2::TokenStream;
 

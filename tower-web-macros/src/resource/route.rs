@@ -1,4 +1,4 @@
-use resource::{Arg, Attributes, Signature, TyTree};
+use crate::resource::{Arg, Attributes, Signature, TyTree};
 
 use proc_macro2::TokenStream;
 use syn;

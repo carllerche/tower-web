@@ -1,4 +1,4 @@
-use resource::Arg;
+use crate::resource::Arg;
 
 use syn;
 use proc_macro2::TokenStream;
@@ -88,7 +88,7 @@ impl Signature {
             quote! {
                 let inner = #inner.clone();
                 let ret: #ty = __tw::codegen::async_await::async_to_box_future_send(async_move_hax! {
-                    await!(inner.handler.#ident(#(#args),*))
+                    r#await!(inner.handler.#ident(#(#args),*))
                 });
                 ret
             }

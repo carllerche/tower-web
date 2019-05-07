@@ -1,4 +1,4 @@
-use resource::{Route, Catch, TyTree};
+use crate::resource::{Route, Catch, TyTree};
 
 use quote::{TokenStreamExt, ToTokens};
 use proc_macro2::{Ident, Span, TokenStream};
@@ -789,7 +789,7 @@ impl Resource {
             quote! {
                 macro_rules! async_move_hax {
                     ($e:expr) => {
-                        async move { $e }
+                        r#async move { $e }
                     }
                 }
             }
