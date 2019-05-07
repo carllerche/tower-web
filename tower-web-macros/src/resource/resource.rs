@@ -118,8 +118,6 @@ impl Resource {
         let match_extract = self.match_extract();
         let match_into_response = self.match_into_response();
 
-        let async_helper_macro = self.async_helper_macro();
-
         // Define `Resource` on the struct.
         quote! {
             macro_rules! try_ready {
@@ -133,8 +131,6 @@ impl Resource {
                     }
                 }}
             }
-
-            #async_helper_macro
 
             pub struct __GeneratedResource<S, B, T>
             where S: __tw::response::Serializer,
@@ -781,27 +777,6 @@ impl Resource {
                 response.map(|body| ResponseBody(Err(body), ::std::marker::PhantomData))
             })
         })
-    }
-
-    fn async_helper_macro(&self) -> TokenStream {
-        if self.is_async() {
-            // Works around limitations around emiting 2018 syntax in current Rust.
-            quote! {
-                macro_rules! async_move_hax {
-                    ($e:expr) => {
-                        async move { $e }
-                    }
-                }
-            }
-        } else {
-            quote!()
-        }
-    }
-
-    /// Returns true if at least one route is an async fn.
-    fn is_async(&self) -> bool {
-        self.routes.iter()
-            .any(|route| route.is_async())
     }
 
     /// The resource's future type

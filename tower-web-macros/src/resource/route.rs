@@ -30,10 +30,6 @@ impl Route {
         self.sig.args()
     }
 
-    pub fn is_async(&self) -> bool {
-        self.sig.is_async()
-    }
-
     pub fn template(&self) -> Option<&str> {
         self.attributes.template()
     }

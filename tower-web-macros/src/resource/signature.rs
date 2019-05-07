@@ -60,10 +60,6 @@ impl Signature {
         &self.ret
     }
 
-    pub fn is_async(&self) -> bool {
-        self.is_async
-    }
-
     /// The response future type
     pub fn future_ty(&self) -> TokenStream {
         let ty = self.ret();
@@ -87,7 +83,7 @@ impl Signature {
 
             quote! {
                 let inner = #inner.clone();
-                let ret: #ty = __tw::codegen::async_await::async_to_box_future_send(async_move_hax! {
+                let ret: #ty = __tw::codegen::async_await::async_to_box_future_send(async move {
                     r#await!(inner.handler.#ident(#(#args),*))
                 });
                 ret
