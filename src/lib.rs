@@ -537,7 +537,7 @@ proc_macro_item_decl! {
 ///     }
 /// }
 /// ```
-#[macro_export]
+#[macro_export(local_inner_macros)]
 macro_rules! impl_web {
     ($($t:tt)*) => {
         impl_web_clean_top_level!(() $($t)*);
@@ -548,7 +548,7 @@ macro_rules! impl_web {
 // Tt-muncher to invoke `impl_web_clean_nested!` on the content of every set of
 // curly braces in the input.
 #[doc(hidden)]
-#[macro_export]
+#[macro_export(local_inner_macros)]
 macro_rules! impl_web_clean_top_level {
     // Next token is a set of curly braces. Pass to `impl_web_clean_nested!`.
     (($($done:tt)*) { $($nested:tt)* } $($rest:tt)*) => {
@@ -568,7 +568,7 @@ macro_rules! impl_web_clean_top_level {
 
 // Tt-muncher to strip tower-web attributes from the input.
 #[doc(hidden)]
-#[macro_export]
+#[macro_export(local_inner_macros)]
 macro_rules! impl_web_clean_nested {
     // Match an attribute that we recognize and discard it.
     (($($outer:tt)*) ($($done:tt)*) { #[get $($attr:tt)*] $($nested:tt)* } $dup:tt $($rest:tt)*) => {
