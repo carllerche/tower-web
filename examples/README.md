@@ -43,8 +43,12 @@ as well as code.
 2) Add [`features = ["async-await-preview"]`][feature] to the
 `tower-web` dependency.
 3) Use the necessary [nightly features] in the application.
-4) Import Tokio's [`await!` macro][await].
+4) Import Tokio's [`await!` macro][await]. *
 5) Define [`async`][async-handler] handlers.
+
+\* You should use nightly version prior to `nightly-2019-05-09`.
+As of that version the syntax change for `.await` syntax and `tokio` 0.1
+is probably not going to track nightly changes.
 
 Support for serving data over TLS is provided with the rustls feature.
 The [`rustls`](rustls) directory contains an example along with a
