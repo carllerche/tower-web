@@ -1,9 +1,9 @@
-use codegen::CallSite;
-use extract::{Context, Error, Extract, ExtractFuture};
-use extract::bytes::ExtractBytes;
+use crate::codegen::CallSite;
+use crate::extract::{Context, Error, Extract, ExtractFuture};
+use crate::extract::bytes::ExtractBytes;
 use percent_encoding;
 use std::borrow::Cow;
-use util::BufStream;
+use crate::util::BufStream;
 
 use futures::{Poll, Async};
 
@@ -17,8 +17,8 @@ pub struct ExtractString<B> {
 impl<B: BufStream> Extract<B> for String {
     type Future = ExtractString<B>;
 
-    fn extract(ctx: &Context) -> Self::Future {
-        use codegen::Source::*;
+    fn extract(ctx: &Context<'_>) -> Self::Future {
+        use crate::codegen::Source::*;
 
         let inner = Vec::extract(ctx);
 
@@ -40,7 +40,7 @@ impl<B: BufStream> Extract<B> for String {
         }
     }
 
-    fn extract_body(ctx: &Context, body: B) -> Self::Future {
+    fn extract_body(ctx: &Context<'_>, body: B) -> Self::Future {
         ExtractString {
             inner: Some(Vec::extract_body(ctx, body)),
             decode: false,

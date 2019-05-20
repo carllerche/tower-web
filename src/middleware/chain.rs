@@ -38,7 +38,7 @@ where S: Service,
     }
 }
 
-impl<T, Inner, Outer> ::util::Chain<T> for Chain<Inner, Outer> {
+impl<T, Inner, Outer> crate::util::Chain<T> for Chain<Inner, Outer> {
     type Output = Chain<Self, T>;
 
     fn chain(self, other: T) -> Self::Output {

@@ -1,11 +1,10 @@
-extern crate futures;
-extern crate http;
+use http;
 #[macro_use]
 extern crate tower_web;
 
 #[macro_use]
 mod support;
-use support::*;
+use crate::support::*;
 
 use http::request;
 

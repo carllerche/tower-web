@@ -7,7 +7,7 @@ use std::future::Future as StdFuture;
 /// This bridges async/await with stable futures.
 pub fn async_to_box_future_send<T>(
     future: T,
-) -> Box<Future<Item = T::Output, Error = ::Error> + Send>
+) -> Box<impl Future<Item = T::Output, Error = crate::Error> + Send>
 where
     T: StdFuture + Send + 'static,
 {

@@ -1,15 +1,11 @@
 #![cfg(feature = "handlebars")]
 
-extern crate env_logger;
-extern crate futures;
-extern crate handlebars;
-extern crate http;
 #[macro_use]
 extern crate tower_web;
 
 #[macro_use]
 mod support;
-use support::*;
+use crate::support::*;
 
 use handlebars::Handlebars as Registry;
 use tower_web::view::Handlebars;

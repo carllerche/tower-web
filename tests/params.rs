@@ -1,11 +1,9 @@
-extern crate futures;
-extern crate http;
 #[macro_use]
 extern crate tower_web;
 
 #[macro_use]
 mod support;
-use support::*;
+use crate::support::*;
 
 #[derive(Clone, Debug)]
 struct TestParams;

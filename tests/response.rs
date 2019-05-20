@@ -1,8 +1,6 @@
 #![recursion_limit="256"]
 
-extern crate futures;
-extern crate http;
-extern crate serde;
+use http;
 #[macro_use]
 extern crate tower_web;
 
@@ -10,7 +8,7 @@ use serde::Serialize;
 
 #[macro_use]
 mod support;
-use support::*;
+use crate::support::*;
 
 #[derive(Debug)]
 struct TestResponse;

@@ -1,8 +1,8 @@
 use super::{Config, CorsService};
-use middleware::Middleware;
+use crate::middleware::Middleware;
 
 use http;
-use util::http::HttpService;
+use crate::util::http::HttpService;
 
 use std::sync::Arc;
 

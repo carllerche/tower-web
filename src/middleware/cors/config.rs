@@ -71,7 +71,7 @@ impl error::Error for InvalidRequest {
 }
 
 impl fmt::Display for InvalidRequest {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Debug::fmt(self, f)
     }
 }
@@ -107,7 +107,7 @@ impl Config {
         match (origin, request.method(), requested_method) {
             (None, _, _) => {
                 // Without an origin, this cannot be a CORS request
-                let mut headers = self.basic_headers();
+                let headers = self.basic_headers();
                 Ok(CorsResource::Simple(headers))
             }
             (Some(origin), &Method::OPTIONS, Some(requested_method)) => {
@@ -221,12 +221,12 @@ mod test {
     use http;
     use std::time::Duration;
 
-    use middleware::cors::CorsBuilder;
+    use crate::middleware::cors::CorsBuilder;
 
     use self::InvalidRequest::*;
     use super::*;
 
-    type TestError = Box<::std::error::Error>;
+    type TestError = Box<dyn (::std::error::Error)>;
     type TestResult<T = ()> = ::std::result::Result<T, TestError>;
 
     macro_rules! assert_variant {

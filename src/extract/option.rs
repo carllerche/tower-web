@@ -1,7 +1,7 @@
 //! Types used to extract `Option` values from an HTTP request.
 
-use extract::{Extract, ExtractFuture, Error, Context};
-use util::BufStream;
+use crate::extract::{Extract, ExtractFuture, Error, Context};
+use crate::util::BufStream;
 
 use futures::{Async, Poll};
 
@@ -17,7 +17,7 @@ where T: Extract<B>,
 {
     type Future = ExtractOptionFuture<T::Future>;
 
-    fn extract(ctx: &Context) -> Self::Future {
+    fn extract(ctx: &Context<'_>) -> Self::Future {
         ExtractOptionFuture {
             inner: T::extract(ctx),
             none: false,

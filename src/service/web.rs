@@ -1,6 +1,6 @@
-use error::Catch;
-use routing::{Resource, RoutedService};
-use util::http::{HttpMiddleware, HttpService};
+use crate::error::Catch;
+use crate::routing::{Resource, RoutedService};
+use crate::util::http::{HttpMiddleware, HttpService};
 
 use futures::Poll;
 use http;
@@ -63,7 +63,7 @@ where T: Resource + fmt::Debug,
       M::ResponseBody: fmt::Debug,
       M::Error: fmt::Debug,
 {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt.debug_struct("WebService")
             .field("inner", &self.inner)
             .finish()

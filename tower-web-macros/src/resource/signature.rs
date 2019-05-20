@@ -1,4 +1,4 @@
-use resource::Arg;
+use crate::resource::Arg;
 
 use syn;
 use proc_macro2::TokenStream;
@@ -60,10 +60,6 @@ impl Signature {
         &self.ret
     }
 
-    pub fn is_async(&self) -> bool {
-        self.is_async
-    }
-
     /// The response future type
     pub fn future_ty(&self) -> TokenStream {
         let ty = self.ret();
@@ -87,8 +83,8 @@ impl Signature {
 
             quote! {
                 let inner = #inner.clone();
-                let ret: #ty = __tw::codegen::async_await::async_to_box_future_send(async_move_hax! {
-                    await!(inner.handler.#ident(#(#args),*))
+                let ret: #ty = __tw::codegen::async_await::async_to_box_future_send(async move {
+                    r#await!(inner.handler.#ident(#(#args),*))
                 });
                 ret
             }
@@ -115,7 +111,7 @@ impl Signature {
 }
 
 impl fmt::Debug for Signature {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         use quote::ToTokens;
 
         // TODO: Avoid escaping

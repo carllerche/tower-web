@@ -1,5 +1,5 @@
 use super::LogService;
-use middleware::Middleware;
+use crate::middleware::Middleware;
 
 use http;
 use tower_service::Service;

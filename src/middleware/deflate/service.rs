@@ -3,8 +3,8 @@ use futures::{Future, Poll};
 use http;
 use http::header::{CONTENT_ENCODING, HeaderValue};
 use tower_service::Service;
-use util::buf_stream::BufStream;
-use util::buf_stream::deflate::CompressStream;
+use crate::util::buf_stream::BufStream;
+use crate::util::buf_stream::deflate::CompressStream;
 
 /// Deflates the inner service's response bodies.
 #[derive(Debug)]

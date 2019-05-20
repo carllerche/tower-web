@@ -1,7 +1,7 @@
 use bytes::Buf;
 use futures::{Async, Poll};
 use std::marker::PhantomData;
-use util::buf_stream::BufStream;
+use crate::util::buf_stream::BufStream;
 
 /// A `BufStream` that contains no data.
 #[derive(Debug, Copy, Clone)]

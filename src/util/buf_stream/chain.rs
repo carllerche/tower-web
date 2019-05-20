@@ -1,5 +1,5 @@
 use super::{BufStream, SizeHint};
-use util::tuple::Either2 as Either;
+use crate::util::tuple::Either2 as Either;
 
 use futures::Poll;
 

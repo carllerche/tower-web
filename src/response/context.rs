@@ -1,4 +1,4 @@
-use response::{Serializer, SerializerContext};
+use crate::response::{Serializer, SerializerContext};
 
 use bytes::Bytes;
 use http;
@@ -8,7 +8,7 @@ use serde::Serialize;
 
 /// Context available when serializing the response.
 #[derive(Debug)]
-pub struct Context<'a, S: Serializer + 'a> {
+pub struct Context<'a, S: Serializer> {
     request: &'a http::Request<()>,
     serializer: &'a S,
     default_format: Option<&'a S::Format>,
@@ -59,7 +59,7 @@ where
     }
 
     #[doc(hidden)]
-    pub fn serializer_context(&self) -> SerializerContext {
+    pub fn serializer_context(&self) -> SerializerContext<'_> {
         let mut ret = SerializerContext::new(self.request);
         ret.set_resource_mod(self.resource_mod);
         ret.set_resource_name(self.resource_name);
@@ -97,8 +97,8 @@ where
     /// This uses the default content type for the action.
     ///
     /// Returns an error when a default content type is not set.
-    pub fn serialize<T>(&self, value: &T, context: &SerializerContext)
-        -> Result<Bytes, ::Error>
+    pub fn serialize<T>(&self, value: &T, context: &SerializerContext<'_>)
+        -> Result<Bytes, crate::Error>
     where
         T: Serialize,
     {
@@ -106,7 +106,7 @@ where
             Some(format) => format,
             None => {
                 warn!("no default serialization format associated with action");
-                return Err(::Error::from(StatusCode::INTERNAL_SERVER_ERROR));
+                return Err(crate::Error::from(StatusCode::INTERNAL_SERVER_ERROR));
             }
         };
 
@@ -115,7 +115,7 @@ where
 
     /// Serialize a value as the specified content type.
     pub fn serialize_as<T>(&self, _value: &T, _content_type: &str)
-        -> Result<Bytes, ::Error>
+        -> Result<Bytes, crate::Error>
     where
         T: Serialize,
     {

@@ -19,6 +19,7 @@ description = """
 Web framework with a focus on removing boilerplate
 """
 categories = ["asynchronous", "web-programming::http-server"]
+edition = "2018"
 
 [workspace]
 

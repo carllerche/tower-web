@@ -1,5 +1,5 @@
 use http::status::StatusCode;
-use util::BufStream;
+use crate::util::BufStream;
 
 use futures::{Future, Poll};
 
@@ -16,7 +16,7 @@ pub struct Map<T> {
 #[derive(Debug)]
 enum State<T> {
     Inner(T),
-    Immediate(Option<::Error>),
+    Immediate(Option<crate::Error>),
 }
 
 impl<T> Map<T> {
@@ -35,7 +35,7 @@ impl<T> Map<T> {
     /// Create a neew `Map` instance that is in the error state.
     ///
     /// The instance will yield `error` immediately when it is used.
-    pub fn immediate(error: ::Error) -> Map<T> {
+    pub fn immediate(error: crate::Error) -> Map<T> {
         Map {
             inner: State::Immediate(Some(error)),
         }
@@ -44,13 +44,13 @@ impl<T> Map<T> {
 
 impl<T: Future> Future for Map<T> {
     type Item = T::Item;
-    type Error = ::Error;
+    type Error = crate::Error;
 
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
         use self::State::*;
 
         match self.inner {
-            Inner(ref mut f) => f.poll().map_err(|_| ::Error::from(StatusCode::INTERNAL_SERVER_ERROR)),
+            Inner(ref mut f) => f.poll().map_err(|_| crate::Error::from(StatusCode::INTERNAL_SERVER_ERROR)),
             Immediate(ref mut e) => Err(e.take().unwrap()),
         }
     }
@@ -58,13 +58,13 @@ impl<T: Future> Future for Map<T> {
 
 impl<T: BufStream> BufStream for Map<T> {
     type Item = T::Item;
-    type Error = ::Error;
+    type Error = crate::Error;
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
         use self::State::*;
 
         match self.inner {
-            Inner(ref mut f) => f.poll().map_err(|_| ::Error::from(StatusCode::INTERNAL_SERVER_ERROR)),
+            Inner(ref mut f) => f.poll().map_err(|_| crate::Error::from(StatusCode::INTERNAL_SERVER_ERROR)),
             Immediate(ref mut e) => Err(e.take().unwrap()),
         }
     }

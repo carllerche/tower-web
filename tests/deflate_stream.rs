@@ -1,9 +1,3 @@
-extern crate tower_web;
-extern crate bytes;
-extern crate flate2;
-extern crate futures;
-extern crate rand;
-
 use tower_web::util::buf_stream::BufStream;
 use tower_web::util::buf_stream::deflate::CompressStream;
 

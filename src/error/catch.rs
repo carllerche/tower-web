@@ -1,7 +1,7 @@
-use error::Error;
+use crate::error::Error;
 use serde_json;
-use response::Serializer;
-use util::BufStream;
+use crate::response::Serializer;
+use crate::util::BufStream;
 
 use futures::{future, Future, IntoFuture};
 use http;

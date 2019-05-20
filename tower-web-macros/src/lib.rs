@@ -1,13 +1,13 @@
 #![recursion_limit = "512"]
+#[deny(rust_2018_idioms)]
 
-extern crate http;
 #[macro_use]
 extern crate proc_macro_hack;
 extern crate proc_macro;
-extern crate proc_macro2;
+use proc_macro2;
 #[macro_use]
 extern crate quote;
-extern crate syn;
+use syn;
 
 mod derive;
 mod header;

@@ -3,7 +3,7 @@ use super::{Config, CorsResource};
 use futures::{Async, Future, Poll};
 use http::{self, HeaderMap, Request, Response, StatusCode};
 use tower_service::Service;
-use util::http::HttpService;
+use crate::util::http::HttpService;
 
 use std::sync::Arc;
 
@@ -110,12 +110,12 @@ mod test {
         Method,
     };
 
-    use middleware::cors::{AllowedOrigins, CorsBuilder};
-    use util::buf_stream::{self, Empty};
+    use crate::middleware::cors::{AllowedOrigins, CorsBuilder};
+    use crate::util::buf_stream::{self, Empty};
 
     use super::*;
 
-    type TestError = Box<::std::error::Error>;
+    type TestError = Box<dyn (::std::error::Error)>;
     type TestResult = ::std::result::Result<(), TestError>;
 
     type DontCare = Empty<Option<[u8; 1]>, ()>;

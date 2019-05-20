@@ -1,4 +1,4 @@
-use resource::{Arg, Attributes, Signature, TyTree};
+use crate::resource::{Arg, Attributes, Signature, TyTree};
 
 use proc_macro2::TokenStream;
 use syn;
@@ -28,10 +28,6 @@ impl Route {
 
     pub fn args(&self) -> &[Arg] {
         self.sig.args()
-    }
-
-    pub fn is_async(&self) -> bool {
-        self.sig.is_async()
     }
 
     pub fn template(&self) -> Option<&str> {

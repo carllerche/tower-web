@@ -40,8 +40,8 @@ pub use self::error::Error;
 pub use self::context::Context;
 pub use self::immediate::Immediate;
 
-use codegen::CallSite;
-use util::BufStream;
+use crate::codegen::CallSite;
+use crate::util::BufStream;
 
 use futures::Poll;
 
@@ -61,13 +61,13 @@ pub trait Extract<B: BufStream>: 'static + Sized {
     /// This function is not provide the HTTP request body. Implementations of
     /// this function must ensure that the request HEAD (request URI and
     /// headers) are sufficient for extracting the value.
-    fn extract(context: &Context) -> Self::Future;
+    fn extract(context: &Context<'_>) -> Self::Future;
 
     /// Extract the argument using the HTTP request body.
     ///
     /// Doing so will usually involve deserializing the contents of the HTTP
     /// request body to the target value being extracted.
-    fn extract_body(context: &Context, body: B) -> Self::Future {
+    fn extract_body(context: &Context<'_>, body: B) -> Self::Future {
         drop((context, body));
         panic!("The default implementation of `Extract::extract_body` should never be called")
     }

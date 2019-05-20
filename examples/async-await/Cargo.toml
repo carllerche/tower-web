@@ -13,7 +13,7 @@ name = "hyper"
 path = "src/hyper.rs"
 
 [dependencies]
-tower-web = { version = "0.2.2", path = "../..", features = ["async-await-preview"] }
+tower-web = { version = "0.3.7", path = "../..", features = ["async-await-preview"] }
 tokio = "0.1.10"
 hyper = "0.12.10"
 futures = "0.1.18"

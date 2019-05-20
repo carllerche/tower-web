@@ -1,10 +1,10 @@
 //! HTTP combined date and time value.
 
 use chrono::{DateTime, Timelike, Utc};
-use extract::{Context, Error, Extract, Immediate};
+use crate::extract::{Context, Error, Extract, Immediate};
 use http::{self, header};
 use std::time::SystemTime;
-use util::buf_stream::BufStream;
+use crate::util::buf_stream::BufStream;
 
 /// HTTP combined date and time value
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -38,8 +38,8 @@ impl http::HttpTryFrom<HttpDateTime> for header::HeaderValue {
 impl<B: BufStream> Extract<B> for HttpDateTime {
     type Future = Immediate<HttpDateTime>;
 
-    fn extract(ctx: &Context) -> Self::Future {
-        use codegen::Source::*;
+    fn extract(ctx: &Context<'_>) -> Self::Future {
+        use crate::codegen::Source::*;
 
         match ctx.callsite().source() {
             Header(header_name) => {

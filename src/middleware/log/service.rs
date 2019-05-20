@@ -98,7 +98,7 @@ where
                 // - date
                 let status_code = response.status().as_u16();
                 let level = match status_code {
-                    400...599 => Level::Error,
+                    400..=599 => Level::Error,
                     _ => Level::Info,
                 };
                 logger().log(&Record::builder()

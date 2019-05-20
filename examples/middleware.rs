@@ -20,10 +20,8 @@
 ///     curl -v http://localhost:8080/
 
 extern crate env_logger;
-extern crate flate2;
 #[macro_use]
 extern crate tower_web;
-extern crate tokio;
 
 use tower_web::ServiceBuilder;
 use tower_web::middleware::deflate::DeflateMiddleware;

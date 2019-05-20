@@ -22,7 +22,6 @@
 
 #[macro_use]
 extern crate tower_web;
-extern crate tokio;
 
 #[macro_use]
 extern crate serde_json;

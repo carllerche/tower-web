@@ -138,7 +138,7 @@ impl error::Error for Error {
 }
 
 impl fmt::Debug for Error {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt.debug_struct("Error")
             .field("kind", &self.kind)
             .field("title", &self.title)
@@ -150,7 +150,7 @@ impl fmt::Debug for Error {
 
 impl fmt::Display for Error {
     #[allow(deprecated)] // .cause() is deprecated on nightly
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             fmt,
             "[{}] {}",
@@ -302,7 +302,7 @@ impl ErrorKind {
 }
 
 impl fmt::Debug for ErrorKind {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.kind {
             BadRequest => "ErrorKind::BadRequest",
             Unauthorized => "ErrorKind::Unauthorized",

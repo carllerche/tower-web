@@ -1,7 +1,7 @@
 #![allow(unused_macros, dead_code)]
 
-pub extern crate futures;
-extern crate tower_service;
+pub use futures;
+use tower_service;
 
 pub use tower_web::util::http::HttpService;
 
@@ -98,7 +98,7 @@ macro_rules! assert_header {
 macro_rules! assert_body {
     ($response:expr, $body:expr) => {{
         use ::tower_web::util::BufStream;
-        use ::support::futures::Future;
+        use crate::support::futures::Future;
 
         let body = $response.into_body().collect().wait().ok().unwrap();
         let body = String::from_utf8(body).unwrap();

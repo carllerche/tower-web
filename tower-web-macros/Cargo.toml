@@ -10,6 +10,7 @@ documentation = "http://rust-doc.s3-website-us-east-1.amazonaws.com/tower-web/v0
 description = """
 Macros for tower-web
 """
+edition = "2018"
 
 [lib]
 proc-macro = true

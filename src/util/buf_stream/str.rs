@@ -1,4 +1,4 @@
-use error::Never;
+use crate::error::Never;
 use super::BufStream;
 
 use futures::Poll;

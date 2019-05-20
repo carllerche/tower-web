@@ -1,6 +1,6 @@
-use codegen::CallSite;
-use extract::{Context, Error, Extract, ExtractFuture};
-use util::buf_stream::{self, BufStream};
+use crate::codegen::CallSite;
+use crate::extract::{Context, Error, Extract, ExtractFuture};
+use crate::util::buf_stream::{self, BufStream};
 
 use futures::{Future, Poll};
 
@@ -19,8 +19,8 @@ enum State<T, B> {
 impl<B: BufStream> Extract<B> for Vec<u8> {
     type Future = ExtractBytes<Self, B>;
 
-    fn extract(ctx: &Context) -> Self::Future {
-        use codegen::Source::*;
+    fn extract(ctx: &Context<'_>) -> Self::Future {
+        use crate::codegen::Source::*;
 
         match ctx.callsite().source() {
             Capture(idx) => {
@@ -58,8 +58,8 @@ impl<B: BufStream> Extract<B> for Vec<u8> {
         }
     }
 
-    fn extract_body(ctx: &Context, body: B) -> Self::Future {
-        use codegen::Source::*;
+    fn extract_body(ctx: &Context<'_>, body: B) -> Self::Future {
+        use crate::codegen::Source::*;
 
         match ctx.callsite().source() {
             Body => {

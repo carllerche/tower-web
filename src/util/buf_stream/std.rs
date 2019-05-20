@@ -1,4 +1,4 @@
-use util::BufStream;
+use crate::util::BufStream;
 
 use bytes::Buf;
 use futures::{Poll, Stream};

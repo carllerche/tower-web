@@ -1,10 +1,9 @@
 #![doc(html_root_url = "https://docs.rs/tower-web/0.3.7")]
-#![deny(missing_debug_implementations, missing_docs)]
+#![deny(missing_debug_implementations, missing_docs, rust_2018_idioms)]
 #![cfg_attr(test, deny(warnings))]
 #![cfg_attr(feature = "async-await-preview", feature(
         async_await,
         await_macro,
-        futures_api,
         ))]
 
 //! Tower Web is a fast web framework that aims to remove boilerplate.
@@ -460,38 +459,12 @@
 //! [`ServiceBuilder`]: struct.ServiceBuilder.html
 //! [`ServiceBuilder::resource`]: struct.ServiceBuilder.html#method.resource
 //! [Serde]: http://serde.rs/
-extern crate atoi;
-extern crate bytes;
-extern crate checked;
-extern crate chrono;
-extern crate flate2;
 #[macro_use]
 extern crate futures;
-extern crate headers;
-extern crate http;
-extern crate hyper;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate log;
-extern crate mime;
-extern crate mime_guess;
-extern crate percent_encoding;
-extern crate serde;
-extern crate serde_json;
-extern crate serde_plain;
-extern crate serde_urlencoded;
-extern crate tokio;
-extern crate tokio_fs;
-extern crate tokio_io;
-extern crate tower_service;
-extern crate void;
-
-#[cfg(feature = "handlebars")]
-extern crate handlebars;
-
-#[cfg(feature = "async-await-preview")]
-extern crate tokio_async_await;
 
 #[cfg(feature = "rustls")]
 extern crate tokio_rustls;
@@ -512,9 +485,9 @@ pub mod view;
 
 mod run;
 
-pub use error::Error;
-pub use error::Builder as ErrorBuilder;
-pub use service::ServiceBuilder;
+pub use crate::error::Error;
+pub use crate::error::Builder as ErrorBuilder;
+pub use crate::service::ServiceBuilder;
 
 // ===== serde_derive re-export =====
 
@@ -564,7 +537,7 @@ proc_macro_item_decl! {
 ///     }
 /// }
 /// ```
-#[macro_export]
+#[macro_export(local_inner_macros)]
 macro_rules! impl_web {
     ($($t:tt)*) => {
         impl_web_clean_top_level!(() $($t)*);
@@ -575,7 +548,7 @@ macro_rules! impl_web {
 // Tt-muncher to invoke `impl_web_clean_nested!` on the content of every set of
 // curly braces in the input.
 #[doc(hidden)]
-#[macro_export]
+#[macro_export(local_inner_macros)]
 macro_rules! impl_web_clean_top_level {
     // Next token is a set of curly braces. Pass to `impl_web_clean_nested!`.
     (($($done:tt)*) { $($nested:tt)* } $($rest:tt)*) => {
@@ -595,7 +568,7 @@ macro_rules! impl_web_clean_top_level {
 
 // Tt-muncher to strip tower-web attributes from the input.
 #[doc(hidden)]
-#[macro_export]
+#[macro_export(local_inner_macros)]
 macro_rules! impl_web_clean_nested {
     // Match an attribute that we recognize and discard it.
     (($($outer:tt)*) ($($done:tt)*) { #[get $($attr:tt)*] $($nested:tt)* } $dup:tt $($rest:tt)*) => {

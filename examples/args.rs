@@ -23,7 +23,6 @@
 
 #[macro_use]
 extern crate tower_web;
-extern crate tokio;
 
 use tower_web::ServiceBuilder;
 

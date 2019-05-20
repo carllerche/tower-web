@@ -487,7 +487,7 @@ impl syn::fold::Fold for FoldShadowTy {
         use syn::punctuated::Punctuated;
         use std::mem;
 
-        macro_rules! try {
+        macro_rules! r#try {
             ($e:expr) => {{
                 match $e {
                     Ok(ret) => ret,
@@ -509,7 +509,7 @@ impl syn::fold::Fold for FoldShadowTy {
         for field in named {
             assert!(field.ident.is_some(), "unimplemented: fields with no name");
 
-            let attrs = try!(Attribute::from_ast(&field.attrs));
+            let attrs = r#try!(Attribute::from_ast(&field.attrs));
 
             if attrs.is_empty() {
                 self.src_fields
@@ -551,7 +551,7 @@ impl syn::fold::Fold for FoldShadowTy {
                                 Some(name) => name,
                                 None => {
                                     let arg = ident.to_string();
-                                    ::header::arg_to_header_name(&arg)
+                                    crate::header::arg_to_header_name(&arg)
                                 }
                             };
 
@@ -577,7 +577,7 @@ impl syn::fold::Fold for FoldShadowTy {
         use syn::punctuated::Punctuated;
         use std::mem;
 
-        macro_rules! try {
+        macro_rules! r#try {
             ($e:expr) => {{
                 match $e {
                     Ok(ret) => ret,
@@ -599,7 +599,7 @@ impl syn::fold::Fold for FoldShadowTy {
         for (i, field) in unnamed.into_iter().enumerate() {
             assert!(field.ident.is_none(), "unimplemented: field with name");
 
-            let attrs = try!(Attribute::from_ast(&field.attrs));
+            let attrs = r#try!(Attribute::from_ast(&field.attrs));
 
             if attrs.is_empty() {
                 let index = syn::Index::from(i);

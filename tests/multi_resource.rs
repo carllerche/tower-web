@@ -1,12 +1,10 @@
-extern crate futures;
-extern crate http;
-extern crate tower_service;
+use tower_service;
 #[macro_use]
 extern crate tower_web;
 
 #[macro_use]
 mod support;
-use support::*;
+use crate::support::*;
 
 #[derive(Clone, Debug)]
 struct One;

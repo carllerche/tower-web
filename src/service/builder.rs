@@ -1,13 +1,13 @@
-use config::ConfigBuilder;
-use error::{IntoCatch, DefaultCatch};
+use crate::config::ConfigBuilder;
+use crate::error::{IntoCatch, DefaultCatch};
 use futures::Future;
-use middleware::Identity;
-use net::ConnectionStream;
-use response::{DefaultSerializer, Serializer};
-use routing::{Resource, IntoResource, RoutedService};
-use service::NewWebService;
-use util::{BufStream, Chain};
-use util::http::{HttpService, HttpMiddleware};
+use crate::middleware::Identity;
+use crate::net::ConnectionStream;
+use crate::response::{DefaultSerializer, Serializer};
+use crate::routing::{Resource, IntoResource, RoutedService};
+use crate::service::NewWebService;
+use crate::util::{BufStream, Chain};
+use crate::util::http::{HttpService, HttpMiddleware};
 
 use std::io;
 use std::net::SocketAddr;
@@ -502,11 +502,11 @@ impl<T, S, C, M> ServiceBuilder<T, S, C, M> {
     /// # }
     /// ```
     pub fn run(self, addr: &SocketAddr) -> io::Result<()>
-    where T: IntoResource<S, ::run::LiftReqBody>,
+    where T: IntoResource<S, crate::run::LiftReqBody>,
           S: Serializer,
           C: IntoCatch<S> + Send + 'static,
           C::Catch: Send,
-          M: HttpMiddleware<RoutedService<T::Resource, C::Catch>, RequestBody = ::run::LiftReqBody> + Send + 'static,
+          M: HttpMiddleware<RoutedService<T::Resource, C::Catch>, RequestBody = crate::run::LiftReqBody> + Send + 'static,
           M::Service: Send,
           <M::Service as HttpService>::Future: Send,
           M::ResponseBody: Send,
@@ -516,7 +516,7 @@ impl<T, S, C, M> ServiceBuilder<T, S, C, M> {
           <T::Resource as Resource>::Body: Send,
           <T::Resource as Resource>::Future: Send,
     {
-        ::run::run(addr, self.build_new_service())
+        crate::run::run(addr, self.build_new_service())
     }
 
     /// Run the service in a non-blocking mode.
@@ -525,11 +525,11 @@ impl<T, S, C, M> ServiceBuilder<T, S, C, M> {
     pub fn serve<I>(self, incoming: I) -> impl Future<Item = (), Error = ()>
     where I: ConnectionStream,
           I::Item: Send + 'static,
-          T: IntoResource<S, ::run::LiftReqBody>,
+          T: IntoResource<S, crate::run::LiftReqBody>,
           S: Serializer,
           C: IntoCatch<S> + Send + 'static,
           C::Catch: Send,
-          M: HttpMiddleware<RoutedService<T::Resource, C::Catch>, RequestBody = ::run::LiftReqBody> + Send + 'static,
+          M: HttpMiddleware<RoutedService<T::Resource, C::Catch>, RequestBody = crate::run::LiftReqBody> + Send + 'static,
           M::Service: Send,
           <M::Service as HttpService>::Future: Send,
           M::ResponseBody: Send,
@@ -539,6 +539,6 @@ impl<T, S, C, M> ServiceBuilder<T, S, C, M> {
           <T::Resource as Resource>::Body: Send,
           <T::Resource as Resource>::Future: Send,
     {
-        ::run::serve(incoming, self.build_new_service())
+        crate::run::serve(incoming, self.build_new_service())
     }
 }
