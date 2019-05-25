@@ -3,6 +3,7 @@ use self::KindPriv::*;
 use std::error;
 use std::fmt;
 use http::StatusCode;
+use serde::Serialize;
 
 /// Builder for Error objects.
 #[derive(Debug)]

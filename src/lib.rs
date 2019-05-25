@@ -491,21 +491,12 @@ pub use crate::service::ServiceBuilder;
 
 // ===== serde_derive re-export =====
 
-#[allow(unused_imports)]
-#[macro_use]
-extern crate serde_derive;
-
 #[doc(hidden)]
-pub use serde_derive::*;
+pub use serde::{Serialize, Deserialize};
 
 // ===== proc_macro_hack junk =====
 
-#[macro_use]
-extern crate proc_macro_hack;
-
-#[allow(unused_imports)]
-#[macro_use]
-extern crate tower_web_macros;
+use proc_macro_hack::{proc_macro_item_decl, proc_macro_item_decl_helper, ProcMacroHackItem};
 
 #[doc(hidden)]
 pub use tower_web_macros::*;
