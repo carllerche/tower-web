@@ -1,7 +1,6 @@
 use tower_service;
 use tower_web::{derive_resource_impl, impl_web};
 
-#[macro_use]
 mod support;
 use crate::support::*;
 

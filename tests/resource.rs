@@ -5,7 +5,6 @@ use tower_web::{derive_resource_impl, Serialize, Response, impl_web};
 
 use std::fmt::Display;
 
-#[macro_use]
 mod support;
 use crate::support::*;
 

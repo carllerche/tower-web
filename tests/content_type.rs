@@ -2,7 +2,6 @@
 extern crate serde_json;
 use tower_web::{derive_resource_impl, Serialize, Response, impl_web};
 
-#[macro_use]
 mod support;
 use crate::support::*;
 
