@@ -129,6 +129,7 @@ macro_rules! assert_body {
 pub fn service<U>(resource: U) -> impl TestHttpService<RequestBody = String>
 where U: IntoResource<DefaultSerializer, String>,
 {
+    #[allow(unused_imports)]
     use self::futures::Future;
     use self::tower_service::NewService;
 
@@ -144,6 +145,7 @@ where
     U: IntoResource<DefaultSerializer<((), S)>, String>,
     S: Serializer,
 {
+    #[allow(unused_imports)]
     use self::futures::Future;
     use self::tower_service::NewService;
 
