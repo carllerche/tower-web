@@ -1,11 +1,9 @@
-#[macro_use]
-extern crate serde_json;
 use tower_web::{derive_resource_impl, Serialize, Response, impl_web};
 
 mod support;
 use crate::support::*;
 
-use serde_json::Value;
+use serde_json::{Value, json};
 
 #[derive(Clone, Debug)]
 struct TestContentType;
