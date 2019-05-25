@@ -1,5 +1,4 @@
-#[macro_use]
-extern crate tower_web;
+use tower_web::Response;
 
 #[derive(Response)]
 pub struct Routes {}

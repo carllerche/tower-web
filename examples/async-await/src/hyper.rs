@@ -21,14 +21,10 @@
 
 #![feature(await_macro, async_await)]
 
-#[macro_use]
-extern crate tower_web;
-extern crate tokio;
-extern crate hyper;
-
 use tokio::prelude::*;
 use tokio::await;
 use tower_web::ServiceBuilder;
+use tower_web::{impl_web, derive_resource_impl};
 
 use std::str;
 
