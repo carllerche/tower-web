@@ -1,8 +1,7 @@
 #![recursion_limit="256"]
 
 use futures;
-#[macro_use]
-extern crate tower_web;
+use tower_web::{derive_resource_impl, Serialize, Deserialize, Extract, Response, impl_web};
 
 use std::fmt::Display;
 

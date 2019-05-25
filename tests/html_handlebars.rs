@@ -1,7 +1,6 @@
 #![cfg(feature = "handlebars")]
 
-#[macro_use]
-extern crate tower_web;
+use tower_web::{derive_resource_impl, Serialize, Deserialize, Extract, Response, impl_web};
 
 #[macro_use]
 mod support;

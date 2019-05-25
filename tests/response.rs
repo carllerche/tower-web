@@ -1,10 +1,7 @@
 #![recursion_limit="256"]
 
 use http;
-#[macro_use]
-extern crate tower_web;
-
-use serde::Serialize;
+use tower_web::{derive_resource_impl, Serialize, Response, impl_web};
 
 #[macro_use]
 mod support;
