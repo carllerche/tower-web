@@ -2,6 +2,7 @@ use super::Attribute;
 
 use syn::{self, DeriveInput};
 use proc_macro2::{TokenStream, Span};
+use quote::quote;
 
 pub(crate) struct Extract {
     /// The response type identifier

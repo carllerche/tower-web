@@ -3,6 +3,7 @@ use crate::resource::{Route, Catch, TyTree};
 use quote::{TokenStreamExt, ToTokens};
 use proc_macro2::{Ident, Span, TokenStream};
 use syn;
+use quote::quote;
 
 #[derive(Debug)]
 pub(crate) struct Resource {

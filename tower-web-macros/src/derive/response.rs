@@ -6,6 +6,7 @@ use proc_macro2::{TokenStream, Span};
 use quote::ToTokens;
 use syn::{self, Data, DeriveInput, Ident};
 use syn::spanned::Spanned;
+use quote::{quote, quote_spanned};
 
 pub(crate) struct Response {
     /// The response type identifier

@@ -1,5 +1,6 @@
 use syn;
 use proc_macro2::TokenStream;
+use quote::quote;
 
 #[derive(Debug)]
 pub(crate) struct Arg {
