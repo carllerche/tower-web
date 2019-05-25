@@ -226,7 +226,7 @@ impl Response {
         Ok(quote! {
             #[allow(unused_variables, non_upper_case_globals)]
             const #dummy_const: () = {
-                extern crate tower_web as __tw;
+                use tower_web as __tw;
 
                 impl __tw::response::Response for #ty {
                     type Buf = <Self::Body as __tw::util::BufStream>::Item;
@@ -266,7 +266,7 @@ impl Response {
         Ok(quote! {
             #[allow(unused_variables, non_upper_case_globals)]
             const #dummy_const: () = {
-                extern crate tower_web as __tw;
+                use tower_web as __tw;
 
                 impl<#generics_serialize> __tw::response::Response for #ty<#generics>
                 {

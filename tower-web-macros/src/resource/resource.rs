@@ -65,7 +65,7 @@ impl Resource {
         quote! {
             #[allow(warnings)]
             const #dummy_const: () = {
-                extern crate tower_web as __tw;
+                use tower_web as __tw;
 
                 #resource_impl
 
