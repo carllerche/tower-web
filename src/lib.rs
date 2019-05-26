@@ -459,9 +459,6 @@
 //! [`ServiceBuilder`]: struct.ServiceBuilder.html
 //! [`ServiceBuilder::resource`]: struct.ServiceBuilder.html#method.resource
 //! [Serde]: http://serde.rs/
-#[cfg(feature = "rustls")]
-extern crate tokio_rustls;
-
 pub mod codegen;
 pub mod config;
 pub mod error;
