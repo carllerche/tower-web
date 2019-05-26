@@ -2,7 +2,7 @@ use crate::codegen::CallSite;
 use crate::extract::{Context, Error, Extract, ExtractFuture};
 use crate::util::buf_stream::{self, BufStream};
 
-use futures::{Future, Poll};
+use futures::{Future, Poll, try_ready};
 
 /// Extract a value using `serde`
 #[derive(Debug)]

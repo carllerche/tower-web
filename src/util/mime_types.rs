@@ -2,6 +2,7 @@ use bytes::BytesMut;
 use http::header::HeaderValue;
 use mime_guess;
 use std::collections::HashMap;
+use lazy_static::lazy_static;
 
 lazy_static! {
     pub static ref BY_EXTENSION: HashMap<&'static str, HeaderValue> = {

@@ -10,7 +10,7 @@ use crate::util::{BufStream, Chain};
 use crate::util::http::{HttpFuture, SealedFuture};
 
 use bytes::Buf;
-use futures::{Future, Stream, Async, Poll};
+use futures::{Future, Stream, Async, Poll, try_ready};
 use http;
 
 // ===== Utility traits =====

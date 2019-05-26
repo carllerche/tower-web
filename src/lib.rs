@@ -460,10 +460,6 @@
 //! [`ServiceBuilder::resource`]: struct.ServiceBuilder.html#method.resource
 //! [Serde]: http://serde.rs/
 #[macro_use]
-extern crate futures;
-#[macro_use]
-extern crate lazy_static;
-#[macro_use]
 extern crate log;
 
 #[cfg(feature = "rustls")]

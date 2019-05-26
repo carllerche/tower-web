@@ -1,5 +1,5 @@
 use flate2::Compression;
-use futures::{Future, Poll};
+use futures::{Future, Poll, try_ready};
 use http;
 use http::header::{CONTENT_ENCODING, HeaderValue};
 use tower_service::Service;

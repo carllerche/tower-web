@@ -4,7 +4,7 @@ use super::{BufStream, SizeHint};
 
 use bytes::{BytesMut, Bytes, Buf, BufMut};
 use flate2::{Compress, Compression, FlushCompress, Status};
-use futures::Poll;
+use futures::{Poll, try_ready};
 use futures::Async::*;
 
 use std::cmp;

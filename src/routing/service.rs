@@ -5,7 +5,7 @@ use crate::routing::{Resource, ResourceFuture, RouteSet, RouteMatch};
 use crate::util::http::HttpFuture;
 use crate::util::tuple::Either2;
 
-use futures::{Future, Poll};
+use futures::{Future, Poll, try_ready};
 use http;
 use tower_service::Service;
 
