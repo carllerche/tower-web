@@ -4,6 +4,7 @@ use futures::{Async, Future, Poll, try_ready};
 use http::{self, HeaderMap, Request, Response, StatusCode};
 use tower_service::Service;
 use crate::util::http::HttpService;
+use log::debug;
 
 use std::sync::Arc;
 

@@ -459,9 +459,6 @@
 //! [`ServiceBuilder`]: struct.ServiceBuilder.html
 //! [`ServiceBuilder::resource`]: struct.ServiceBuilder.html#method.resource
 //! [Serde]: http://serde.rs/
-#[macro_use]
-extern crate log;
-
 #[cfg(feature = "rustls")]
 extern crate tokio_rustls;
 

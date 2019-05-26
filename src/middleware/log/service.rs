@@ -1,6 +1,6 @@
 use futures::{Future, Poll};
 use http;
-use log::{logger, Level, Record};
+use log::{logger, Level, Record, warn, log_enabled};
 use tower_service::Service;
 
 use std::time::Instant;
