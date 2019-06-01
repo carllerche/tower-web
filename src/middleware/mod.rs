@@ -29,6 +29,7 @@ pub mod log;
 mod chain;
 mod identity;
 mod middleware;
+mod either;
 
 pub use self::chain::Chain;
 pub use self::identity::Identity;
