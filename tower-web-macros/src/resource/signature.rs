@@ -84,7 +84,7 @@ impl Signature {
             quote! {
                 let inner = #inner.clone();
                 let ret: #ty = __tw::codegen::async_await::async_to_box_future_send(async move {
-                    r#await!(inner.handler.#ident(#(#args),*))
+                    inner.handler.#ident(#(#args),*).await
                 });
                 ret
             }
