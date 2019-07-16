@@ -6,19 +6,28 @@ use http::status::StatusCode;
 #[derive(Debug)]
 pub struct Error {
     kind: Kind,
+    inner: crate::Error,
 }
 
 #[derive(Debug)]
 enum Kind {
     Missing,
-    Invalid(String),
-    Web(crate::Error),
+    Invalid,
+    Web,
 }
 
 impl Error {
     /// The data is missing from the HTTP request.
     pub fn missing_argument() -> Error {
-        Error { kind: Missing }
+        Self::missing(crate::Error::from(StatusCode::BAD_REQUEST))
+    }
+
+    /// The data is missing from the HTTP request.
+    pub fn missing(inner: crate::Error) -> Error {
+        Error {
+            kind: Missing,
+            inner,
+        }
     }
 
     /// Returns `true` when the error represents missing data from the HTTP
@@ -32,14 +41,24 @@ impl Error {
 
     /// The data is in an invalid format and cannot be extracted.
     pub fn invalid_argument<T: ToString>(reason: &T) -> Error {
-        Error { kind: Invalid(reason.to_string()) }
+        let mut inner = crate::Error::from(StatusCode::BAD_REQUEST);
+        inner.set_detail(&reason.to_string());
+        Self::invalid(inner)
+    }
+
+    /// The data is in an invalid format and cannot be extracted.
+    pub fn invalid(inner: crate::Error) -> Error {
+        Error {
+            kind: Invalid,
+            inner,
+        }
     }
 
     /// Returns `true` when the data is in an invalid format and cannot be
     /// extracted.
     pub fn is_invalid_argument(&self) -> bool {
         match self.kind {
-            Invalid(_) => true,
+            Invalid => true,
             _ => false,
         }
     }
@@ -51,15 +70,15 @@ impl Error {
 
 impl From<Error> for crate::Error {
     fn from(err: Error) -> Self {
-        match err.kind {
-            Missing | Invalid(_) => crate::Error::from(StatusCode::BAD_REQUEST),
-            Web(err) => err,
-        }
+        err.inner
     }
 }
 
 impl From<crate::Error> for Error {
-    fn from(err: crate::Error) -> Self {
-        Error { kind: Web(err) }
+    fn from(inner: crate::Error) -> Self {
+        Error {
+            kind: Web,
+            inner,
+        }
     }
 }
