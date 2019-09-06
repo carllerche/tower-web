@@ -1,7 +1,7 @@
 use super::{BufStream, SizeHint};
 use crate::util::tuple::Either2 as Either;
 
-use futures::Poll;
+use futures::{Poll, try_ready};
 
 /// A buf stream that sequences two buf streams together.
 ///

@@ -5,6 +5,7 @@ use handlebars::Handlebars as Registry;
 use http::header::HeaderValue;
 use http::status::StatusCode;
 use serde::Serialize;
+use log::error;
 
 use std::env;
 use std::path::{Path, MAIN_SEPARATOR};

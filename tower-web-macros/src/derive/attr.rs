@@ -1,6 +1,7 @@
 use http::StatusCode;
 use http::header::{HeaderName, HeaderValue};
 use syn;
+use quote::quote;
 
 #[derive(Debug)]
 pub(crate) struct Attribute {

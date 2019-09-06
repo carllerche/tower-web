@@ -2,6 +2,7 @@ use crate::resource::{Arg, Attributes, Signature, TyTree};
 
 use proc_macro2::TokenStream;
 use syn;
+use quote::quote;
 
 /// Represents a resource route
 #[derive(Debug)]

@@ -1,7 +1,5 @@
-#[macro_use]
-extern crate tower_web;
+use tower_web::{derive_resource_impl, impl_web};
 
-#[macro_use]
 mod support;
 use crate::support::*;
 

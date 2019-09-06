@@ -6,6 +6,7 @@ use proc_macro2::{TokenStream, Span};
 use quote::ToTokens;
 use syn::{self, Data, DeriveInput, Ident};
 use syn::spanned::Spanned;
+use quote::{quote, quote_spanned};
 
 pub(crate) struct Response {
     /// The response type identifier
@@ -225,7 +226,7 @@ impl Response {
         Ok(quote! {
             #[allow(unused_variables, non_upper_case_globals)]
             const #dummy_const: () = {
-                extern crate tower_web as __tw;
+                use tower_web as __tw;
 
                 impl __tw::response::Response for #ty {
                     type Buf = <Self::Body as __tw::util::BufStream>::Item;
@@ -265,7 +266,7 @@ impl Response {
         Ok(quote! {
             #[allow(unused_variables, non_upper_case_globals)]
             const #dummy_const: () = {
-                extern crate tower_web as __tw;
+                use tower_web as __tw;
 
                 impl<#generics_serialize> __tw::response::Response for #ty<#generics>
                 {
@@ -379,7 +380,7 @@ impl Response {
         let shadow_data = &self.shadow_ty;
 
         quote! {
-            #[derive(Serialize)]
+            #[derive(__tw::codegen::serde::Serialize)]
             #[serde(remote = #ty)]
             #shadow_data
         }

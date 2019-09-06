@@ -1,19 +1,16 @@
 #![recursion_limit = "512"]
 #[deny(rust_2018_idioms)]
 
-#[macro_use]
-extern crate proc_macro_hack;
-extern crate proc_macro;
 use proc_macro2;
-#[macro_use]
-extern crate quote;
 use syn;
+use proc_macro_hack::proc_macro_item_impl;
+use quote::quote;
 
 mod derive;
 mod header;
 mod resource;
 
-use proc_macro::TokenStream;
+use derive_resource_impl::TokenStream;
 
 const MAX_VARIANTS: usize = 12;
 

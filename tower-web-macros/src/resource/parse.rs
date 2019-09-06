@@ -1,6 +1,7 @@
 use crate::resource::{Arg, Attributes, Catch, Signature, Route, Resource};
 
 use proc_macro2::TokenStream;
+use quote::quote;
 use syn;
 
 /// Result of a parse

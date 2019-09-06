@@ -5,7 +5,7 @@ use percent_encoding;
 use std::borrow::Cow;
 use crate::util::BufStream;
 
-use futures::{Poll, Async};
+use futures::{Poll, Async, try_ready};
 
 #[derive(Debug)]
 pub struct ExtractString<B> {

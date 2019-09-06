@@ -1,6 +1,6 @@
 use super::{BufStream, FromBufStream};
 
-use futures::{Future, Poll};
+use futures::{Future, Poll, try_ready};
 
 /// Consumes a buf stream, collecting the data into a single byte container.
 ///

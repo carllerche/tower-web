@@ -1,7 +1,7 @@
 use super::BufStream;
 
 use bytes::BytesMut;
-use futures::{Async, Poll};
+use futures::{Async, Poll, try_ready};
 use tokio_fs::File;
 use tokio_io::AsyncRead;
 

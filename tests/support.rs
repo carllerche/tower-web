@@ -12,6 +12,7 @@ use tower_web::routing::IntoResource;
 pub use self::futures::Future;
 use http;
 
+#[macro_export]
 macro_rules! get {
     ($uri:expr) => {
         ::http::request::Builder::new()
@@ -28,6 +29,8 @@ macro_rules! get {
     };
 }
 
+
+#[macro_export]
 macro_rules! post {
     ($uri:expr, $body:expr) => {
         ::http::request::Builder::new()
@@ -46,42 +49,56 @@ macro_rules! post {
     };
 }
 
+
+#[macro_export]
 macro_rules! assert_ok {
     ($response:expr) => {
         assert_eq!($response.status(), ::http::StatusCode::OK)
     }
 }
 
+
+#[macro_export]
 macro_rules! assert_bad_request {
     ($response:expr) => {
         assert_eq!($response.status(), ::http::StatusCode::BAD_REQUEST)
     }
 }
 
+
+#[macro_export]
 macro_rules! assert_not_found {
     ($response:expr) => {
         assert_eq!($response.status(), ::http::StatusCode::NOT_FOUND)
     }
 }
 
+
+#[macro_export]
 macro_rules! assert_created {
     ($response:expr) => {
         assert_eq!($response.status(), ::http::StatusCode::CREATED)
     }
 }
 
+
+#[macro_export]
 macro_rules! assert_accepted {
     ($response:expr) => {
         assert_eq!($response.status(), ::http::StatusCode::ACCEPTED)
     }
 }
 
+
+#[macro_export]
 macro_rules! assert_internal_error {
     ($response:expr) => {
         assert_eq!($response.status(), ::http::StatusCode::INTERNAL_SERVER_ERROR)
     }
 }
 
+
+#[macro_export]
 macro_rules! assert_header {
     ($response:expr, $name:expr, $value:expr) => {{
         let n = $name;
@@ -95,6 +112,8 @@ macro_rules! assert_header {
     }}
 }
 
+
+#[macro_export]
 macro_rules! assert_body {
     ($response:expr, $body:expr) => {{
         use ::tower_web::util::BufStream;
@@ -110,6 +129,7 @@ macro_rules! assert_body {
 pub fn service<U>(resource: U) -> impl TestHttpService<RequestBody = String>
 where U: IntoResource<DefaultSerializer, String>,
 {
+    #[allow(unused_imports)]
     use self::futures::Future;
     use self::tower_service::NewService;
 
@@ -125,6 +145,7 @@ where
     U: IntoResource<DefaultSerializer<((), S)>, String>,
     S: Serializer,
 {
+    #[allow(unused_imports)]
     use self::futures::Future;
     use self::tower_service::NewService;
 

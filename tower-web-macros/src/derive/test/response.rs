@@ -1,3 +1,4 @@
+use quote::quote;
 
 macro_rules! expand {
     ($($tt:tt)*) => {{

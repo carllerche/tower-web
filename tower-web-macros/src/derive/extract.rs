@@ -2,6 +2,7 @@ use super::Attribute;
 
 use syn::{self, DeriveInput};
 use proc_macro2::{TokenStream, Span};
+use quote::quote;
 
 pub(crate) struct Extract {
     /// The response type identifier
@@ -59,7 +60,7 @@ impl Extract {
         Ok(quote! {
             #[allow(unused_variables, non_upper_case_globals)]
             const #dummy_const: () = {
-                extern crate tower_web as __tw;
+                use tower_web as __tw;
 
                 #shadow_def
 

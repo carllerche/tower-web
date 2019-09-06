@@ -5,6 +5,7 @@ use http;
 use http::header::HeaderValue;
 use http::status::StatusCode;
 use serde::Serialize;
+use log::warn;
 
 /// Context available when serializing the response.
 #[derive(Debug)]

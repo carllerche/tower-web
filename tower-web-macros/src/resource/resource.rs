@@ -3,6 +3,7 @@ use crate::resource::{Route, Catch, TyTree};
 use quote::{TokenStreamExt, ToTokens};
 use proc_macro2::{Ident, Span, TokenStream};
 use syn;
+use quote::quote;
 
 #[derive(Debug)]
 pub(crate) struct Resource {
@@ -64,7 +65,7 @@ impl Resource {
         quote! {
             #[allow(warnings)]
             const #dummy_const: () = {
-                extern crate tower_web as __tw;
+                use tower_web as __tw;
 
                 #resource_impl
 

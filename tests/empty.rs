@@ -1,7 +1,6 @@
-#[macro_use]
-extern crate tower_web;
-
 mod empty_impl {
+    use tower_web::{derive_resource_impl, impl_web};
+
     #[derive(Clone, Debug)]
     struct Empty;
 
@@ -17,6 +16,8 @@ mod empty_impl {
 }
 
 mod no_routes {
+    use tower_web::{derive_resource_impl, impl_web};
+
     #[derive(Clone)]
     struct Empty;
 
@@ -35,6 +36,8 @@ mod no_routes {
 }
 
 mod other_attr {
+    use tower_web::{derive_resource_impl, impl_web};
+
     #[derive(Clone)]
     struct Empty;
 
@@ -54,6 +57,8 @@ mod other_attr {
 }
 
 mod one_route {
+    use tower_web::{derive_resource_impl, impl_web};
+
     #[derive(Clone)]
     struct OneRoute;
 
