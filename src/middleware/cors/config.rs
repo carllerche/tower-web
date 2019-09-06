@@ -188,7 +188,7 @@ impl Config {
     }
 
     fn common_headers(&self, origin: HeaderValue) -> HeaderMap {
-        let mut headers = self.basic_headers();;
+        let mut headers = self.basic_headers();
 
         if self.allow_credentials {
             headers.insert(header::ACCESS_CONTROL_ALLOW_ORIGIN, origin);

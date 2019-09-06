@@ -380,7 +380,7 @@ impl Response {
         let shadow_data = &self.shadow_ty;
 
         quote! {
-            #[derive(Serialize)]
+            #[derive(serde::Serialize)]
             #[serde(remote = #ty)]
             #shadow_data
         }
