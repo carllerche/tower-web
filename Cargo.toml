@@ -53,7 +53,8 @@ percent-encoding = "1.0.1"
 tokio = "0.1.6"
 tokio-fs = "0.1.2"
 tokio-io = "0.1.7"
-tower-service = "0.1.0"
+tower-service = "0.2.0"
+tower-util = "0.1.0"
 void = "1.0.2"
 
 # Parsing params

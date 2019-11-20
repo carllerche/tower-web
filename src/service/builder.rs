@@ -442,7 +442,8 @@ impl<T, S, C, M> ServiceBuilder<T, S, C, M> {
     /// # extern crate http;
     ///
     /// use tower_web::ServiceBuilder;
-    /// use tower_service::{Service, NewService};
+    /// use tower_service::Service;
+    /// use tower_util::MakeService;
     /// use futures::Future;
     ///
     /// struct MyResource;
@@ -459,7 +460,7 @@ impl<T, S, C, M> ServiceBuilder<T, S, C, M> {
     ///     .build_new_service();
     ///
     /// // Use `new_service` to get an instance of our web service.
-    /// let mut service = new_service.new_service()
+    /// let mut service = new_service.make_service()
     ///     .wait().unwrap();
     ///
     /// // Issue a request to the service

@@ -131,7 +131,7 @@ where U: IntoResource<DefaultSerializer, String>,
 {
     #[allow(unused_imports)]
     use self::futures::Future;
-    use self::tower_service::NewService;
+    use self::tower_util::MakeService;
 
     ServiceBuilder::new()
         .resource(resource)
@@ -147,7 +147,7 @@ where
 {
     #[allow(unused_imports)]
     use self::futures::Future;
-    use self::tower_service::NewService;
+    use self::tower_util::MakeService;
 
     ServiceBuilder::new()
         .serializer(serializer)

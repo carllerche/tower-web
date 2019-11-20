@@ -47,7 +47,7 @@ impl_web! {
 
 #[test]
 fn multi_resource() {
-    use tower_service::NewService;
+    use tower_util::MakeService;
 
     let mut web = ::tower_web::ServiceBuilder::new()
         .resource(One)
