@@ -90,7 +90,7 @@ fn custom_global_catch() {
             Ok(response)
         })
         .build_new_service()
-        .new_service()
+        .make_service(())
         .wait().unwrap();
 
     let response = web.call_unwrap(get!("/missing"));

@@ -55,7 +55,7 @@ fn multi_resource() {
         .resource(Three)
         .resource(Four)
         .build_new_service()
-        .new_service()
+        .make_service(())
         .wait().unwrap();
 
     for path in &["/one", "/two", "/three", "/four"] {

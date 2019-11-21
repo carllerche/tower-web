@@ -1,7 +1,7 @@
 #![allow(unused_macros, dead_code)]
 
 pub use futures;
-use tower_service;
+use tower_util;
 
 pub use tower_web::util::http::HttpService;
 
@@ -126,7 +126,7 @@ macro_rules! assert_body {
     }}
 }
 
-pub fn service<U>(resource: U) -> impl TestHttpService<RequestBody = String>
+pub fn service<U>(resource: U) -> impl TestHttpService<String>
 where U: IntoResource<DefaultSerializer, String>,
 {
     #[allow(unused_imports)]
@@ -136,11 +136,11 @@ where U: IntoResource<DefaultSerializer, String>,
     ServiceBuilder::new()
         .resource(resource)
         .build_new_service()
-        .new_service()
+        .make_service(())
         .wait().unwrap()
 }
 
-pub fn service_with_serializer<U, S>(resource: U, serializer: S) -> impl TestHttpService<RequestBody = String>
+pub fn service_with_serializer<U, S>(resource: U, serializer: S) -> impl TestHttpService<String>
 where
     U: IntoResource<DefaultSerializer<((), S)>, String>,
     S: Serializer,
@@ -153,15 +153,15 @@ where
         .serializer(serializer)
         .resource(resource)
         .build_new_service()
-        .new_service()
+        .make_service(())
         .wait().unwrap()
 }
 
-pub trait TestHttpService: HttpService {
-    fn call_unwrap(&mut self, request: http::Request<Self::RequestBody>) -> http::Response<Self::ResponseBody> {
+pub trait TestHttpService<RequestBody>: HttpService<RequestBody> {
+    fn call_unwrap(&mut self, request: http::Request<RequestBody>) -> http::Response<Self::ResponseBody> {
         self.call_http(request).wait().ok().unwrap()
     }
 }
 
-impl<T: HttpService> TestHttpService for T {
+impl<T: HttpService<RequestBody>, RequestBody> TestHttpService<RequestBody> for T {
 }

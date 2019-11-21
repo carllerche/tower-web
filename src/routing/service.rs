@@ -95,11 +95,10 @@ where T: Resource,
     }
 }
 
-impl<T, U> Service for RoutedService<T, U>
+impl<T, U> Service<http::Request<T::RequestBody>> for RoutedService<T, U>
 where T: Resource,
       U: Catch,
 {
-    type Request = http::Request<T::RequestBody>;
     type Response = <Self::Future as Future>::Item;
     type Error = Error;
     type Future = RoutedResponse<T::Future, U>;
@@ -109,7 +108,7 @@ where T: Resource,
         Ok(().into())
     }
 
-    fn call(&mut self, request: Self::Request) -> Self::Future {
+    fn call(&mut self, request: http::Request<T::RequestBody>) -> Self::Future {
         // TODO: Use the body
         let (head, body) = request.into_parts();
         let request = http::Request::from_parts(head, ());

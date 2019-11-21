@@ -19,8 +19,7 @@ impl Identity {
 }
 
 /// Decorates a `Service`, transforming either the request or the response.
-impl<S: Service> Middleware<S> for Identity {
-    type Request = S::Request;
+impl<S: Service<Request>, Request> Middleware<S, Request> for Identity {
     type Response = S::Response;
     type Error = S::Error;
     type Service = S;

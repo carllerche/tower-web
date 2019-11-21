@@ -29,13 +29,12 @@ impl<S> DeflateService<S> {
     }
 }
 
-impl<S, RequestBody, ResponseBody> Service for DeflateService<S>
-where S: Service<Request = http::Request<RequestBody>,
+impl<S, RequestBody, ResponseBody> Service<http::Request<RequestBody>> for DeflateService<S>
+where S: Service<http::Request<RequestBody>,
                 Response = http::Response<ResponseBody>>,
       ResponseBody: BufStream,
       S::Error: ::std::error::Error,
 {
-    type Request = http::Request<RequestBody>;
     type Response = http::Response<CompressStream<ResponseBody>>;
     type Error = S::Error;
     type Future = ResponseFuture<S::Future>;
@@ -44,7 +43,7 @@ where S: Service<Request = http::Request<RequestBody>,
         self.inner.poll_ready()
     }
 
-    fn call(&mut self, request: Self::Request) -> Self::Future {
+    fn call(&mut self, request: http::Request<RequestBody>) -> Self::Future {
         ResponseFuture {
             inner: self.inner.call(request),
             level: self.level,
