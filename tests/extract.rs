@@ -1,6 +1,6 @@
 use http;
 use serde_json;
-use tower_web::{derive_resource_impl, Deserialize, Extract, impl_web};
+use tower_web::{Deserialize, Extract, impl_web};
 
 mod support;
 use crate::support::*;

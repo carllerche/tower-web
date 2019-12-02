@@ -1,4 +1,4 @@
-use tower_web::{derive_resource_impl, Response, impl_web};
+use tower_web::{Response, impl_web};
 
 mod support;
 use crate::support::*;
