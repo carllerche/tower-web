@@ -14,22 +14,21 @@ mod resource;
 
 const MAX_VARIANTS: usize = 12;
 
-#[proc_macro]
 /// Implement a Web Service
+#[proc_macro]
 pub fn derive_resource(input: TokenStream) -> TokenStream {
     // Parse the input to a proc_macro2 token stream
-    let input = syn::parse(input).unwrap();
+    let input = syn::parse_macro_input!(input);
 
     // Generate the output
     resource::expand_derive_resource(input)
-        // Convert the TokenStream back to a string
+        // Convert it back to a proc_macro token stream
         .into()
 }
 
 #[proc_macro_derive(Extract, attributes(web, serde))]
 pub fn derive_extract(input: TokenStream) -> TokenStream {
-    // Parse the input to `DeriveInput`
-    let input = syn::parse(input).unwrap();
+    let input = syn::parse_macro_input!(input);
 
     derive::expand_derive_extract(input)
         .unwrap_or_else(compile_error)
@@ -38,8 +37,7 @@ pub fn derive_extract(input: TokenStream) -> TokenStream {
 
 #[proc_macro_derive(Response, attributes(web))]
 pub fn derive_response(input: TokenStream) -> TokenStream {
-    // Parse the input to `DeriveInput`
-    let input = syn::parse(input).unwrap();
+    let input = syn::parse_macro_input!(input);
 
     derive::expand_derive_response(input)
         .unwrap_or_else(compile_error)

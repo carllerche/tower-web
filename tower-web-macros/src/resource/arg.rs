@@ -13,12 +13,12 @@ pub(crate) struct Arg {
     pub capture: Option<usize>,
 
     /// The argument type
-    pub ty: syn::Type,
+    pub ty: Box<syn::Type>,
 }
 
 impl Arg {
     /// Create a new, regular, argument.
-    pub fn new(index: usize, ident: String, capture: Option<usize>, ty: syn::Type) -> Arg {
+    pub fn new(index: usize, ident: String, capture: Option<usize>, ty: Box<syn::Type>) -> Arg {
         Arg {
             index,
             ident: Some(ident),
@@ -28,7 +28,7 @@ impl Arg {
     }
 
     /// The argument is formatted in a way that cannot be interpretted.
-    pub fn ty_only(index: usize, ty: syn::Type) -> Arg {
+    pub fn ty_only(index: usize, ty: Box::<syn::Type>) -> Arg {
         Arg {
             index,
             ty,

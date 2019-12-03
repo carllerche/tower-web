@@ -1,5 +1,4 @@
 use http;
-use tower_service;
 use tower_web::impl_web;
 
 mod support;

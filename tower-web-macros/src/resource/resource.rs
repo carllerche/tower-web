@@ -657,7 +657,7 @@ impl Resource {
 
         quote! {
             let either = match destination {
-                #(#branches)*
+                #branches
             };
 
             let state = State::Extract(either);
@@ -931,5 +931,6 @@ fn dummy_const_ident(ty: &syn::Type) -> String {
         Infer(_) => unimplemented!(),
         Macro(_) => unimplemented!(),
         Verbatim(_) => unimplemented!(),
+        _ => unimplemented!()
     }
 }

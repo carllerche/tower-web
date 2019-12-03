@@ -103,7 +103,7 @@ impl syn::fold::Fold for ImplWeb {
         let is_async = item.sig.asyncness.is_some();
 
         // Get the return type
-        let ret = match item.sig.decl.output {
+        let ret = match item.sig.output {
             ReturnType::Type(_, ref ty) => (**ty).clone(),
             ReturnType::Default => syn::parse_str("()").unwrap(),
         };
@@ -111,13 +111,13 @@ impl syn::fold::Fold for ImplWeb {
         let mut args = vec![];
 
         // Process the args
-        for arg in item.sig.decl.inputs.iter().skip(1) {
+        for arg in item.sig.inputs.iter().skip(1) {
             use syn::{FnArg, Pat};
 
             match arg {
-                FnArg::Captured(arg) => {
+                FnArg::Typed(arg) => {
                     let index = args.len();
-                    match arg.pat {
+                    match *arg.pat {
                         Pat::Ident(ref ident) => {
                             // Convert the identifier to a string
                             let ident = ident.ident.to_string();

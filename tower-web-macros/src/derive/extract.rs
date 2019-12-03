@@ -266,11 +266,11 @@ impl syn::fold::Fold for FoldShadowTy {
 fn is_serde_attr(attr: &syn::Attribute) -> bool {
     use syn::Meta::*;
 
-    attr.interpret_meta()
+    attr.parse_meta()
         .map(|meta| {
             match meta {
                 List(ref list) => {
-                    list.ident == "serde"
+                    list.path.is_ident("serde")
                 }
                 _ => false,
             }
