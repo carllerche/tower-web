@@ -34,11 +34,13 @@ use std::net::SocketAddr;
 ///     }
 /// }
 ///
+/// # fn main() {
 /// # if false {
 /// # let addr = "127.0.0.1:8080".parse().unwrap();
 /// ServiceBuilder::new()
 ///     .resource(MyResource)
 ///     .run(&addr);
+/// # }
 /// # }
 /// ```
 ///
@@ -66,6 +68,7 @@ use std::net::SocketAddr;
 ///     }
 /// }
 ///
+/// # fn main() {
 /// # if false {
 /// # let addr = "127.0.0.1:8080".parse().unwrap();
 /// ServiceBuilder::new()
@@ -73,6 +76,7 @@ use std::net::SocketAddr;
 ///     .resource(MyResource2)
 ///     .resource(MyResource3)
 ///     .run(&addr);
+/// # }
 /// # }
 /// ```
 ///
@@ -92,6 +96,7 @@ use std::net::SocketAddr;
 ///     }
 /// }
 ///
+/// # fn main() {
 /// # if false {
 /// # let addr = "127.0.0.1:8080".parse().unwrap();
 /// ServiceBuilder::new()
@@ -99,6 +104,7 @@ use std::net::SocketAddr;
 ///     .middleware(FooMiddleware::new("foo"))
 ///     .middleware(BarMiddleware::new("bar"))
 ///     .run(&addr);
+/// # }
 /// # }
 /// ```
 #[derive(Debug)]
@@ -130,11 +136,13 @@ impl ServiceBuilder<(), DefaultSerializer, DefaultCatch, Identity> {
     ///     }
     /// }
     ///
+    /// # fn main() {
     /// # if false {
     /// # let addr = "127.0.0.1:8080".parse().unwrap();
     /// ServiceBuilder::new()
     ///     .resource(MyResource)
     ///     .run(&addr);
+    /// # }
     /// # }
     /// ```
     pub fn new() -> Self {
@@ -169,11 +177,13 @@ impl<T, S, C, M> ServiceBuilder<T, S, C, M> {
     ///     }
     /// }
     ///
+    /// # fn main() {
     /// # if false {
     /// # let addr = "127.0.0.1:8080".parse().unwrap();
     /// ServiceBuilder::new()
     ///     .resource(MyResource)
     ///     .run(&addr);
+    /// # }
     /// # }
     /// ```
     pub fn resource<U>(self, resource: U)
@@ -230,12 +240,14 @@ impl<T, S, C, M> ServiceBuilder<T, S, C, M> {
     ///     }
     /// }
     ///
-    /// # fn dox() {
+    /// # fn main() {
+    /// # if false {
     /// # let addr = "127.0.0.1:0".parse().unwrap();
     /// ServiceBuilder::new()
     ///     .serializer(Handlebars::new())
     ///     .resource(MyResource)
     ///     .run(&addr);
+    /// # }
     /// # }
     /// ```
     pub fn serializer<U>(self, serializer: U)
@@ -291,12 +303,14 @@ impl<T, S, C, M> ServiceBuilder<T, S, C, M> {
     ///     }
     /// }
     ///
+    /// # fn main() {
     /// # if false {
     /// # let addr = "127.0.0.1:0".parse().unwrap();
     /// ServiceBuilder::new()
     ///     .resource(MyResource)
     ///     .config(MyConfig { foo: "bar".to_owned() })
     ///     .run(&addr);
+    /// # }
     /// # }
     /// ```
     pub fn config<U>(self, config: U)
@@ -335,6 +349,7 @@ impl<T, S, C, M> ServiceBuilder<T, S, C, M> {
     ///     }
     /// }
     ///
+    /// # fn main() {
     /// # if false {
     /// # let addr = "127.0.0.1:8080".parse().unwrap();
     /// ServiceBuilder::new()
@@ -342,6 +357,7 @@ impl<T, S, C, M> ServiceBuilder<T, S, C, M> {
     ///     .middleware(FooMiddleware::new("foo"))
     ///     .middleware(BarMiddleware::new("bar"))
     ///     .run(&addr);
+    /// # }
     /// # }
     /// ```
     pub fn middleware<U>(self, middleware: U)
@@ -380,6 +396,7 @@ impl<T, S, C, M> ServiceBuilder<T, S, C, M> {
     ///     }
     /// }
     ///
+    /// # fn main() {
     /// # if false {
     /// # let addr = "127.0.0.1:8080".parse().unwrap();
     /// ServiceBuilder::new()
@@ -396,6 +413,7 @@ impl<T, S, C, M> ServiceBuilder<T, S, C, M> {
     ///         Ok(response)
     ///     })
     ///     .run(&addr);
+    /// # }
     /// # }
     /// ```
     pub fn catch<U>(self, catch: U) -> ServiceBuilder<T, S, U, M> {
@@ -435,6 +453,7 @@ impl<T, S, C, M> ServiceBuilder<T, S, C, M> {
     ///     }
     /// }
     ///
+    /// # fn main() {
     /// let new_service = ServiceBuilder::new()
     ///     .resource(MyResource)
     ///     .build_new_service();
@@ -451,6 +470,7 @@ impl<T, S, C, M> ServiceBuilder<T, S, C, M> {
     ///     .unwrap();
     ///
     /// let response = service.call(request);
+    /// # }
     /// ```
     pub fn build_new_service<RequestBody>(self) -> NewWebService<T::Resource, C::Catch, M>
     where T: IntoResource<S, RequestBody>,
@@ -494,11 +514,13 @@ impl<T, S, C, M> ServiceBuilder<T, S, C, M> {
     ///     }
     /// }
     ///
+    /// # fn main() {
     /// # if false {
     /// # let addr = "127.0.0.1:8080".parse().unwrap();
     /// ServiceBuilder::new()
     ///     .resource(MyResource)
     ///     .run(&addr);
+    /// # }
     /// # }
     /// ```
     pub fn run(self, addr: &SocketAddr) -> io::Result<()>

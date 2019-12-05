@@ -1,6 +1,5 @@
 use http;
-use tower_service;
-use tower_web::{derive_resource_impl, impl_web};
+use tower_web::impl_web;
 
 mod support;
 use crate::support::*;

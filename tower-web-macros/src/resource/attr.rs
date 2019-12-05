@@ -93,8 +93,8 @@ impl Attributes {
             "doc" => {
                 use syn::{Lit, Meta};
 
-                let meta = match attr.interpret_meta() {
-                    Some(Meta::NameValue(meta)) => meta,
+                let meta = match attr.parse_meta() {
+                    Ok(Meta::NameValue(meta)) => meta,
                     _ => return false,
                 };
 
@@ -145,48 +145,49 @@ impl Attributes {
     fn process_attr2(&mut self, attr: &syn::Attribute) {
         use syn::Meta;
 
-        match attr.interpret_meta() {
-            Some(Meta::List(list)) => {
+        match attr.parse_meta() {
+            Ok(Meta::List(list)) => {
                 assert!(list.nested.len() == 1, "unimplemented: invalid route rule; list.nested.len() == 1");
 
                 // TODO: Should the identifier be lower cased?
+                let ident = list.path.get_ident().expect("invalid route rule");
 
-                if list.ident == "get" {
+                if ident == "get" {
                     self.set_method(Method::Get);
                     self.process_path(&list);
-                } else if list.ident == "post" {
+                } else if ident == "post" {
                     self.set_method(Method::Post);
                     self.process_path(&list);
-                } else if list.ident == "put" {
+                } else if ident == "put" {
                     self.set_method(Method::Put);
                     self.process_path(&list);
-                } else if list.ident == "patch" {
+                } else if ident == "patch" {
                     self.set_method(Method::Patch);
                     self.process_path(&list);
-                } else if list.ident == "delete" {
+                } else if ident == "delete" {
                     self.set_method(Method::Delete);
                     self.process_path(&list);
-                } else if list.ident == "content_type" {
+                } else if ident == "content_type" {
                     self.process_content_type(&list);
-                } else if list.ident == "catch" {
+                } else if ident == "catch" {
                     self.process_catch(&list);
-                } else if list.ident == "web" {
+                } else if ident == "web" {
                     self.process_web(&list);
                 } else {
                     println!("LIST; {:?}", list);
                     unimplemented!("unimplemented: invalid route rule");
                 }
             }
-            Some(Meta::Word(word)) => {
-                if word == "catch" {
-                    self.process_catch_all();
+            Ok(Meta::Path(path)) => {
+                if path.is_ident("catch") {
+                    self.process_catch_all()
                 } else {
-                    println!("WORD; {:?}", word);
+                    println!("PATH; {:?}", path);
                     unimplemented!("unimplemented: invalid route rule");
                 }
             }
-            Some(meta) => unimplemented!("unimplemented: invalid route rule; META = {:?}", meta),
-            None => unimplemented!("unimplemented: invalid route rule; Invalid meta"),
+            Ok(meta) => unimplemented!("unimplemented: invalid route rule; META = {:?}", meta),
+            Err(e) => unimplemented!("unimplemented: invalid route rule; Invalid meta: {:?}", e),
         }
     }
 
@@ -196,8 +197,8 @@ impl Attributes {
         assert!(list.nested.len() == 1, "unimplemeneted: invalid route rule");
         assert!(self.path.is_none(), "unimplemented: dup path");
 
-        match list.nested.first().unwrap().value() {
-            NestedMeta::Literal(Lit::Str(lit)) => {
+        match list.nested.first().unwrap() {
+            NestedMeta::Lit(Lit::Str(lit)) => {
                 // Convert the path literal to a String
                 let path = lit.value();
 
@@ -225,8 +226,8 @@ impl Attributes {
         assert!(list.nested.len() == 1, "unimplemeneted: invalid route rule");
         assert!(self.content_type.is_none(), "content_type already set");
 
-        match list.nested.first().unwrap().value() {
-            NestedMeta::Literal(Lit::Str(lit)) => {
+        match list.nested.first().unwrap() {
+            NestedMeta::Lit(Lit::Str(lit)) => {
                 self.content_type = Some(lit.value());
             }
             _ => unimplemented!("unimplemented: invalid route rule"),
@@ -248,7 +249,7 @@ impl Attributes {
         for meta in &list.nested {
             match *meta {
                 NestedMeta::Meta(Meta::NameValue(ref name_value)) => {
-                    if name_value.ident == "template" {
+                    if name_value.path.is_ident("template") {
                         assert!(self.template.is_none(), "template already set");
 
                         match name_value.lit {

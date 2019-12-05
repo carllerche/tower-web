@@ -24,7 +24,7 @@
 use tokio::prelude::*;
 use tokio::await;
 use tower_web::ServiceBuilder;
-use tower_web::{impl_web, derive_resource_impl};
+use tower_web::impl_web;
 
 use std::str;
 

@@ -37,9 +37,9 @@ impl Attribute {
                 continue;
             }
 
-            let meta = match attr.interpret_meta() {
-                Some(meta) => meta,
-                None => continue,
+            let meta = match attr.parse_meta() {
+                Ok(meta) => meta,
+                Err(err) => return Err(format!("failed parsing attribute: {}", err)),
             };
 
             let source = attr.clone();
@@ -49,13 +49,15 @@ impl Attribute {
                     for meta in &meta_list.nested {
                         let meta = match meta {
                             NestedMeta::Meta(meta) => meta,
-                            NestedMeta::Literal(_) => {
+                            NestedMeta::Lit(_) => {
                                 unimplemented!("unexpected attribute literal; file={}; line={}", file!(), line!())
                             }
                         };
 
                         let attr = match meta {
-                            Meta::Word(meta) => {
+                            Meta::Path(path) => {
+                                let meta = path.get_ident().expect("invalid struct-level annotation");
+
                                 if meta == "header" {
                                     Attribute::header_from_word(&source)
                                 } else if meta == "status" {
@@ -75,7 +77,7 @@ impl Attribute {
                                 }
                             }
                             Meta::List(meta) => {
-                                if meta.ident == "header" {
+                                if meta.path.is_ident("header") {
                                     Attribute::header_from_list(meta, &source)
                                 } else {
                                     let actual = quote!(#meta);
@@ -90,11 +92,11 @@ impl Attribute {
                                 }
                             }
                             Meta::NameValue(meta) => {
-                                if meta.ident == "status" {
+                                if meta.path.is_ident("status") {
                                     Attribute::status_from_name_value(meta, &source)
-                                } else if meta.ident == "template" {
+                                } else if meta.path.is_ident("template") {
                                     Attribute::template_from_name_value(meta, &source)
-                                } else if meta.ident == "header" {
+                                } else if meta.path.is_ident("header") {
                                     unimplemented!("unexpected attribute; {:?}", meta);
                                 } else {
                                     unimplemented!("unexpected attribute; {:?}", meta);
@@ -194,7 +196,7 @@ impl Attribute {
         for meta in &meta.nested {
             match meta {
                 NestedMeta::Meta(Meta::NameValue(meta)) => {
-                    if meta.ident == "name" {
+                    if meta.path.is_ident("name") {
                         match meta.lit {
                             Lit::Str(ref v) => {
                                 let hdr = v.value()
@@ -205,7 +207,7 @@ impl Attribute {
                             }
                             _ => unimplemented!("file={}; line={}", file!(), line!()),
                         }
-                    } else if meta.ident == "value" {
+                    } else if meta.path.is_ident("value") {
                         match meta.lit {
                             Lit::Str(ref lit_str) => {
                                 let lit_str = lit_str.value();

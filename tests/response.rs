@@ -1,7 +1,7 @@
 #![recursion_limit="256"]
 
 use http;
-use tower_web::{derive_resource_impl, Serialize, Response, impl_web};
+use tower_web::{Serialize, Response, impl_web};
 
 mod support;
 use crate::support::*;

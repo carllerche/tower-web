@@ -121,17 +121,20 @@ impl Resource {
 
         // Define `Resource` on the struct.
         quote! {
-            macro_rules! try_ready {
-                ($e:expr) => {{
-                    match $e {
-                        Ok(__tw::codegen::futures::Async::Ready(t)) => t,
-                        Ok(__tw::codegen::futures::Async::NotReady) => {
-                            return Ok(__tw::codegen::futures::Async::NotReady)
-                        }
-                        Err(e) => return Err(From::from(e)),
-                    }
-                }}
-            }
+            // Procedural macros expanding to macro_rules only stabilizes in 1.40,
+            // so we have to inline until then.
+            //
+            // macro_rules! try_ready {
+            //     ($e:expr) => {{
+            //         match $e {
+            //             Ok(__tw::codegen::futures::Async::Ready(t)) => t,
+            //             Ok(__tw::codegen::futures::Async::NotReady) => {
+            //                 return Ok(__tw::codegen::futures::Async::NotReady)
+            //             }
+            //             Err(e) => return Err(From::from(e)),
+            //         }
+            //     }}
+            // }
 
             pub struct __GeneratedResource<S, B, T>
             where S: __tw::response::Serializer,
@@ -290,7 +293,14 @@ impl Resource {
 
                         match self.state {
                             State::Extract(ref mut extract_future) => {
-                                try_ready!(__tw::codegen::futures::Future::poll(extract_future));
+                                // try_ready!(__tw::codegen::futures::Future::poll(extract_future));
+                                match __tw::codegen::futures::Future::poll(extract_future) {
+                                    Ok(__tw::codegen::futures::Async::Ready(t)) => t,
+                                    Ok(__tw::codegen::futures::Async::NotReady) => {
+                                        return Ok(__tw::codegen::futures::Async::NotReady)
+                                    }
+                                    Err(e) => return Err(From::from(e)),
+                                };
                             }
                             State::Response(ref mut response) => {
                                 let response = match __tw::codegen::futures::Future::poll(response) {
@@ -317,7 +327,16 @@ impl Resource {
                             State::Error(ref mut response) => {
                                 return Ok(__tw::codegen::futures::Async::Ready({
                                     let res = __tw::codegen::futures::Future::poll(response);
-                                    let response = try_ready!(res);
+
+                                    // let response = try_ready!(res);
+                                    let response = match res {
+                                        Ok(__tw::codegen::futures::Async::Ready(t)) => t,
+                                        Ok(__tw::codegen::futures::Async::NotReady) => {
+                                            return Ok(__tw::codegen::futures::Async::NotReady)
+                                        }
+                                        Err(e) => return Err(From::from(e)),
+                                    };
+
                                     let response = #catch_into_response;
                                     response?
                                 }));
@@ -364,13 +383,29 @@ impl Resource {
                 fn poll(&mut self) -> __tw::codegen::futures::Poll<Option<Self::Item>, Self::Error> {
                     match self.0 {
                         Ok(ref mut b) => {
-                            let buf = try_ready!(b.poll());
+                            // let buf = try_ready!(b.poll());
+                            let buf = match b.poll() {
+                                Ok(__tw::codegen::futures::Async::Ready(t)) => t,
+                                Ok(__tw::codegen::futures::Async::NotReady) => {
+                                    return Ok(__tw::codegen::futures::Async::NotReady)
+                                }
+                                Err(e) => return Err(From::from(e)),
+                            };
+
                             Ok(buf.map(|buf| {
                                 ResponseBuf(Ok(buf), ::std::marker::PhantomData)
                             }).into())
                         }
                         Err(ref mut b) => {
-                            let buf = try_ready!(b.poll());
+                            // let buf = try_ready!(b.poll());
+                            let buf = match b.poll() {
+                                Ok(__tw::codegen::futures::Async::Ready(t)) => t,
+                                Ok(__tw::codegen::futures::Async::NotReady) => {
+                                    return Ok(__tw::codegen::futures::Async::NotReady)
+                                }
+                                Err(e) => return Err(From::from(e)),
+                            };
+
                             Ok(buf.map(|buf| {
                                 ResponseBuf(Err(buf), ::std::marker::PhantomData)
                             }).into())
@@ -657,7 +692,7 @@ impl Resource {
 
         quote! {
             let either = match destination {
-                #(#branches)*
+                #branches
             };
 
             let state = State::Extract(either);
@@ -931,5 +966,6 @@ fn dummy_const_ident(ty: &syn::Type) -> String {
         Infer(_) => unimplemented!(),
         Macro(_) => unimplemented!(),
         Verbatim(_) => unimplemented!(),
+        _ => unimplemented!()
     }
 }
