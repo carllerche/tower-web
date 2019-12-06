@@ -74,7 +74,7 @@ fn default_catch_not_found() {
 
 #[test]
 fn custom_global_catch() {
-    use tower_service::NewService;
+    use tower_util::MakeService;
 
     let mut web = ::tower_web::ServiceBuilder::new()
         .resource(TestDefaultCatch)
@@ -90,7 +90,7 @@ fn custom_global_catch() {
             Ok(response)
         })
         .build_new_service()
-        .new_service()
+        .make_service(())
         .wait().unwrap();
 
     let response = web.call_unwrap(get!("/missing"));

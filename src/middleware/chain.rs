@@ -22,12 +22,11 @@ impl<Inner, Outer> Chain<Inner, Outer> {
     }
 }
 
-impl<S, Inner, Outer> Middleware<S> for Chain<Inner, Outer>
-where S: Service,
-      Inner: Middleware<S>,
-      Outer: Middleware<Inner::Service>,
+impl<S, Inner, Outer, Request> Middleware<S, Request> for Chain<Inner, Outer>
+where S: Service<Request>,
+      Inner: Middleware<S, Request>,
+      Outer: Middleware<Inner::Service, Request>,
 {
-    type Request = Outer::Request;
     type Response = Outer::Response;
     type Error = Outer::Error;
     type Service = Outer::Service;

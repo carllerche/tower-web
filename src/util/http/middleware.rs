@@ -11,10 +11,7 @@ use http::{Request, Response};
 ///
 /// Using `HttpMiddleware` in where bounds is easier than trying to use `Middleware`
 /// directly.
-pub trait HttpMiddleware<S>: sealed::Sealed<S> {
-    /// The HTTP request body handled by the wrapped service.
-    type RequestBody: BufStream;
-
+pub trait HttpMiddleware<S, RequestBody>: sealed::Sealed<S, RequestBody> {
     /// The HTTP response body returned by the wrapped service.
     type ResponseBody: BufStream;
 
@@ -22,7 +19,7 @@ pub trait HttpMiddleware<S>: sealed::Sealed<S> {
     type Error;
 
     /// The wrapped service.
-    type Service: HttpService<RequestBody = Self::RequestBody,
+    type Service: HttpService<RequestBody,
                              ResponseBody = Self::ResponseBody,
                                     Error = Self::Error>;
 
@@ -31,13 +28,11 @@ pub trait HttpMiddleware<S>: sealed::Sealed<S> {
     fn wrap_http(&self, inner: S) -> Self::Service;
 }
 
-impl<T, S, B1, B2> HttpMiddleware<S> for T
-where T: Middleware<S, Request = Request<B1>,
-                      Response = Response<B2>>,
+impl<T, S, B1, B2> HttpMiddleware<S, B1> for T
+where T: Middleware<S, Request<B1>, Response = Response<B2>>,
       B1: BufStream,
       B2: BufStream,
 {
-    type RequestBody = B1;
     type ResponseBody = B2;
     type Error = T::Error;
     type Service = T::Service;
@@ -47,13 +42,12 @@ where T: Middleware<S, Request = Request<B1>,
     }
 }
 
-impl<T, S, B1, B2> sealed::Sealed<S> for T
-where T: Middleware<S, Request = Request<B1>,
-                      Response = Response<B2>>,
+impl<T, S, B1, B2> sealed::Sealed<S, B1> for T
+where T: Middleware<S, Request<B1>, Response = Response<B2>>,
       B1: BufStream,
       B2: BufStream,
 {}
 
 mod sealed {
-    pub trait Sealed<S> {}
+    pub trait Sealed<T, S> {}
 }

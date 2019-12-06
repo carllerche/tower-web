@@ -5,8 +5,7 @@ use crate::util::Never;
 use crate::util::http::{HttpMiddleware};
 
 use futures::future::{self, FutureResult};
-use http;
-use tower_service::NewService;
+use futures::{Async, Poll};
 
 use std::fmt;
 
@@ -29,7 +28,7 @@ impl<T, U, M> NewWebService<T, U, M>
 where
     T: Resource,
     U: Catch,
-    M: HttpMiddleware<RoutedService<T, U>>,
+    M: HttpMiddleware<RoutedService<T, U>, T::RequestBody>,
 {
     /// Create a new `NewWebService` instance.
     pub(crate) fn new(service: RoutedService<T, U>, middleware: M) -> Self {
@@ -40,20 +39,21 @@ where
     }
 }
 
-impl<T, U, M> NewService for NewWebService<T, U, M>
+impl<T, U, M> tower_service::Service<()> for NewWebService<T, U, M>
 where
     T: Resource,
     U: Catch,
-    M: HttpMiddleware<RoutedService<T, U>>,
+    M: HttpMiddleware<RoutedService<T, U>, T::RequestBody>,
 {
-    type Request = http::Request<M::RequestBody>;
-    type Response = http::Response<M::ResponseBody>;
-    type Error = M::Error;
-    type Service = WebService<T, U, M>;
-    type InitError = Never;
-    type Future = FutureResult<Self::Service, Self::InitError>;
+    type Response = WebService<T, U, M>;
+    type Error = Never;
+    type Future = FutureResult<Self::Response, Self::Error>;
 
-    fn new_service(&self) -> Self::Future {
+    fn poll_ready(&mut self) -> Poll<(), Self::Error> {
+        Ok(Async::Ready(()))
+    }
+
+    fn call(&mut self, _target: ()) -> Self::Future {
         let service = self.middleware.wrap_http(self.service.clone());
 
         future::ok(WebService::new(service))

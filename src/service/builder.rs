@@ -442,7 +442,8 @@ impl<T, S, C, M> ServiceBuilder<T, S, C, M> {
     /// # extern crate http;
     ///
     /// use tower_web::ServiceBuilder;
-    /// use tower_service::{Service, NewService};
+    /// use tower_service::Service;
+    /// use tower_util::MakeService;
     /// use futures::Future;
     ///
     /// struct MyResource;
@@ -454,12 +455,12 @@ impl<T, S, C, M> ServiceBuilder<T, S, C, M> {
     /// }
     ///
     /// # fn main() {
-    /// let new_service = ServiceBuilder::new()
+    /// let mut new_service = ServiceBuilder::new()
     ///     .resource(MyResource)
     ///     .build_new_service();
     ///
-    /// // Use `new_service` to get an instance of our web service.
-    /// let mut service = new_service.new_service()
+    /// // Use `make_service` to get an instance of our web service.
+    /// let mut service = new_service.make_service(())
     ///     .wait().unwrap();
     ///
     /// // Issue a request to the service
@@ -476,7 +477,7 @@ impl<T, S, C, M> ServiceBuilder<T, S, C, M> {
     where T: IntoResource<S, RequestBody>,
           S: Serializer,
           C: IntoCatch<S>,
-          M: HttpMiddleware<RoutedService<T::Resource, C::Catch>>,
+          M: HttpMiddleware<RoutedService<T::Resource, C::Catch>, RequestBody>,
           RequestBody: BufStream,
     {
         // Build the routes
@@ -528,9 +529,9 @@ impl<T, S, C, M> ServiceBuilder<T, S, C, M> {
           S: Serializer,
           C: IntoCatch<S> + Send + 'static,
           C::Catch: Send,
-          M: HttpMiddleware<RoutedService<T::Resource, C::Catch>, RequestBody = crate::run::LiftReqBody> + Send + 'static,
+          M: HttpMiddleware<RoutedService<T::Resource, C::Catch>, crate::run::LiftReqBody> + Send + 'static,
           M::Service: Send,
-          <M::Service as HttpService>::Future: Send,
+          <M::Service as HttpService<crate::run::LiftReqBody>>::Future: Send,
           M::ResponseBody: Send,
           <M::ResponseBody as BufStream>::Item: Send,
           T::Resource: Send + 'static,
@@ -551,9 +552,9 @@ impl<T, S, C, M> ServiceBuilder<T, S, C, M> {
           S: Serializer,
           C: IntoCatch<S> + Send + 'static,
           C::Catch: Send,
-          M: HttpMiddleware<RoutedService<T::Resource, C::Catch>, RequestBody = crate::run::LiftReqBody> + Send + 'static,
+          M: HttpMiddleware<RoutedService<T::Resource, C::Catch>, crate::run::LiftReqBody> + Send + 'static,
           M::Service: Send,
-          <M::Service as HttpService>::Future: Send,
+          <M::Service as HttpService<crate::run::LiftReqBody>>::Future: Send,
           M::ResponseBody: Send,
           <M::ResponseBody as BufStream>::Item: Send,
           T::Resource: Send + 'static,

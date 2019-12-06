@@ -20,14 +20,13 @@ impl DeflateMiddleware {
     }
 }
 
-impl<S, RequestBody, ResponseBody> Middleware<S> for DeflateMiddleware
-where S: Service<Request = http::Request<RequestBody>,
+impl<S, RequestBody, ResponseBody> Middleware<S, http::Request<RequestBody>> for DeflateMiddleware
+where S: Service<http::Request<RequestBody>,
                 Response = http::Response<ResponseBody>>,
       RequestBody: BufStream,
       ResponseBody: BufStream,
       S::Error: ::std::error::Error,
 {
-    type Request = http::Request<RequestBody>;
     type Response = http::Response<CompressStream<ResponseBody>>;
     type Error = S::Error;
     type Service = DeflateService<S>;
@@ -36,4 +35,3 @@ where S: Service<Request = http::Request<RequestBody>,
         DeflateService::new(service, self.level)
     }
 }
-

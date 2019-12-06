@@ -17,12 +17,11 @@ impl LogMiddleware {
     }
 }
 
-impl<S, RequestBody, ResponseBody> Middleware<S> for LogMiddleware
-where S: Service<Request = http::Request<RequestBody>,
+impl<S, RequestBody, ResponseBody> Middleware<S, http::Request<RequestBody>> for LogMiddleware
+where S: Service<http::Request<RequestBody>,
                 Response = http::Response<ResponseBody>>,
       S::Error: ::std::error::Error,
 {
-    type Request = http::Request<RequestBody>;
     type Response = http::Response<ResponseBody>;
     type Error = S::Error;
     type Service = LogService<S>;

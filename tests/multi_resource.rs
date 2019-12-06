@@ -47,7 +47,7 @@ impl_web! {
 
 #[test]
 fn multi_resource() {
-    use tower_service::NewService;
+    use tower_util::MakeService;
 
     let mut web = ::tower_web::ServiceBuilder::new()
         .resource(One)
@@ -55,7 +55,7 @@ fn multi_resource() {
         .resource(Three)
         .resource(Four)
         .build_new_service()
-        .new_service()
+        .make_service(())
         .wait().unwrap();
 
     for path in &["/one", "/two", "/three", "/four"] {

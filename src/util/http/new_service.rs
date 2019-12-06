@@ -3,17 +3,16 @@ use crate::util::buf_stream::BufStream;
 
 use futures::Future;
 use http::{Request, Response};
-use tower_service::NewService;
+use tower_util::MakeService;
 
 /// Creates `HttpService` values.
 ///
 /// This is not intended to be implemented directly. Instead, it is a trait
-/// alias of sorts, aliasing `tower_service::NewService` trait with
+/// alias of sorts, aliasing `tower_util::MakeService` trait with
 /// `http::Request` and `http::Response` types.
-pub trait NewHttpService: sealed::Sealed {
-    /// The HTTP request body handled by the service.
-    type RequestBody: BufStream;
-
+pub trait NewHttpService<RequestBody>: sealed::Sealed<RequestBody>
+    where RequestBody: BufStream
+{
     /// The HTTP response body returned by the service.
     type ResponseBody: BufStream;
 
@@ -21,45 +20,44 @@ pub trait NewHttpService: sealed::Sealed {
     type Error;
 
     /// The `Service` value created by this factory
-    type Service: HttpService<RequestBody = Self::RequestBody,
+    type Service: HttpService<RequestBody,
                              ResponseBody = Self::ResponseBody,
                                     Error = Self::Error>;
 
     /// Errors produced while building a service.
-    type InitError;
+    type MakeError;
 
     /// The future of the `Service` instance.
-    type Future: Future<Item = Self::Service, Error = Self::InitError>;
+    type Future: Future<Item = Self::Service, Error = Self::MakeError>;
 
     /// Create and return a new service value asynchronously.
-    fn new_http_service(&self) -> Self::Future;
+    fn new_http_service(&mut self) -> Self::Future;
 }
 
-impl<T, B1, B2> NewHttpService for T
-where T: NewService<Request = Request<B1>,
+impl<T, B1, B2> NewHttpService<B1> for T
+where T: MakeService<(), Request<B1>,
                    Response = Response<B2>>,
       B1: BufStream,
-      B2: BufStream
+      B2: BufStream,
 {
-    type RequestBody = B1;
     type ResponseBody = B2;
     type Error = T::Error;
     type Service = T::Service;
-    type InitError = T::InitError;
+    type MakeError = T::MakeError;
     type Future = T::Future;
 
-    fn new_http_service(&self) -> Self::Future {
-        NewService::new_service(self)
+    fn new_http_service(&mut self) -> Self::Future {
+        MakeService::make_service(self, ())
     }
 }
 
-impl<T, B1, B2> sealed::Sealed for T
-where T: NewService<Request = Request<B1>,
+impl<T, B1, B2> sealed::Sealed<B1> for T
+where T: MakeService<(), Request<B1>,
                    Response = Response<B2>>,
       B1: BufStream,
       B2: BufStream
 {}
 
 mod sealed {
-    pub trait Sealed {}
+    pub trait Sealed<T> {}
 }

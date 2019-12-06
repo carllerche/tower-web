@@ -9,10 +9,7 @@ use tower_service::Service;
 /// This is not intended to be implemented directly. Instead, it is a trait
 /// alias of sorts, aliasing `tower_service::Service` trait with `http::Request`
 /// and `http::Response` types.
-pub trait HttpService: sealed::Service {
-    /// Request payload.
-    type RequestBody: BufStream;
-
+pub trait HttpService<RequestBody>: sealed::Service<RequestBody> {
     /// The HTTP response body type.
     type ResponseBody: BufStream;
 
@@ -26,7 +23,7 @@ pub trait HttpService: sealed::Service {
     fn poll_http_ready(&mut self) -> Poll<(), Self::Error>;
 
     /// Process the request and return the response asynchronously.
-    fn call_http(&mut self, request: Request<Self::RequestBody>) -> Self::Future;
+    fn call_http(&mut self, request: Request<RequestBody>) -> Self::Future;
 
     /// Wraps `self` with `LiftService`. This provides an implementation of
     /// `Service` for `Self`.
@@ -43,13 +40,12 @@ pub struct LiftService<T> {
     inner: T,
 }
 
-impl<T, B1, B2> HttpService for T
+impl<T, B1, B2> HttpService<B1> for T
 where
-    T: Service<Request = Request<B1>, Response = Response<B2>>,
+    T: Service<Request<B1>, Response = Response<B2>>,
     B1: BufStream,
     B2: BufStream,
 {
-    type RequestBody = B1;
     type ResponseBody = B2;
     type Error = T::Error;
     type Future = T::Future;
@@ -58,7 +54,7 @@ where
         Service::poll_ready(self)
     }
 
-    fn call_http(&mut self, request: Request<Self::RequestBody>) -> Self::Future {
+    fn call_http(&mut self, request: Request<B1>) -> Self::Future {
         Service::call(self, request)
     }
 }
@@ -80,10 +76,9 @@ impl<T> LiftService<T> {
     }
 }
 
-impl<T> Service for LiftService<T>
-where T: HttpService,
+impl<T, RequestBody> Service<Request<RequestBody>> for LiftService<T>
+where T: HttpService<RequestBody>,
 {
-    type Request = Request<T::RequestBody>;
     type Response = Response<T::ResponseBody>;
     type Error = T::Error;
     type Future = T::Future;
@@ -92,19 +87,19 @@ where T: HttpService,
         self.inner.poll_http_ready()
     }
 
-    fn call(&mut self, request: Self::Request) -> Self::Future {
+    fn call(&mut self, request: Request<RequestBody>) -> Self::Future {
         self.inner.call_http(request)
     }
 }
 
-impl<T, B1, B2> sealed::Service for T
+impl<T, B1, B2> sealed::Service<B1> for T
 where
-    T: Service<Request = Request<B1>, Response = Response<B2>>,
+    T: Service<Request<B1>, Response = Response<B2>>,
     B1: BufStream,
     B2: BufStream
 {
 }
 
 mod sealed {
-    pub trait Service {}
+    pub trait Service<T> {}
 }
