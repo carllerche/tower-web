@@ -3,7 +3,6 @@
 #![cfg_attr(test, deny(warnings))]
 #![cfg_attr(feature = "async-await-preview", feature(
         async_await,
-        await_macro,
         ))]
 
 //! Tower Web is a fast web framework that aims to remove boilerplate.

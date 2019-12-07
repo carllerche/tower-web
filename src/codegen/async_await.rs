@@ -7,19 +7,10 @@ use std::future::Future as StdFuture;
 /// This bridges async/await with stable futures.
 pub fn async_to_box_future_send<T>(
     future: T,
-) -> Box<impl Future<Item = T::Output, Error = crate::Error> + Send>
+) -> Box<dyn Future<Item = T::Output, Error = crate::Error> + Send>
 where
     T: StdFuture + Send + 'static,
 {
-    use tokio_async_await::compat::backward;
-
-    let future = backward::Compat::new(map_ok(future));
-    Box::new(future)
-}
-
-async fn map_ok<T, E>(future: T) -> Result<T::Output, E>
-where
-    T: StdFuture,
-{
-    Ok(await!(future))
+    use futures03::future::{TryFutureExt, FutureExt};
+    Box::new(future.unit_error().map_err(|_| unreachable!()).boxed().compat())
 }
